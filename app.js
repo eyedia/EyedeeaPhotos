@@ -17,7 +17,7 @@ async function init() {
   });
   
   app.get('/images', (req, res) => {
-    res.json(["276267/pexels-photo-276267.jpeg", "2280547/pexels-photo-2280547.jpeg"]);
+    res.json(["40627_1735854357", "40624_1735854353"]);
   });
 
   app.get('/dir', async (req, res) => {
@@ -49,31 +49,13 @@ async function init() {
     }
   });
 
-  // app.get('/image', async (req, res) => {
-  //   try {
-  //     const response = await fetch('https://example.com/image.jpg'); 
-  //     const buffer = await response.buffer();
-  
-  //     res.writeHead(200, {
-  //       'Content-Type': response.headers.get('content-type')
-  //     });
-  //     res.end(buffer); 
-  //   } catch (error) {
-  //     console.error(error);
-  //     res.status(500).send('Error fetching image');
-  //   }
-  // });
-
-  app.get('/photo', async (req, res) => {
+  app.get('/image', async (req, res) => {
     try {
       let id = "";
-      if (req.query.id){
-        id = req.query.id;
-      }
-
       let cache_key = "";
-      if (req.query.cache_key){
-        cache_key = req.query.cache_key;
+      if (req.query.key){
+        cache_key = req.query.key;
+        id = cache_key.split("_")[0];
       }
 
       let size = "sm";
@@ -82,8 +64,6 @@ async function init() {
       }
 
       const response = await photos_teams_get_photo(id=id, cache_key=cache_key, size=size);
-      console.log(response.data.length);
-      // const buffer = await data.buffer();
       res.writeHead(200, {
          'Content-Type': response.headers.get('content-type'),
          'Content-Length': response.data.length

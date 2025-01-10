@@ -26,8 +26,9 @@ function get_images(callback) {
 
 function start_slide_show(imgs) {
   images = imgs;
-  html_imgs[0].src = `https://images.pexels.com/photos/${images[img_counter]}?auto=compress&cs=tinysrgb&w=600`;
-  html_imgs[0].src = `https://images.pexels.com/photos/${images[img_counter + 1]}?auto=compress&cs=tinysrgb&w=600`;
+
+  html_imgs[0].src = `${window.location.protocol}/image?key=${images[img_counter]}&size=xl`;
+  html_imgs[0].src = `${window.location.protocol}/image?key=${images[img_counter + 1]}&size=xl`;
   html_imgs[0].style.opacity = 1;
   setInterval(next_slide, 5000);
 }
@@ -37,10 +38,10 @@ function next_slide() {
   html_imgs[1].style.opacity = toggle_image === 0 ? 1 : 0;
 
   step_counter();
-  html_imgs[0].src = `https://images.pexels.com/photos/${images[img_counter]}?auto=compress&cs=tinysrgb&w=600`;
+  html_imgs[0].src = `${window.location.protocol}/image?key=${images[img_counter]}&size=xl`;
 
   step_counter();
-  html_imgs[1].src = `https://images.pexels.com/photos/${images[img_counter]}?auto=compress&cs=tinysrgb&w=600`;
+  html_imgs[1].src = `${window.location.protocol}/image?key=${images[img_counter]}&size=xl`;
 
   //track_image_view();
 

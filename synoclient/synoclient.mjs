@@ -1,6 +1,8 @@
 import axios from 'axios';
 import https from 'https';
 import dotenv from 'dotenv';
+import fs from 'fs';
+import { error } from 'console';
 
 const httpsAgent = new https.Agent({ rejectUnauthorized: false })
 const env = dotenv.config();
@@ -8,6 +10,23 @@ export let nas_auth_token = {}
 
 export async function authenticate() {
   try {
+    //read from cache
+    nas_auth_token = await read_cache()
+    .then(data => {
+      if(data){
+        return data;
+      }
+    })
+    .catch(error => {      
+      return nas_auth_token;
+    });
+    
+    if(Object.keys(nas_auth_token).length != 0){
+      console.log("NAS Auth initiated from cache!");
+      return;
+    }
+    
+    //not in cache, lets authenticate
     axios.get(process.env.nas_url + '/auth.cgi', {
       params: {
         api: "SYNO.API.Auth",
@@ -21,6 +40,7 @@ export async function authenticate() {
     })
       .then(function (response) {
         nas_auth_token = response.data.data;
+        write_cache(nas_auth_token);
         console.log(nas_auth_token);
       })
       .catch(function (error) {
@@ -104,4 +124,23 @@ export async function photos_teams_get_photo(id, cache_key, size = "sm") {
     console.error('Authentication failed:', error.response?.data || error.message);
     throw error;
   }
+}
+
+function read_cache(){
+  return new Promise((resolve, reject) => {
+    fs.readFile('.cache', 'utf8', (err, data) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(JSON.parse(data));
+      }
+    })
+  });
+}
+
+function write_cache(data){
+  fs.writeFile('.cache', JSON.stringify(data), (err) => {
+    if (err) throw err;
+    console.log('The file has been saved!');
+  });
 }

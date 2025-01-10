@@ -6,6 +6,9 @@ import { error } from 'console';
 
 const httpsAgent = new https.Agent({ rejectUnauthorized: false })
 const env = dotenv.config();
+const max_retry = 3;
+let retry_count = 0;
+
 export let nas_auth_token = {}
 
 export async function authenticate() {
@@ -56,16 +59,16 @@ export async function authenticate() {
 }
 
 
-export async function photos_teams_get_dir_items(id = -1, folder_id = -1, offset = 0, limit = 100) {
+export async function list_dir(id = -1, folder_id = -1, offset = 0, limit = 100) {  
   try {
     let m_param = {
       api: "SYNO.FotoTeam.Browse.Folder",
-      version: 2,
-      method: "list",
       SynoToken: nas_auth_token.synotoken,
+      version: 2,
+      method: "list",      
       offset: offset,
       limit: limit
-    };
+    };    
     if (id > -1) {
       m_param.id = id;
     }
@@ -73,7 +76,7 @@ export async function photos_teams_get_dir_items(id = -1, folder_id = -1, offset
     if (folder_id > -1) {
       m_param.api = "SYNO.FotoTeam.Browse.Item";
       m_param.folder_id = folder_id;
-      m_param.additional = "[\"thumbnail\"]";
+      m_param.additional = "[\"thumbnail\", \"resolution\",\"orientation\",\"provider_user_id\", \"tag\", \"geocoding_id\"]";
     }
 
     return axios.get(process.env.nas_url + '/entry.cgi', {
@@ -93,19 +96,68 @@ export async function photos_teams_get_dir_items(id = -1, folder_id = -1, offset
   }
 }
 
-export async function photos_teams_get_photo(id, cache_key, size = "sm") {
+
+export async function list_geo(offset = 0, limit = 100) { 
+  try {
+    let m_param = {
+      api: "SYNO.FotoTeam.Browse.Geocoding",
+      SynoToken: nas_auth_token.synotoken,
+      version: 1,
+      method: "list",      
+      offset: offset,
+      limit: limit
+    };
+
+    return axios.get(process.env.nas_url + '/entry.cgi', {
+      params: m_param,
+      httpsAgent: httpsAgent
+    })
+      .then(function (response) {
+        console.log(response.data);
+        // if(!valid_response(response)){
+        //   console.log("Retrying...")
+        //   list_geo(offset = offset, limit = limit);
+        // }
+        return response.data;
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+
+  } catch (error) {
+    console.error('Authentication failed:', error.response?.data || error.message);
+    throw error;
+  }
+}
+
+function valid_response(response){
+  console.log(response.data.success);
+  if(!response.data.success){    
+    if(response.data.error.code === 119){
+      console.log("here");
+      fs.unlink(".cache", (err) => {
+        console.log("Cache cleared! re-authenticating...");
+        authenticate();
+      });
+      
+      return false;
+    }    
+  }
+
+  return true;
+}
+
+export async function get_photo(id, cache_key, size = "sm") {
   try {
     let m_param = {
       api: "SYNO.FotoTeam.Thumbnail",
+      SynoToken: nas_auth_token.synotoken,
       version: 2,
       method: "get",
       id: id,
       cache_key: cache_key,
       type: "unit",
-      size: size,
-      SynoToken: nas_auth_token.synotoken,
-      offset: 0,
-      limit: 100
+      size: size
     };
 
     return axios.get(process.env.nas_url + '/entry.cgi', {

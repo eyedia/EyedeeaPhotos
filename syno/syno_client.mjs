@@ -1,10 +1,29 @@
 import axios from 'axios';
+import axiosRetry from 'axios-retry';
 import https from 'https';
 import dotenv from 'dotenv';
 import fs from 'fs';
-import { error } from 'console';
 
 const httpsAgent = new https.Agent({ rejectUnauthorized: false })
+
+const api_client = axios.create({
+  baseURL: "https://192.168.86.218:5001/webapi",
+  headers: {
+    //'Content-Type': 'application/json',
+    // Add any other headers you need
+  },
+});
+
+// Configure retry behavior
+axiosRetry(api_client, {
+  retries: 3, // Number of retries
+  retryDelay: axiosRetry.exponentialDelay, // Exponential backoff
+  retryCondition: (error) => {
+    // Retry on ECONNRESET and network errors
+    return error.code === 'ECONNRESET' || axiosRetry.isNetworkError(error);
+  },
+});
+
 const env = dotenv.config();
 const max_retry = 3;
 let retry_count = 0;
@@ -30,7 +49,7 @@ export async function authenticate() {
     }
     
     //not in cache, lets authenticate
-    axios.get(process.env.nas_url + '/auth.cgi', {
+    api_client.get('/auth.cgi', {
       params: {
         api: "SYNO.API.Auth",
         version: 7,
@@ -79,7 +98,7 @@ export async function list_dir(id = -1, folder_id = -1, offset = 0, limit = 100)
       m_param.additional = "[\"thumbnail\", \"resolution\",\"orientation\",\"provider_user_id\", \"tag\", \"geocoding_id\"]";
     }
 
-    return axios.get(process.env.nas_url + '/entry.cgi', {
+    return api_client.get('/entry.cgi', {
       params: m_param,
       httpsAgent: httpsAgent
     })
@@ -87,7 +106,11 @@ export async function list_dir(id = -1, folder_id = -1, offset = 0, limit = 100)
         return response.data;
       })
       .catch(function (error) {
+        if (error.code === 'ECONNRESET') {
+          console.error('Connection reset by peer.');
+        } else {
         console.log(error);
+        }
       });
 
   } catch (error) {
@@ -108,7 +131,7 @@ export async function list_geo(offset = 0, limit = 100) {
       limit: limit
     };
 
-    return axios.get(process.env.nas_url + '/entry.cgi', {
+    return api_client.get('/entry.cgi', {
       params: m_param,
       httpsAgent: httpsAgent
     })
@@ -160,7 +183,7 @@ export async function get_photo(id, cache_key, size = "sm") {
       size: size
     };
 
-    return axios.get(process.env.nas_url + '/entry.cgi', {
+    return api_client.get('/entry.cgi', {
       params: m_param,
       responseType: 'arraybuffer',
       httpsAgent: httpsAgent

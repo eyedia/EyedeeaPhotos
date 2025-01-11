@@ -25,3 +25,4 @@ logs
 # Environment variables
 .env*
 .cache
+meta/synoplayer.db

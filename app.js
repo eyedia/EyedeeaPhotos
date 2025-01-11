@@ -1,6 +1,6 @@
 import express from "express";
 import config_log from "./config_log.js";
-import { meta_init } from "./meta/metadata.mjs";
+import { meta_init, get_photos } from "./meta/metadata.mjs";
 import { authenticate, list_dir, list_geo, get_photo } from "./syno/syno_client.mjs";
 import {scan} from "./syno/syno_scanner.mjs";
 
@@ -17,11 +17,17 @@ async function init() {
     res.sendFile(__dirname + '/public/index.html');
   });
 
-  app.get('/images', (req, res) => {
-    res.json(["40627_1735854357", "40624_1735854353"]);
+  app.get('/photos', async (req, res) => {
+    get_photos((err, rows) => {
+      if (err) {
+        logger.error(err.message);
+      } else {
+        res.json(rows);
+      }
+    }); 
   });
 
-  app.get('/image', async (req, res) => {
+  app.get('/photo', async (req, res) => {
     try {
       let id = "";
       let cache_key = "";
@@ -97,7 +103,8 @@ async function init() {
   });
 
   app.get('/scan', async (req, res) => {
-    await scan();
+    //await scan();
+    await get_photos();
     res.json("data");
   });
 

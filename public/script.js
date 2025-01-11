@@ -1,4 +1,4 @@
-const api_images = window.location.protocol + "//" + window.location.host + "/images";
+const api_images = window.location.protocol + "//" + window.location.host + "/photos";
 const html_imgs = document.querySelectorAll(".intro-slideshow img");
 let images = [];
 let img_counter = 0;
@@ -27,8 +27,8 @@ function get_images(callback) {
 function start_slide_show(imgs) {
   images = imgs;
 
-  html_imgs[0].src = `${window.location.protocol}/image?key=${images[img_counter]}&size=xl`;
-  html_imgs[0].src = `${window.location.protocol}/image?key=${images[img_counter + 1]}&size=xl`;
+  html_imgs[0].src = `${window.location.protocol}/photo?key=${images[img_counter]}&size=xl`;
+  html_imgs[0].src = `${window.location.protocol}/photo?key=${images[img_counter + 1]}&size=xl`;
   html_imgs[0].style.opacity = 1;
   setInterval(next_slide, 5000);
 }
@@ -38,10 +38,10 @@ function next_slide() {
   html_imgs[1].style.opacity = toggle_image === 0 ? 1 : 0;
 
   step_counter();
-  html_imgs[0].src = `${window.location.protocol}/image?key=${images[img_counter]}&size=xl`;
+  html_imgs[0].src = `${window.location.protocol}/photo?key=${images[img_counter]}&size=xl`;
 
   step_counter();
-  html_imgs[1].src = `${window.location.protocol}/image?key=${images[img_counter]}&size=xl`;
+  html_imgs[1].src = `${window.location.protocol}/photo?key=${images[img_counter]}&size=xl`;
 
   //track_image_view();
 

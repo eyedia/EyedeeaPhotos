@@ -6,12 +6,12 @@ let meta_db = null;
 
 export async function meta_init() {
     const dbExists = fs.existsSync(dbFile);
-    meta_db = openDatabase();
+    meta_db = open_database();
     if (!dbExists) {
-        createTables();
+        create_tables();
     }
 }
-function openDatabase() {
+function open_database() {
     return new sqlite3.Database(dbFile,
         sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE,
         (err) => {
@@ -23,7 +23,7 @@ function openDatabase() {
         });
 }
 
-function createTables() {
+function create_tables() {
     const createTableQueries = [
         `CREATE TABLE user (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -83,12 +83,13 @@ export function save_photo(json_data) {
 
 }
 
-function executeQuery(query) {
+export function get_photos(callback) {
+    let query = "SELECT * FROM photo WHERE type='photo' and id IN (SELECT id FROM photo WHERE type='photo' ORDER BY RANDOM() LIMIT 2)"
     meta_db.all(query, (err, rows) => {
         if (err) {
-            console.error('Error executing query:', err.message);
+            callback(err, null);
         } else {
-            console.table(rows);
+            callback(null, rows);
         }
     });
 }

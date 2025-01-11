@@ -1,4 +1,5 @@
-import { list_dir } from "./synoclient.mjs"
+import { list_dir } from "./syno_client.mjs"
+import { save_photo } from "../meta/metadata.mjs"
 
 let loop_count = 0;
 
@@ -37,11 +38,18 @@ async function list_dir_loop(id = -1, folder_id = -1, offset = 0, limit = 100) {
                 list_dir(-1, id, offset, limit)
                     .then(photo_data => {
                         photo_data.data.list.forEach(function (photo) {
-                            //one_record.folder_id = folder.id;
-                            //one_record.folder_name = folder.name;
-                            console.log("pic:", photo.id, photo.filename, photo.folder_id, photo.time, 
-                                photo.type, photo.additional.orientation, 
-                                photo.additional.thumbnail.cache_key, photo.additional.thumbnail.unit_id);
+                            let one_record = {
+                                "photo_id": photo.id,
+                                "filename": photo.filename,
+                                "folder_id": photo.folder_id,
+                                "time": photo.time,
+                                "type": photo.type,
+                                "orientation": photo.additional.orientation,
+                                "cache_key": photo.additional.thumbnail.cache_key,
+                                "unit_id": photo.additional.thumbnail.unit_id
+                            }
+                            save_photo(one_record);
+                            console.log("pic:", one_record);
                             //list_dir_loop(folder.id, undefined, offset, limit);
                         });
                     });

@@ -1,16 +1,15 @@
 import express from "express";
 import dotenv from 'dotenv';
-import { meta_init } from "./metadata/metadata.mjs"
-import { authenticate, list_dir, list_geo, get_photo } from "./synoclient/synoclient.mjs"
-import {scan} from "./synoclient/syno_scanner.mjs"
+import { meta_init, save_photo } from "./meta/metadata.mjs"
+import { authenticate, list_dir, list_geo, get_photo } from "./syno/syno_client.mjs"
+import {scan} from "./syno/syno_scanner.mjs"
 
 const app = express();
 app.use(express.static('public'));
-
 const PORT = process.env.PORT || 3000;
 
 async function init() {
-  meta_init();
+  await meta_init();
   await authenticate();
 
   app.get('/', (req, res) => {
@@ -97,30 +96,7 @@ async function init() {
   });
 
   app.get('/scan', async (req, res) => {
-
-    // let m_offset = 0;
-    // let m_limit = 100;
-    // let one_record = {};
-
-    // list_dir(undefined, undefined, m_offset, m_limit)
-    //   .then(data => {
-    //     data.data.list.forEach(function (root_folder) {
-    //       one_record.root_folder_id = root_folder.id;
-    //       one_record.root_folder_name = root_folder.name;
-
-    //       list_dir(one_record.root_folder_id, undefined, m_offset, m_limit)
-    //       .then(data => {
-    //         data.data.list.forEach(function (folder) {
-    //           one_record.folder_id = folder.id;
-    //           one_record.folder_name = folder.name;
-    //           console.log(one_record);
-    //         });
-    //       });
-    //     });
-    //   });
-
     await scan();
-
     res.json("data");
   });
 

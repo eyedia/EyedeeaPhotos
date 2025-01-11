@@ -84,7 +84,7 @@ export function save_photo(json_data) {
 }
 
 export function get_photos(callback) {
-    let query = "SELECT * FROM photo WHERE type='photo' and id IN (SELECT id FROM photo WHERE type='photo' ORDER BY RANDOM() LIMIT 2)"
+    let query = "SELECT * FROM photo WHERE type='photo' and id IN (SELECT id FROM photo WHERE type='photo' ORDER BY RANDOM() LIMIT 10)"
     meta_db.all(query, (err, rows) => {
         if (err) {
             callback(err, null);

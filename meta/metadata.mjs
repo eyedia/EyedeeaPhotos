@@ -1,6 +1,8 @@
 import sqlite3 from "sqlite3";
 import fs from "fs";
+import config_log from "../config_log.js";
 
+const logger = config_log.logger;
 const dbFile = './meta/synoplayer.db';
 let meta_db = null;
 
@@ -16,10 +18,10 @@ function open_database() {
         sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE,
         (err) => {
             if (err) {
-                console.error('Error opening database:', err.message);
+                logger.error('Error opening database:', err.message);
                 process.exit(1);
             }
-            console.log('Connected to database:', dbFile);
+            logger.info('Connected to database:', dbFile);
         });
 }
 
@@ -50,9 +52,9 @@ function create_tables() {
     createTableQueries.forEach((query) => {
         meta_db.run(query, (err) => {
             if (err) {
-                console.error(err.message);
+                logger.error(err.message);
             } else {
-                console.log('Table created successfully.');
+                logger.info('Table created successfully.');
             }
         });
     });
@@ -77,7 +79,7 @@ export function save_photo(json_data) {
         [json_data.photo_id, json_data.filename, json_data.folder_id, json_data.time, json_data.type, json_data.orientation, json_data.cache_key, json_data.unit_id],
         function (err) {
             if (err) {
-                console.error('Error inserting data:', err.message);
+                logger.error('Error inserting data:', err.message);
             }
         });
 

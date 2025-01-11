@@ -103,8 +103,7 @@ async function init() {
   });
 
   app.get('/scan', async (req, res) => {
-    //await scan();
-    await get_photos();
+    await scan();
     res.json("data");
   });
 

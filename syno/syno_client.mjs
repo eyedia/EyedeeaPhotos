@@ -3,7 +3,9 @@ import axiosRetry from 'axios-retry';
 import https from 'https';
 import dotenv from 'dotenv';
 import fs from 'fs';
+import config_log from "../config_log.js";
 
+const logger = config_log.logger;
 const httpsAgent = new https.Agent({ rejectUnauthorized: false })
 
 const api_client = axios.create({
@@ -44,7 +46,7 @@ export async function authenticate() {
     });
     
     if(Object.keys(nas_auth_token).length != 0){
-      console.log("NAS Auth initiated from cache!");
+      logger.info("NAS Auth initiated from cache!");
       return;
     }
     
@@ -63,16 +65,16 @@ export async function authenticate() {
       .then(function (response) {
         nas_auth_token = response.data.data;
         write_cache(nas_auth_token);
-        console.log(nas_auth_token);
+        logger.info(nas_auth_token);
       })
       .catch(function (error) {
-        console.log(error);
+        logger.info(error);
       });
 
     return;
 
   } catch (error) {
-    console.error('Authentication failed:', error.response?.data || error.message);
+    logger.error('Authentication failed:', error.response?.data || error.message);
     throw error;
   }
 }
@@ -107,14 +109,14 @@ export async function list_dir(id = -1, folder_id = -1, offset = 0, limit = 100)
       })
       .catch(function (error) {
         if (error.code === 'ECONNRESET') {
-          console.error('Connection reset by peer.');
+          logger.error('Connection reset by peer.');
         } else {
-        console.log(error);
+        logger.info(error);
         }
       });
 
   } catch (error) {
-    console.error('Authentication failed:', error.response?.data || error.message);
+    logger.error('Authentication failed:', error.response?.data || error.message);
     throw error;
   }
 }
@@ -136,30 +138,30 @@ export async function list_geo(offset = 0, limit = 100) {
       httpsAgent: httpsAgent
     })
       .then(function (response) {
-        console.log(response.data);
+        logger.info(response.data);
         // if(!valid_response(response)){
-        //   console.log("Retrying...")
+        //   logger.info("Retrying...")
         //   list_geo(offset = offset, limit = limit);
         // }
         return response.data;
       })
       .catch(function (error) {
-        console.log(error);
+        logger.info(error);
       });
 
   } catch (error) {
-    console.error('Authentication failed:', error.response?.data || error.message);
+    logger.error('Authentication failed:', error.response?.data || error.message);
     throw error;
   }
 }
 
 function valid_response(response){
-  console.log(response.data.success);
+  logger.info(response.data.success);
   if(!response.data.success){    
     if(response.data.error.code === 119){
-      console.log("here");
+      logger.info("here");
       fs.unlink(".cache", (err) => {
-        console.log("Cache cleared! re-authenticating...");
+        logger.info("Cache cleared! re-authenticating...");
         authenticate();
       });
       
@@ -192,11 +194,11 @@ export async function get_photo(id, cache_key, size = "sm") {
         return response;
       })
       .catch(function (error) {
-        console.log(error);
+        logger.info(error);
       });
 
   } catch (error) {
-    console.error('Authentication failed:', error.response?.data || error.message);
+    logger.error('Authentication failed:', error.response?.data || error.message);
     throw error;
   }
 }
@@ -216,6 +218,6 @@ function read_cache(){
 function write_cache(data){
   fs.writeFile('.cache', JSON.stringify(data), (err) => {
     if (err) throw err;
-    console.log('The file has been saved!');
+    logger.info('The file has been saved!');
   });
 }

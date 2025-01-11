@@ -26,3 +26,4 @@ logs
 .env*
 .cache
 meta/synoplayer.db
+meta/synoplayer.db-journal

@@ -78,8 +78,6 @@ export function save_photo(json_data) {
         function (err) {
             if (err) {
                 console.error('Error inserting data:', err.message);
-            } else {
-                console.log(`Row inserted with rowid ${this.lastID}`);
             }
         });
 

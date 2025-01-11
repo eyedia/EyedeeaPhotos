@@ -1,12 +1,13 @@
 import express from "express";
-import dotenv from 'dotenv';
-import { meta_init, save_photo } from "./meta/metadata.mjs"
-import { authenticate, list_dir, list_geo, get_photo } from "./syno/syno_client.mjs"
-import {scan} from "./syno/syno_scanner.mjs"
+import config_log from "./config_log.js";
+import { meta_init } from "./meta/metadata.mjs";
+import { authenticate, list_dir, list_geo, get_photo } from "./syno/syno_client.mjs";
+import {scan} from "./syno/syno_scanner.mjs";
 
 const app = express();
 app.use(express.static('public'));
 const PORT = process.env.PORT || 3000;
+const logger = config_log.logger;
 
 async function init() {
   await meta_init();
@@ -101,7 +102,7 @@ async function init() {
   });
 
   app.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}`);
+    logger.info(`Server listening on port ${PORT}`);
   });
 }
 

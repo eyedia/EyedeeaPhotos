@@ -103,7 +103,7 @@ async function init() {
   });
 
   app.get('/scan', async (req, res) => {
-    await scan();
+    //await scan();
     res.json({"message": "Scanning started..."});
   });
 

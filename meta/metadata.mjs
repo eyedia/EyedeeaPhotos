@@ -137,7 +137,7 @@ export function scan_log(json_data) {
 
 export function get_photos(callback) {
     //let query = "SELECT * FROM photo WHERE type='photo' and id IN (SELECT id FROM photo WHERE type='photo' ORDER BY RANDOM() LIMIT 10)"
-    let query = "SELECT * FROM photo WHERE id IN(82, 83)";
+    let query = "SELECT * FROM photo WHERE id IN(82, 83, 174)";
     meta_db.all(query, (err, rows) => {
         if (err) {
             callback(err, null);

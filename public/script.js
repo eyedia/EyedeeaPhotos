@@ -1,5 +1,7 @@
 const api_images = window.location.protocol + "//" + window.location.host + "/photos";
-const html_imgs = document.querySelectorAll(".intro-slideshow img");
+//const html_imgs = document.querySelectorAll(".intro-slideshow img");
+const html_img01 = document.getElementById("img01");
+const html_img02 = document.getElementById("img02");
 const html_title = document.querySelector(".intro h1");
 const html_sub_title = document.querySelector(".intro p");
 const days_of_week = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -9,6 +11,9 @@ const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 let images = [];
 let img_counter = 0;
 let toggle_image = 0;
+
+let html_img_current = html_img01;
+let html_img_previous = html_img02;
 
 get_images(start_slide_show);
 
@@ -33,72 +38,91 @@ function get_images(callback) {
 }
 
 function start_slide_show(imgs) {
-  html_imgs[0].src = `${window.location.protocol}/photo?key=${images[img_counter].cache_key}&size=xl`;
-  html_imgs[0].data = images[img_counter];
-  html_imgs[0].style.opacity = 1;
+  html_img01.src = `${window.location.protocol}/photo?key=${images[img_counter].cache_key}&size=xl`;
+  html_img01.data = images[img_counter];
+  html_img01.style.opacity = 1;
+  html_img_current = html_img01;
 
-  html_imgs[1].src = `${window.location.protocol}/photo?key=${images[img_counter + 1].cache_key}&size=xl`;
-  html_imgs[1].data = images[img_counter + 1];
-  html_imgs[1].style.opacity = 0;
+  step_counter();
+  html_img02.src = `${window.location.protocol}/photo?key=${images[img_counter].cache_key}&size=xl`;
+  html_img02.data = images[img_counter];
+  html_img02.style.opacity = 0;
+  html_img_previous = html_img02;
 
+  set_image_attributes();
   setInterval(next_slide, 10000);
 }
 
 function next_slide() {
     
-  console.log(html_imgs[0].style.opacity);
-  console.log(html_imgs[1].style.opacity);
-  console.log(toggle_image);
+  console.log(html_img01.style.opacity);
+  console.log(html_img02.style.opacity);
   
-  html_title.textContent = get_title();
-  html_sub_title.textContent = get_sub_title();
-  set_orientation();
+  console.log(html_img_current.id, html_img_current.style.opacity, html_img_current.data.filename, html_img_previous.id, html_img_previous.style.opacity, html_img_previous.data.filename);
+
+  if(html_img_current.id == "img01"){
+    html_img_current = html_img02;
+    html_img_previous = html_img01;
+  }else{
+    html_img_current = html_img01;
+    html_img_previous = html_img02;
+  }
   
-  html_imgs[0].style.opacity = toggle_image === 0 ? 0 : 1;  
-  html_imgs[1].style.opacity = toggle_image === 0 ? 1 : 0;
+  html_img_current.style.opacity = 1;
+  html_img_previous.style.opacity = 0;
   
   step_counter();
-  html_imgs[toggle_image === 0 ? 1 : 0].src = `${window.location.protocol}/photo?key=${images[img_counter].cache_key}&size=xl`;
-  html_imgs[toggle_image === 0 ? 1 : 0].data = images[img_counter];
+  const timestamp = new Date().getTime();
+  html_img_previous.src = `${window.location.protocol}/photo?key=${images[img_counter].cache_key}&size=xl&t=${timestamp}`;
+  html_img_previous.data = images[img_counter];
+
+  set_image_attributes();
   
   //track_image_view();
 
   toggle_image = toggle_image === 0 ? 1 : 0;
 }
 
+function set_image_attributes(){
+  set_title();
+  set_sub_title();
+  set_orientation();
+}
+
 function set_orientation(){
-  let which_img = toggle_image; // === 0 ? 1 : 0;
-  let orientation = html_imgs[which_img].data.orientation;
+  let orientation = html_img_current.data.orientation;
   if ((orientation == 6) || (orientation == 8)){
-  html_imgs[which_img].style.rotate= "90deg";
+    html_sub_title.textContent = html_sub_title.textContent + " rotated|" + html_img_current.id;
+    html_img_current.style.rotate= "360deg";
   }else{
-    html_imgs[which_img].style.removeProperty("rotate");
+    html_img_current.style.removeProperty("rotate");
+    html_sub_title.textContent = html_sub_title.textContent + " not rotated|" + html_img_current.id;
   }
 }
 
-function get_title(){
+function set_title(){
   try {
-    let title = images[img_counter].folder_name;
+    let title = html_img_current.data.folder_name;
     title = title.split("/").pop(); //removing slash and taking last folder name. i.e. album name
     title = title.replace(" - ", " ");
     title = title.replace("-", " ");
     title = title.replace("_", " ");
-    return title;
+    html_title.textContent = title;
 
   } catch (error) {
     console.error(error);
-    return "Memories"
+    html_title.textContent = "Memories"
   }
 }
 
-function get_sub_title(){
+function set_sub_title(){
   try {
-    let taken_on = new Date(images[img_counter].time * 1000);
+    let taken_on = new Date(html_img_current.data.time * 1000);
     taken_on = `${days_of_week[taken_on.getDay()]} ${months[taken_on.getMonth()]} ${taken_on.getDate().toString().padStart(2, 0)} ${taken_on.getFullYear()}`
-    return taken_on
+    html_sub_title.textContent = taken_on + " " + html_img_current.data.filename + "|" + html_img_current.data.orientation;
   } catch (error) {
     console.error(error);
-    return "It's all about the journey"
+    html_sub_title.textContent = "It's all about the journey"
   }
 }
 

@@ -31,7 +31,7 @@ function start_slide_show(imgs) {
   html_imgs[1].src = `${window.location.protocol}/photo?key=${images[img_counter + 1].cache_key}&size=xl`;
   html_imgs[0].style.opacity = 1;
   html_imgs[1].style.opacity = 0;
-  setInterval(next_slide, 5000);
+  setInterval(next_slide, 10000);
 }
 
 function next_slide() {

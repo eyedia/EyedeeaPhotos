@@ -6,7 +6,7 @@ import {scan} from "./syno/syno_scanner.mjs";
 
 const app = express();
 app.use(express.static('public'));
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 const logger = config_log.logger;
 
 async function init() {
@@ -104,7 +104,7 @@ async function init() {
 
   app.get('/scan', async (req, res) => {
     await scan();
-    res.json("data");
+    res.json({"message": "Scanning started..."});
   });
 
   app.listen(PORT, () => {

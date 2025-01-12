@@ -46,10 +46,13 @@ function start_slide_show(imgs) {
 
 function next_slide() {
     
-  console.log(html_imgs[0].data);
+  console.log(html_imgs[0].style.opacity);
+  console.log(html_imgs[1].style.opacity);
+  console.log(toggle_image);
   
   html_title.textContent = get_title();
   html_sub_title.textContent = get_sub_title();
+  set_orientation();
   
   html_imgs[0].style.opacity = toggle_image === 0 ? 0 : 1;  
   html_imgs[1].style.opacity = toggle_image === 0 ? 1 : 0;
@@ -63,16 +66,19 @@ function next_slide() {
   toggle_image = toggle_image === 0 ? 1 : 0;
 }
 
-function visible_img_idx(){
-  return toggle_image === 0 ? 1 : 0;
+function set_orientation(){
+  let which_img = toggle_image; // === 0 ? 1 : 0;
+  let orientation = html_imgs[which_img].data.orientation;
+  if ((orientation == 6) || (orientation == 8)){
+  html_imgs[which_img].style.rotate= "90deg";
+  }else{
+    html_imgs[which_img].style.removeProperty("rotate");
+  }
 }
 
 function get_title(){
-  console.log("idx", visible_img_idx());
-  console.log("data", html_imgs[visible_img_idx()].data);
-
   try {
-    let title = images[img_counter + 1].folder_name;
+    let title = images[img_counter].folder_name;
     title = title.split("/").pop(); //removing slash and taking last folder name. i.e. album name
     title = title.replace(" - ", " ");
     title = title.replace("-", " ");
@@ -87,7 +93,7 @@ function get_title(){
 
 function get_sub_title(){
   try {
-    let taken_on = new Date(images[img_counter + 1].time * 1000);
+    let taken_on = new Date(images[img_counter].time * 1000);
     taken_on = `${days_of_week[taken_on.getDay()]} ${months[taken_on.getMonth()]} ${taken_on.getDate().toString().padStart(2, 0)} ${taken_on.getFullYear()}`
     return taken_on
   } catch (error) {

@@ -73,6 +73,17 @@ function create_tables() {
             folder_name TEXT NOT NULL,
             debug_info TEXT,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            );`,
+
+        `CREATE TABLE view_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            photo_id INT NOT NULL,
+            count INT NOT NULL DEFAULT 0,
+            client_ip_address TEXT NOT NULL,
+            client_user_agent_family TEXT,
+			client_user_agent_os_family TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT
             );`
     ];
 
@@ -135,9 +146,33 @@ export function scan_log(json_data) {
 }
 
 
+export function save_view_log(json_data) {
+
+    // json_data = {
+    //     "photo_id": 820,
+    //     "count": 1,
+    //     "client_ip_address": "127.0.0.1",
+    //     "client_user_agent_family": "chrome",
+    //     "client_user_agent_os_family": "windows"
+    // }
+    json_data["count"] = 1;
+    const insert_query = `INSERT INTO view_log (photo_id, count ,client_ip_address, client_user_agent_family, client_user_agent_os_family) VALUES (?, ?, ?, ?, ?)`;
+
+    meta_db.run(
+        insert_query,
+        [json_data.photo_id, json_data.count, json_data.client_ip_address, json_data.client_user_agent_family, json_data.client_user_agent_os_family],
+        function (err) {
+            if (err) {
+                logger.error('Error inserting data:', err);
+            }
+        });
+
+}
+
+
 export function get_photos(callback) {
-    //let query = "SELECT * FROM photo WHERE type='photo' and id IN (SELECT id FROM photo WHERE type='photo' ORDER BY RANDOM() LIMIT 10)"
-    let query = "SELECT * FROM photo WHERE id IN(82, 83, 174)";
+    let query = "SELECT * FROM photo WHERE type='photo' and id IN (SELECT id FROM photo WHERE type='photo' ORDER BY RANDOM() LIMIT 100)"
+    //let query = "SELECT * FROM photo WHERE id IN(82, 83, 174)";
     meta_db.all(query, (err, rows) => {
         if (err) {
             callback(err, null);

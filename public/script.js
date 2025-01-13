@@ -10,7 +10,7 @@ const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 
 let images = [];
 let img_counter = 0;
-let toggle_image = 0;
+//let toggle_image = 0;
 
 let html_img_current = html_img01;
 let html_img_previous = html_img02;
@@ -73,14 +73,14 @@ function next_slide() {
   
   step_counter();
   const timestamp = new Date().getTime();
-  html_img_previous.src = `${window.location.protocol}/photo?key=${images[img_counter].cache_key}&size=xl&t=${timestamp}`;
+  html_img_previous.src = `${window.location.protocol}/photo?key=${images[img_counter].cache_key}&size=xl`;
   html_img_previous.data = images[img_counter];
 
   set_image_attributes();
   
   //track_image_view();
 
-  toggle_image = toggle_image === 0 ? 1 : 0;
+  //toggle_image = toggle_image === 0 ? 1 : 0;
 }
 
 function set_image_attributes(){

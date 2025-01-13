@@ -1,11 +1,14 @@
 import express from "express";
+import useragent from "useragent";
 import config_log from "./config_log.js";
-import { meta_init, get_photos } from "./meta/metadata.mjs";
+import { meta_init, get_photos, save_view_log } from "./meta/metadata.mjs";
 import { authenticate, list_dir, list_geo, get_photo } from "./syno/syno_client.mjs";
 import {scan} from "./syno/syno_scanner.mjs";
 
 const app = express();
 app.use(express.static('public'));
+app.use(express.json());
+
 const PORT = process.env.PORT || 8080;
 const logger = config_log.logger;
 
@@ -104,9 +107,22 @@ async function init() {
 
   app.get('/scan', async (req, res) => {
     //await scan();
+    
     res.json({"message": "Scanning started..."});
   });
 
+  app.post('/view', async (req, res) => {
+    const agent = useragent.parse(req.headers['user-agent']);
+    let view_log = {
+      photo_id: req.body.photo_id,
+      client_ip_address: req.ip,
+      client_user_agent_family: agent.family,
+      client_user_agent_os_family: agent.os.family
+    }
+    await save_view_log(view_log);
+    res.status(201).json({ message: 'View log received successfully'});
+  });
+  
   app.listen(PORT, () => {
     logger.info(`Server listening on port ${PORT}`);
   });

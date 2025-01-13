@@ -1,4 +1,5 @@
 const api_images = window.location.protocol + "//" + window.location.host + "/photos";
+const api_update_view_log = window.location.protocol + "//" + window.location.host + "/view";
 //const html_imgs = document.querySelectorAll(".intro-slideshow img");
 const html_img01 = document.getElementById("img01");
 const html_img02 = document.getElementById("img02");
@@ -10,6 +11,7 @@ const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 
 let images = [];
 let img_counter = 0;
+let view_log_enabled = false;
 //let toggle_image = 0;
 
 let html_img_current = html_img01;
@@ -42,6 +44,7 @@ function start_slide_show(imgs) {
   html_img01.data = images[img_counter];
   html_img01.style.opacity = 1;
   html_img_current = html_img01;
+  track_image_view();
 
   step_counter();
   html_img02.src = `${window.location.protocol}/photo?key=${images[img_counter].cache_key}&size=xl`;
@@ -78,7 +81,7 @@ function next_slide() {
 
   set_image_attributes();
   
-  //track_image_view();
+  track_image_view();
 
   //toggle_image = toggle_image === 0 ? 1 : 0;
 }
@@ -138,13 +141,16 @@ function step_counter() {
 }
 
 function track_image_view() {
-  fetch("http://127.0.0.1/api/log", {
+  if (!view_log_enabled){
+    return;
+  }
+  fetch(api_update_view_log, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      "id": 1009
+      "photo_id": html_img_current.data.photo_id
     })
   })
     .then(response => response.json())

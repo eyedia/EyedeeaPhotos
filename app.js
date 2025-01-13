@@ -118,7 +118,7 @@ async function init() {
     //await scan();
     
     logger.info("Scanning started...");   
-    const logStream = fs.createReadStream(logFilePath);
+    const logStream = fs.createReadStream(log_path);
 
     res.setHeader('Content-Type', 'text/plain');
     res.setHeader('Transfer-Encoding', 'chunked');

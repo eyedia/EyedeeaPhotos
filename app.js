@@ -1,5 +1,6 @@
 import express from "express";
 import useragent from "useragent";
+import fs from "fs";
 import config_log from "./config_log.js";
 import { meta_init, get_photos, save_view_log } from "./meta/metadata.mjs";
 import { authenticate, list_dir, list_geo, get_photo } from "./syno/syno_client.mjs";
@@ -106,9 +107,28 @@ async function init() {
   });
 
   app.get('/scan', async (req, res) => {
+    let log_path = "./logs/logs.log";
+    let error_only = false;
+    if ((req.query.error_only)) {
+      error_only = req.query.error_only;
+      if(error_only){
+        log_path = "./logs/errors.log";
+      }
+    }
     //await scan();
     
-    res.json({"message": "Scanning started..."});
+    logger.info("Scanning started...");   
+    const logStream = fs.createReadStream(logFilePath);
+
+    res.setHeader('Content-Type', 'text/plain');
+    res.setHeader('Transfer-Encoding', 'chunked');
+
+    logStream.pipe(res);
+
+    logStream.on('error', (err) => {
+      console.error(err);
+      res.status(500).send("Error reading log file. The operation could still be on, please check the server log!");
+    });
   });
 
   app.post('/view', async (req, res) => {

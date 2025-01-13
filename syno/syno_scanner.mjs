@@ -49,7 +49,7 @@ async function list_dir_loop(id = -1, id_name, folder_id = -1, offset = 0, limit
                             });
                         } else {
                             logger.info("Server resource exhausted. Cooling down for 5 seconds...");
-                            scan_failed_data = {
+                            let scan_failed_data = {
                                 "folder_id": id,
                                 "folder_name": id_name,
                                 "debug_info": "debug info, blah"

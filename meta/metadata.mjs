@@ -230,8 +230,8 @@ export function get_rows(query, callback) {
 
 
 export function get_photos(callback) {
-    //let query = "SELECT * FROM photo WHERE type='photo' and id IN (SELECT id FROM photo WHERE type='photo' ORDER BY RANDOM() LIMIT 100)"
-    let query = "SELECT * FROM photo WHERE id IN(35001,38543,40368)";
+    let query = "SELECT * FROM photo WHERE type='photo' and id IN (SELECT id FROM photo WHERE type='photo' ORDER BY RANDOM() LIMIT 100)"
+    //let query = "SELECT * FROM photo WHERE id IN(35001,38543,40368)";
     meta_db.all(query, (err, rows) => {
         if (err) {
             callback(err, null);

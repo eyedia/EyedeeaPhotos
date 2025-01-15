@@ -6,9 +6,18 @@ import { meta_init, get_photos, save_view_log } from "./meta/metadata.mjs";
 import { authenticate, list_dir, list_dir_items, list_geo, get_photo } from "./syno/syno_client.mjs";
 import { scan } from "./syno/syno_scanner.mjs";
 
+import scanner_router from './routers/scanner_router.js';
+import viewer_router from './routers/viewer_router.js';
+import repo_router from './routers/repo_router.js';
+
+
 const app = express();
 app.use(express.static('public'));
 app.use(express.json());
+app.use('/scanner', scanner_router);
+app.use('/viewer', viewer_router);
+app.use('/repo', repo_router);
+
 
 const PORT = process.env.PORT || 8080;
 const logger = config_log.logger;
@@ -21,6 +30,7 @@ async function init() {
     res.sendFile(__dirname + '/public/index.html');
   });
 
+  /*
   app.get('/photos', async (req, res) => {
     get_photos((err, rows) => {
       if (err) {
@@ -31,6 +41,7 @@ async function init() {
     });
   });
 
+  
   app.get('/photo', async (req, res) => {
     try {
       let id = "";
@@ -57,55 +68,55 @@ async function init() {
       res.status(500).send('Internal Server Error');
     }
   });
+*/
+  // app.get('/dir', async (req, res) => {
+  //   try {
+  //     let folder_id = undefined;
+  //     if (req.query.folder_id) {
+  //       folder_id = req.query.folder_id;
+  //     }
 
-  app.get('/dir', async (req, res) => {
-    try {
-      let folder_id = undefined;
-      if (req.query.folder_id) {
-        folder_id = req.query.folder_id;
-      }
+  //     let offset = undefined;
+  //     if (req.query.offset) {
+  //       offset = req.query.offset;
+  //     }
 
-      let offset = undefined;
-      if (req.query.offset) {
-        offset = req.query.offset;
-      }
+  //     let limit = undefined;
+  //     if (req.query.limit) {
+  //       limit = req.query.limit;
+  //     }
 
-      let limit = undefined;
-      if (req.query.limit) {
-        limit = req.query.limit;
-      }
+  //     const data = await list_dir(folder_id, offset, limit);
+  //     res.json(data);
+  //   } catch (error) {
+  //     res.status(500).send('Internal Server Error');
+  //   }
+  // });
 
-      const data = await list_dir(folder_id, offset, limit);
-      res.json(data);
-    } catch (error) {
-      res.status(500).send('Internal Server Error');
-    }
-  });
+  // app.get('/list', async (req, res) => {
+  //   try {      
 
-  app.get('/list', async (req, res) => {
-    try {      
+  //     let folder_id = undefined;
+  //     if (req.query.folder_id) {
+  //       folder_id = req.query.folder_id;
+  //     }
 
-      let folder_id = undefined;
-      if (req.query.folder_id) {
-        folder_id = req.query.folder_id;
-      }
+  //     let offset = undefined;
+  //     if (req.query.offset) {
+  //       offset = req.query.offset;
+  //     }
 
-      let offset = undefined;
-      if (req.query.offset) {
-        offset = req.query.offset;
-      }
+  //     let limit = undefined;
+  //     if (req.query.limit) {
+  //       limit = req.query.limit;
+  //     }
 
-      let limit = undefined;
-      if (req.query.limit) {
-        limit = req.query.limit;
-      }
-
-      const data = await list_dir_items(folder_id, offset, limit);
-      res.json(data);
-    } catch (error) {
-      res.status(500).send('Internal Server Error');
-    }
-  });
+  //     const data = await list_dir_items(folder_id, offset, limit);
+  //     res.json(data);
+  //   } catch (error) {
+  //     res.status(500).send('Internal Server Error');
+  //   }
+  // });
 
   app.get('/geo', async (req, res) => {
     try {
@@ -125,7 +136,7 @@ async function init() {
       res.status(500).send('Internal Server Error');
     }
   });
-
+/*
   app.get('/scan', async (req, res) => {
     let log_path = "./logs/logs.log";
     let error_only = false;
@@ -161,7 +172,8 @@ async function init() {
       res.status(500).send("Error reading log file. The operation could still be on, please check the server log!");
     });
   });
-
+*/
+/*
   app.post('/view', async (req, res) => {
     const agent = useragent.parse(req.headers['user-agent']);
     let view_log = {
@@ -173,7 +185,7 @@ async function init() {
     await save_view_log(view_log);
     res.status(201).json({ message: 'View log received successfully' });
   });
-
+*/
   app.listen(PORT, () => {
     logger.info(`Server listening on port ${PORT}`);
   });

@@ -54,7 +54,7 @@ function create_tables() {
 
         `CREATE TABLE photo (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            photo_id INT NOT NULL,
+            photo_id INT UNIQUE NOT NULL,
             filename TEXT NOT NULL, 
             folder_id INT NOT NULL,
             folder_name TEXT,
@@ -64,6 +64,8 @@ function create_tables() {
             cache_key TEXT,
             unit_id INT,
             geocoding_id INT,
+            tags TEXT,
+            address TEXT,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
             );`,
 
@@ -72,7 +74,9 @@ function create_tables() {
             folder_id INT NOT NULL,
             folder_name TEXT NOT NULL,
             debug_info TEXT,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            re_scanned bool default false,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT
             );`,
 
         `CREATE TABLE view_log (
@@ -110,16 +114,18 @@ export function save_photo(json_data) {
     //     "orientation": 1,
     //     "cache_key": "32265_1734881011",
     //     "unit_id": 32265,
-    //     "geocoding_id": 4
+    //     "geocoding_id": 4,
+    //     "tags": "devina,portrait",
+    //     "address": ""
     // }
-    const insert_query = `INSERT INTO photo (photo_id, filename, folder_id, folder_name, time, type, orientation, cache_key, unit_id, geocoding_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const insert_query = `INSERT INTO photo (photo_id, filename, folder_id, folder_name, time, type, orientation, cache_key, unit_id, geocoding_id, tags, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
     meta_db.run(
         insert_query,
-        [json_data.photo_id, json_data.filename, json_data.folder_id, json_data.folder_name, json_data.time, json_data.type, json_data.orientation, json_data.cache_key, json_data.unit_id, json_data.geocoding_id],
+        [json_data.photo_id, json_data.filename, json_data.folder_id, json_data.folder_name, json_data.time, json_data.type, json_data.orientation, json_data.cache_key, json_data.unit_id, json_data.geocoding_id, json_data.tags, json_data.address],
         function (err) {
             if (err) {
-                logger.error('Error inserting data:', err.message);
+                logger.error('Error inserting data:', err);
             }
         });
 
@@ -139,7 +145,7 @@ export function scan_log(json_data) {
         [json_data.folder_id, json_data.folder_name, json_data.debug_info],
         function (err) {
             if (err) {
-                logger.error('Error inserting data:', err.message);
+                logger.error('Error inserting data:', err);
             }
         });
 
@@ -187,6 +193,28 @@ export function save_view_log(json_data) {
         }
     });
 
+}
+
+export function get_scan_failed_folders(callback){
+    let query = `SELECT * FROM scan_log WHERE re_scanned = 0`
+    get_rows(query, (err, rows) => {       
+        if (err) {
+            callback(err, null);
+        } else {
+            callback(null, rows);
+        }
+    });
+}
+
+export function update_scan_failed_folder(folder_id, re_scanned){
+    meta_db.run(
+    `UPDATE scan_log set re_scanned = ?, updated_at = ? where folder_id = ?`,
+    [re_scanned, Date.now(), folder_id],
+    function (err) {
+        if (err) {
+            logger.error('Error updating data:', err);
+        }
+    });
 }
 
 export function get_rows(query, callback) {

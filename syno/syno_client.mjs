@@ -10,6 +10,7 @@ const httpsAgent = new https.Agent({ rejectUnauthorized: false })
 
 const api_client = axios.create({
   baseURL: "https://192.168.86.218:5001/webapi",
+  timeout: 5000,
   headers: {
     //'Content-Type': 'application/json',
     // Add any other headers you need
@@ -25,10 +26,6 @@ axiosRetry(api_client, {
     return error.code === 'ECONNRESET' || axiosRetry.isNetworkError(error);
   },
 });
-
-const env = dotenv.config();
-const max_retry = 3;
-let retry_count = 0;
 
 export let nas_auth_token = {}
 
@@ -80,7 +77,7 @@ export async function authenticate() {
 }
 
 
-export async function list_dir(id = -1, folder_id = -1, offset = 0, limit = 100) {  
+export async function list_dir(folder_id = -1, offset = 0, limit = 1000) {  
   try {
     let m_param = {
       api: "SYNO.FotoTeam.Browse.Folder",
@@ -90,15 +87,10 @@ export async function list_dir(id = -1, folder_id = -1, offset = 0, limit = 100)
       offset: offset,
       limit: limit
     };    
-    if (id > -1) {
-      m_param.id = id;
-    }
-
     if (folder_id > -1) {
-      m_param.api = "SYNO.FotoTeam.Browse.Item";
-      m_param.folder_id = folder_id;
-      m_param.additional = "[\"thumbnail\", \"resolution\",\"orientation\",\"provider_user_id\", \"tag\", \"geocoding_id\"]";
+      m_param.id = folder_id;
     }
+    //if id == -1, it will fetch root folder
 
     return api_client.get('/entry.cgi', {
       params: m_param,
@@ -108,11 +100,42 @@ export async function list_dir(id = -1, folder_id = -1, offset = 0, limit = 100)
         return response.data;
       })
       .catch(function (error) {
-        if (error.code === 'ECONNRESET') {
-          logger.error('Connection reset by peer.');
-        } else {
-        logger.info(error);
-        }
+        
+          logger.error(error);
+        
+      });
+
+  } catch (error) {
+    logger.error('Authentication failed:', error.response?.data || error.message);
+    throw error;
+  }
+}
+
+export async function list_dir_items(folder_id, offset = 0, limit = 1000) {  
+  try {
+    let m_param = {
+      api: "SYNO.FotoTeam.Browse.Item",
+      SynoToken: nas_auth_token.synotoken,
+      version: 2,
+      method: "list",    
+      "folder_id": folder_id,  
+      offset: offset,
+      limit: limit,
+      additional: "[\"thumbnail\", \"resolution\",\"orientation\",\"provider_user_id\", \"tag\", \"geocoding_id\", \"address\"]"
+
+    };
+
+    return api_client.get('/entry.cgi', {
+      params: m_param,
+      httpsAgent: httpsAgent
+    })
+      .then(function (response) {        
+        return response.data;
+      })
+      .catch(function (error) {
+       
+          logger.error(error);
+       
       });
 
   } catch (error) {
@@ -122,7 +145,7 @@ export async function list_dir(id = -1, folder_id = -1, offset = 0, limit = 100)
 }
 
 
-export async function list_geo(offset = 0, limit = 100) { 
+export async function list_geo(offset = 0, limit = 1000) { 
   try {
     let m_param = {
       api: "SYNO.FotoTeam.Browse.Geocoding",

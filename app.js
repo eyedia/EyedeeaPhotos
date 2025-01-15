@@ -3,8 +3,8 @@ import useragent from "useragent";
 import fs from "fs";
 import config_log from "./config_log.js";
 import { meta_init, get_photos, save_view_log } from "./meta/metadata.mjs";
-import { authenticate, list_dir, list_geo, get_photo } from "./syno/syno_client.mjs";
-import {scan} from "./syno/syno_scanner.mjs";
+import { authenticate, list_dir, list_dir_items, list_geo, get_photo } from "./syno/syno_client.mjs";
+import { scan } from "./syno/syno_scanner.mjs";
 
 const app = express();
 app.use(express.static('public'));
@@ -28,7 +28,7 @@ async function init() {
       } else {
         res.json(rows);
       }
-    }); 
+    });
   });
 
   app.get('/photo', async (req, res) => {
@@ -60,27 +60,47 @@ async function init() {
 
   app.get('/dir', async (req, res) => {
     try {
-      let id = undefined;
-      if ((req.query.id) && (req.query.id > -1)) {
-        id = req.query.id;
-      }
-
       let folder_id = undefined;
-      if ((req.query.folder_id) && (req.query.folder_id > -1)) {
+      if (req.query.folder_id) {
         folder_id = req.query.folder_id;
       }
 
       let offset = undefined;
-      if ((req.query.offset) && (req.query.offset != 0)) {
+      if (req.query.offset) {
         offset = req.query.offset;
       }
 
       let limit = undefined;
-      if ((req.query.limit) && (req.query.limit != 0)) {
+      if (req.query.limit) {
         limit = req.query.limit;
       }
 
-      const data = await list_dir(id, folder_id, offset, limit);
+      const data = await list_dir(folder_id, offset, limit);
+      res.json(data);
+    } catch (error) {
+      res.status(500).send('Internal Server Error');
+    }
+  });
+
+  app.get('/list', async (req, res) => {
+    try {      
+
+      let folder_id = undefined;
+      if (req.query.folder_id) {
+        folder_id = req.query.folder_id;
+      }
+
+      let offset = undefined;
+      if (req.query.offset) {
+        offset = req.query.offset;
+      }
+
+      let limit = undefined;
+      if (req.query.limit) {
+        limit = req.query.limit;
+      }
+
+      const data = await list_dir_items(folder_id, offset, limit);
       res.json(data);
     } catch (error) {
       res.status(500).send('Internal Server Error');
@@ -111,13 +131,24 @@ async function init() {
     let error_only = false;
     if ((req.query.error_only)) {
       error_only = req.query.error_only;
-      if(error_only){
+      if (error_only) {
         log_path = "./logs/errors.log";
       }
     }
-    //await scan();
-    
-    logger.info("Scanning started...");   
+
+    let folder_id = undefined;
+    if (req.query.folder_id) {
+      folder_id = req.query.folder_id;
+    }
+
+    let folder_name = undefined;
+    if (req.query.folder_name) {
+      folder_name = req.query.folder_name;
+    }
+
+    await scan(folder_id, folder_name);
+
+    logger.info("Scanning started...");
     const logStream = fs.createReadStream(log_path);
 
     res.setHeader('Content-Type', 'text/plain');
@@ -140,9 +171,9 @@ async function init() {
       client_user_agent_os_family: agent.os.family
     }
     await save_view_log(view_log);
-    res.status(201).json({ message: 'View log received successfully'});
+    res.status(201).json({ message: 'View log received successfully' });
   });
-  
+
   app.listen(PORT, () => {
     logger.info(`Server listening on port ${PORT}`);
   });

@@ -10,7 +10,6 @@ const httpsAgent = new https.Agent({ rejectUnauthorized: false })
 
 const api_client = axios.create({
   baseURL: "https://192.168.86.218:5001/webapi",
-  timeout: 5000,
   headers: {
     //'Content-Type': 'application/json',
     // Add any other headers you need

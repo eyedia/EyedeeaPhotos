@@ -18,16 +18,16 @@ export async function scan(folder_id = -1, folder_name = "") {
                         list_dir_loop(root_folder.id, root_folder.name, m_offset, m_limit);
                     });
                 }
-                //console.log("Scan completed successfully!");                
+                //logger.info("Scan completed successfully!");                
             });
 
         //ensure that failed(timed out) folders are scanned
         get_scan_log((err, rows) => {
             if (err) {
-                console.error(err);
+                logger.error(err);
             } else {
                 rows.forEach(function (row) {
-                    console.log(`Retrying failed folders: ${row.folder_id}: ${row.folder_name}`);
+                    logger.info(`Retrying failed folders: ${row.folder_id}: ${row.folder_name}`);
                     list_dir_loop(row.folder_id, row.folder_name, m_offset, m_limit);
                     update_scan_log(row.folder_id, 1);
                 });
@@ -35,23 +35,23 @@ export async function scan(folder_id = -1, folder_name = "") {
         });
     } else {
         //scan starts from a specific folder
-        console.log("Starting scanning from a specific folder...", folder_id, folder_name);
+        logger.info("Starting scanning from a specific folder...", folder_id, folder_name);
         list_dir_loop(folder_id, folder_name, m_offset, m_limit);
     }
 }
 
 async function list_dir_loop(folder_id, folder_name, offset, limit) {
-    console.log(`01-Getting sub folder ${folder_id}...`);
+    logger.info(`01-Getting sub folder ${folder_id}...`);
     list_dir(folder_id, offset, limit)
         .then(async data => {
             if (data) {
                 if (data.data.list.length > 0) {
                     data.data.list.forEach(function (folder) {
-                        console.log(`02-Getting sub folder ${folder.id} of folder ${folder_id}...`);
+                        logger.info(`02-Getting sub folder ${folder.id} of folder ${folder_id}...`);
                         list_dir_loop(folder.id, folder.name, offset, limit);
                     });
                 } else {
-                    console.log(`Getting photos from ${folder_id}-${folder_name}...`);
+                    logger.info(`Getting photos from ${folder_id}-${folder_name}...`);
                     list_dir_items(folder_id, offset, limit)
                         .then(async photo_data => {
                             if (photo_data) {
@@ -73,26 +73,26 @@ async function list_dir_loop(folder_id, folder_name, offset, limit) {
                                     save_item(one_record);
                                 });
                             } else {
-                                console.log("Server resource exhausted. Cooling down for 5 seconds...");
+                                logger.info("Server resource exhausted. Cooling down for 5 seconds...");
                                 let scan_failed_data = {
                                     "folder_id": folder_id,
                                     "folder_name": folder_name,
                                     "debug_info": "debug info, blah"
                                 }
                                 save_scan_log(scan_failed_data);
-                                await wait(5000);
+                                //await wait(5000);
                             }
                         });
                 }
             } else {
-                console.log("Server resource exhausted. Cooling down for 5 seconds...");
+                logger.info("Server resource exhausted. Cooling down for 5 seconds...");
                 let scan_failed_data = {
                     "folder_id": folder_id,
                     "folder_name": folder_name,
                     "debug_info": ""
                 }
                 save_scan_log(scan_failed_data);
-                await wait(5000);
+                //await wait(5000);
             }
         });
 }

@@ -1,5 +1,5 @@
 import useragent from "useragent";
-import { save_view_log as meta_save_view_log } from "../../meta/meta_view.mjs";
+import { get_photos, save_view_log as meta_save_view_log } from "../../meta/meta_view.mjs";
 import { list_geo, get_photo as syno_get_photo } from "../../services/scanners/synology/syno_client.mjs";
 import config_log from "../../config_log.js";
 const logger = config_log.logger;

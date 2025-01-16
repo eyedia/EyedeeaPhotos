@@ -1,5 +1,5 @@
-const api_images = window.location.protocol + "//" + window.location.host + "/photos";
-const api_update_view_log = window.location.protocol + "//" + window.location.host + "/view";
+const api_images = window.location.protocol + "//" + window.location.host + "/api/viewer";
+const api_update_view_log = window.location.protocol + "//" + window.location.host + "/api/viewer";
 //const html_imgs = document.querySelectorAll(".intro-slideshow img");
 const html_img01 = document.getElementById("img01");
 const html_img02 = document.getElementById("img02");
@@ -40,14 +40,14 @@ function get_images(callback) {
 }
 
 function start_slide_show(imgs) {
-  html_img01.src = `${window.location.protocol}/photo?key=${images[img_counter].cache_key}&size=xl`;
+  html_img01.src = `${window.location.protocol}/api/viewer/${images[img_counter].cache_key}?size=xl`;
   html_img01.data = images[img_counter];
   html_img01.style.opacity = 1;
   html_img_current = html_img01;
   track_image_view();
 
   step_counter();
-  html_img02.src = `${window.location.protocol}/photo?key=${images[img_counter].cache_key}&size=xl`;
+  html_img02.src = `${window.location.protocol}/api/viewer/${images[img_counter].cache_key}?size=xl`;
   html_img02.data = images[img_counter];
   html_img02.style.opacity = 0;
   html_img_previous = html_img02;
@@ -76,7 +76,7 @@ function next_slide() {
   
   step_counter();
   const timestamp = new Date().getTime();
-  html_img_previous.src = `${window.location.protocol}/photo?key=${images[img_counter].cache_key}&size=xl`;
+  html_img_previous.src = `${window.location.protocol}/api/viewer/${images[img_counter].cache_key}?size=xl`;
   html_img_previous.data = images[img_counter];
 
   set_image_attributes();
@@ -109,6 +109,8 @@ function set_title(){
     title = title.split("/").pop(); //removing slash and taking last folder name. i.e. album name
     title = title.replace(" - ", " ");
     title = title.replace("-", " ");
+    title = title.replace("-", " ");
+    title = title.replace("_", " ");
     title = title.replace("_", " ");
     html_title.textContent = title;
 

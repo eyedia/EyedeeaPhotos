@@ -1,6 +1,6 @@
 import { list_dir, list_dir_items } from "./syno_client.mjs"
-import { save_photo, scan_log, get_scan_failed_folders, update_scan_failed_folder } from "../meta/metadata.mjs"
-import config_log from "../config_log.js";
+import { save_item, save_scan_log, get_scan_log, update_scan_log } from "../../../meta/meta_scan.mjs"
+import config_log from "../../../config_log.js";
 
 const logger = config_log.logger;
 
@@ -13,43 +13,45 @@ export async function scan(folder_id = -1, folder_name = "") {
         //scan starts from root
         list_dir(undefined, m_offset, m_limit)
             .then(data => {
-                data.data.list.forEach(function (root_folder) {
-                    list_dir_loop(root_folder.id, root_folder.name, m_offset, m_limit);
-                });
-                //logger.info("Scan completed successfully!");                
+                if (data) {
+                    data.data.list.forEach(function (root_folder) {
+                        list_dir_loop(root_folder.id, root_folder.name, m_offset, m_limit);
+                    });
+                }
+                //console.log("Scan completed successfully!");                
             });
 
         //ensure that failed(timed out) folders are scanned
-        get_scan_failed_folders((err, rows) => {
+        get_scan_log((err, rows) => {
             if (err) {
-                logger.error(err);
+                console.error(err);
             } else {
-                rows.forEach(function (row) {                    
-                    logger.info(`Retrying failed folders: ${row.folder_id}: ${row.folder_name}`);
+                rows.forEach(function (row) {
+                    console.log(`Retrying failed folders: ${row.folder_id}: ${row.folder_name}`);
                     list_dir_loop(row.folder_id, row.folder_name, m_offset, m_limit);
-                    update_scan_failed_folder(row.folder_id, 1);
+                    update_scan_log(row.folder_id, 1);
                 });
             }
         });
     } else {
         //scan starts from a specific folder
-        logger.info("Starting scanning from a specific folder...", folder_id, folder_name);
+        console.log("Starting scanning from a specific folder...", folder_id, folder_name);
         list_dir_loop(folder_id, folder_name, m_offset, m_limit);
     }
 }
 
 async function list_dir_loop(folder_id, folder_name, offset, limit) {
-    logger.info(`01-Getting sub folder ${folder_id}...`);
+    console.log(`01-Getting sub folder ${folder_id}...`);
     list_dir(folder_id, offset, limit)
         .then(async data => {
             if (data) {
                 if (data.data.list.length > 0) {
                     data.data.list.forEach(function (folder) {
-                        logger.info(`02-Getting sub folder ${folder.id} of folder ${folder_id}...`);
+                        console.log(`02-Getting sub folder ${folder.id} of folder ${folder_id}...`);
                         list_dir_loop(folder.id, folder.name, offset, limit);
                     });
                 } else {
-                    logger.info(`Getting photos from ${folder_id}-${folder_name}...`);
+                    console.log(`Getting photos from ${folder_id}-${folder_name}...`);
                     list_dir_items(folder_id, offset, limit)
                         .then(async photo_data => {
                             if (photo_data) {
@@ -68,28 +70,28 @@ async function list_dir_loop(folder_id, folder_name, offset, limit) {
                                         "tags": photo.additional.tag.map(t => t.name).join(","),
                                         "address": JSON.stringify(photo.additional.address)
                                     }
-                                    save_photo(one_record);
+                                    save_item(one_record);
                                 });
                             } else {
-                                logger.info("Server resource exhausted. Cooling down for 5 seconds...");
+                                console.log("Server resource exhausted. Cooling down for 5 seconds...");
                                 let scan_failed_data = {
                                     "folder_id": folder_id,
                                     "folder_name": folder_name,
                                     "debug_info": "debug info, blah"
                                 }
-                                scan_log(scan_failed_data);
+                                save_scan_log(scan_failed_data);
                                 await wait(5000);
                             }
                         });
                 }
             } else {
-                logger.info("Server resource exhausted. Cooling down for 5 seconds...");
+                console.log("Server resource exhausted. Cooling down for 5 seconds...");
                 let scan_failed_data = {
                     "folder_id": folder_id,
                     "folder_name": folder_name,
                     "debug_info": ""
                 }
-                scan_log(scan_failed_data);
+                save_scan_log(scan_failed_data);
                 await wait(5000);
             }
         });

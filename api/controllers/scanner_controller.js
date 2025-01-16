@@ -1,5 +1,5 @@
-import { scan as syno_scan } from "../syno/syno_scanner.mjs";
-import config_log from "../config_log.js";
+import { scan as syno_scan } from "../../services/scanners/synology/syno_scanner.mjs";
+import config_log from "../../config_log.js";
 
 const logger = config_log.logger;
 

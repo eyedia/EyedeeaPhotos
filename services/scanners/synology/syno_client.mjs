@@ -3,7 +3,7 @@ import axiosRetry from 'axios-retry';
 import https from 'https';
 import dotenv from 'dotenv';
 import fs from 'fs';
-import config_log from "../config_log.js";
+import config_log from "../../../config_log.js";
 
 const logger = config_log.logger;
 const httpsAgent = new https.Agent({ rejectUnauthorized: false })
@@ -33,20 +33,20 @@ export async function authenticate() {
   try {
     //read from cache
     nas_auth_token = await read_cache()
-    .then(data => {
-      if(data){
-        return data;
-      }
-    })
-    .catch(error => {      
-      return nas_auth_token;
-    });
-    
-    if(Object.keys(nas_auth_token).length != 0){
+      .then(data => {
+        if (data) {
+          return data;
+        }
+      })
+      .catch(error => {
+        return nas_auth_token;
+      });
+
+    if (Object.keys(nas_auth_token).length != 0) {
       logger.info("NAS Auth initiated from cache!");
       return;
     }
-    
+
     //not in cache, lets authenticate
     api_client.get('/auth.cgi', {
       params: {
@@ -65,7 +65,11 @@ export async function authenticate() {
         logger.info(nas_auth_token);
       })
       .catch(function (error) {
-        logger.info(error);
+        if (error.code === 'ECONNRESET') {
+          logger.error('Connection reset by peer.');
+        } else {
+          logger.info(error.message);
+        }
       });
 
     return;
@@ -77,16 +81,16 @@ export async function authenticate() {
 }
 
 
-export async function list_dir(folder_id = -1, offset = 0, limit = 1000) {  
+export async function list_dir(folder_id = -1, offset = 0, limit = 1000) {
   try {
     let m_param = {
       api: "SYNO.FotoTeam.Browse.Folder",
       SynoToken: nas_auth_token.synotoken,
       version: 2,
-      method: "list",      
+      method: "list",
       offset: offset,
       limit: limit
-    };    
+    };
     if (folder_id > -1) {
       m_param.id = folder_id;
     }
@@ -96,13 +100,15 @@ export async function list_dir(folder_id = -1, offset = 0, limit = 1000) {
       params: m_param,
       httpsAgent: httpsAgent
     })
-      .then(function (response) {        
+      .then(function (response) {
         return response.data;
       })
       .catch(function (error) {
-        
-          logger.error(error);
-        
+        if (error.code === 'ECONNRESET') {
+          logger.error('Connection reset by peer.');
+        } else {
+          logger.info(error.message);
+        }
       });
 
   } catch (error) {
@@ -111,14 +117,14 @@ export async function list_dir(folder_id = -1, offset = 0, limit = 1000) {
   }
 }
 
-export async function list_dir_items(folder_id, offset = 0, limit = 1000) {  
+export async function list_dir_items(folder_id, offset = 0, limit = 1000) {
   try {
     let m_param = {
       api: "SYNO.FotoTeam.Browse.Item",
       SynoToken: nas_auth_token.synotoken,
       version: 2,
-      method: "list",    
-      "folder_id": folder_id,  
+      method: "list",
+      "folder_id": folder_id,
       offset: offset,
       limit: limit,
       additional: "[\"thumbnail\", \"resolution\",\"orientation\",\"provider_user_id\", \"tag\", \"geocoding_id\", \"address\"]"
@@ -129,13 +135,16 @@ export async function list_dir_items(folder_id, offset = 0, limit = 1000) {
       params: m_param,
       httpsAgent: httpsAgent
     })
-      .then(function (response) {        
+      .then(function (response) {
         return response.data;
       })
       .catch(function (error) {
-       
-          logger.error(error);
-       
+        if (error.code === 'ECONNRESET') {
+          logger.error('Connection reset by peer.');
+        } else {
+          logger.info(error.message);
+        }
+
       });
 
   } catch (error) {
@@ -145,13 +154,13 @@ export async function list_dir_items(folder_id, offset = 0, limit = 1000) {
 }
 
 
-export async function list_geo(offset = 0, limit = 1000) { 
+export async function list_geo(offset = 0, limit = 1000) {
   try {
     let m_param = {
       api: "SYNO.FotoTeam.Browse.Geocoding",
       SynoToken: nas_auth_token.synotoken,
       version: 1,
-      method: "list",      
+      method: "list",
       offset: offset,
       limit: limit
     };
@@ -169,7 +178,11 @@ export async function list_geo(offset = 0, limit = 1000) {
         return response.data;
       })
       .catch(function (error) {
-        logger.info(error);
+        if (error.code === 'ECONNRESET') {
+          logger.error('Connection reset by peer.');
+        } else {
+          logger.info(error.message);
+        }
       });
 
   } catch (error) {
@@ -178,18 +191,18 @@ export async function list_geo(offset = 0, limit = 1000) {
   }
 }
 
-function valid_response(response){
+function valid_response(response) {
   logger.info(response.data.success);
-  if(!response.data.success){    
-    if(response.data.error.code === 119){
+  if (!response.data.success) {
+    if (response.data.error.code === 119) {
       logger.info("here");
       fs.unlink(".cache", (err) => {
         logger.info("Cache cleared! re-authenticating...");
         authenticate();
       });
-      
+
       return false;
-    }    
+    }
   }
 
   return true;
@@ -226,7 +239,7 @@ export async function get_photo(id, cache_key, size = "sm") {
   }
 }
 
-function read_cache(){
+function read_cache() {
   return new Promise((resolve, reject) => {
     fs.readFile('.cache', 'utf8', (err, data) => {
       if (err) {
@@ -238,7 +251,7 @@ function read_cache(){
   });
 }
 
-function write_cache(data){
+function write_cache(data) {
   fs.writeFile('.cache', JSON.stringify(data), (err) => {
     if (err) throw err;
     logger.info('The file has been saved!');

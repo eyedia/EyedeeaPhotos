@@ -1,5 +1,5 @@
-import {list_dir, list_dir_items, list_geo, get_photo } from "../syno/syno_client.mjs";
-import config_log from "../config_log.js";
+import {list_dir, list_dir_items, list_geo, get_photo } from "../../services/scanners/synology/syno_client.mjs";
+import config_log from "../../config_log.js";
 
 const logger = config_log.logger;
 

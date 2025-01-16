@@ -71,12 +71,23 @@ function create_tables() {
 
         `CREATE TABLE scan_log (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            folder_id INT NOT NULL,
-            folder_name TEXT NOT NULL,
-            debug_info TEXT,
-            re_scanned bool default false,
+            root_folder_id INT,
+            root_folder_name TEXT,
+            info TEXT,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP,
             updated_at TEXT
+            );`,
+
+        `CREATE TABLE scan_log_detail (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            folder_id INT NOT NULL,
+            folder_name TEXT NOT NULL,
+            info TEXT,
+            re_scanned bool default false,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT,
+			scan_log_id INT,
+			FOREIGN KEY(scan_log_id) REFERENCES scan_log(id)
             );`,
 
         `CREATE TABLE view_log (

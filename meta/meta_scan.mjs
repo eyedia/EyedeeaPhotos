@@ -32,29 +32,76 @@ export function save_item(json_data) {
         });
 }
 
-export function save_scan_log(json_data) {
+
+export function start_scan(json_data, callback) {
+    const insert_query = `INSERT INTO scan_log (root_folder_id, root_folder_name, info) VALUES (?, ?, ?)`;
+    return meta_db.run(
+        insert_query,
+        [json_data.root_folder_id, json_data.root_folder_name, json_data.info],
+        function (err) {
+            if (err) {
+                logger.error('Error inserting data:', err);
+                if (callback) {
+                    callback(err, null);
+                }
+            } else {
+                if (callback) {
+                    callback(null, this.lastID);
+                }
+            }
+        });
+}
+
+export function stop_scan(json_data, callback) {
+    const insert_query = `UPDATE scan_log set updated_at =?, info =? WHERE id =?`;
+    return meta_db.run(
+        insert_query,
+        [Date.now(), json_data.info, json_data.id],
+        function (err) {
+            if (err) {
+                logger.error('Error updating data:', err);
+                if (callback) {
+                    callback(err, null);
+                }
+            } else {
+                if (callback) {
+                    callback(null, this.lastID);
+                }
+            }
+        });
+}
+
+
+export function save_scan_log_detail(json_data, callback) {
 
     // json_data = {
     //     "folder_id": 820,
     //     "folder_name": "folder name",
-    //     "debug_info": "debug info, blah"
+    //     "info": "debug info, blah"
     // }
-    const insert_query = `INSERT INTO scan_log (folder_id, folder_name, debug_info) VALUES (?, ?, ?)`;
+    const insert_query = `INSERT INTO scan_log_detail (folder_id, folder_name, info, scan_log_id) VALUES (?, ?, ?, ?)`;
 
     meta_db.run(
         insert_query,
-        [json_data.folder_id, json_data.folder_name, json_data.debug_info],
+        [json_data.folder_id, json_data.folder_name, json_data.info, json_data.scan_log_id],
         function (err) {
             if (err) {
                 logger.error('Error inserting data:', err);
+                if (callback) {
+                    callback(err, null);
+                }
+            } else {
+                if (callback) {
+                    callback(null, this.lastID);
+                }
             }
         });
 
 }
 
-export function get_scan_log(callback){
-    let query = `SELECT * FROM scan_log WHERE re_scanned = 0`
-    get_rows(query, (err, rows) => {       
+export function get_scan_log_detail(scan_log_id, scan_status = 0, callback) {
+    let query = `SELECT * FROM scan_log_detail WHERE scan_log_id = ${scan_log_id} and re_scanned = ${scan_status}`
+    get_rows(query, (err, rows) => {
         if (err) {
             callback(err, null);
         } else {
@@ -63,14 +110,14 @@ export function get_scan_log(callback){
     });
 }
 
-export function update_scan_log(folder_id, re_scanned){
+export function update_scan_log(scan_log_id, folder_id, re_scanned) {
     meta_db.run(
-    `UPDATE scan_log set re_scanned = ?, updated_at = ? where folder_id = ?`,
-    [re_scanned, Date.now(), folder_id],
-    function (err) {
-        if (err) {
-            logger.error('Error updating data:', err);
-        }
-    });
+        `UPDATE scan_log_detail set re_scanned = ?, updated_at = ? where scan_log_id = ? and folder_id = ?`,
+        [re_scanned, Date.now(), scan_log_id, folder_id],
+        function (err) {
+            if (err) {
+                logger.error('Error updating data:', err);
+            }
+        });
 }
 

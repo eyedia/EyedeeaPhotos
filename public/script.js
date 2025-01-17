@@ -122,11 +122,47 @@ function set_title() {
   }
 }
 
+/*
+{
+      "id": 3435,
+      "photo_id": 20962,
+      "filename": "IMG_20181204_183842.jpg",
+      "folder_id": 467,
+      "folder_name": "/Family/2018/Dyuman Violine",
+      "time": 1543948722,
+      "type": "photo",
+      "orientation": 1,
+      "cache_key": "20962_1734859345",
+      "unit_id": 20962,
+      "geocoding_id": 22,
+      "tags": "",
+      "address": "{\"country\":\"United States\",\"country_id\":\"United States\",\"state\":\"North Carolina\",\"state_id\":\"North Carolina\",\"county\":\"Mecklenburg County\",\"county_id\":\"Mecklenburg County\",\"city\":\"\",\"city_id\":\"\",\"town\":\"Matthews\",\"town_id\":\"Matthews\",\"district\":\"\",\"district_id\":\"\",\"village\":\"\",\"village_id\":\"\",\"route\":\"Sam Newell Road\",\"route_id\":\"Sam Newell Road\",\"landmark\":\"\",\"landmark_id\":\"\"}",
+      "created_at": "2025-01-16 03:44:18"
+  }
+*/
 function set_sub_title() {
   try {
     let taken_on = new Date(html_img_current.data.time * 1000);
-    taken_on = `${days_of_week[taken_on.getDay()]} ${months[taken_on.getMonth()]} ${taken_on.getDate().toString().padStart(2, 0)} ${taken_on.getFullYear()}`
-    html_sub_title.textContent = taken_on + " | Charlotte, Matthews";
+    taken_on = `${days_of_week[taken_on.getDay()]} ${months[taken_on.getMonth()]} ${taken_on.getDate().toString().padStart(2, 0)} ${taken_on.getFullYear()}`;
+    html_sub_title.textContent = taken_on;
+
+    let address = "";
+    try {
+      let city_or_town = "";
+      if (html_img_current.data.address.city != "") { //city priority = low
+        city_or_town = html_img_current.data.address.city;
+      }
+
+      if (html_img_current.data.address.town != "") { //town priority = high
+        city_or_town = html_img_current.data.address.town;
+      }
+
+      address = `${city_or_town}, ${html_img_current.data.address.country}`;
+      html_sub_title.textContent = html_sub_title.textContent + " | " + address;
+    } catch {
+
+    }
+    
   } catch (error) {
     console.error(error);
     html_sub_title.textContent = "It's all about the journey"
@@ -136,6 +172,7 @@ function set_sub_title() {
 function set_sub_title_2() {
   try {
     html_sub_title_2.textContent = html_img_current.data.filename + "|" + html_img_current.data.orientation;
+    html_sub_title_2.textContent = html_sub_title_2.textContent + " | + " + JSON.stringify(html_img_current.data.address);
   } catch (error) {
     console.error(error);
     html_sub_title.textContent = "It's all about the journey"

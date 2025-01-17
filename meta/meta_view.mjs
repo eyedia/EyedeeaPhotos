@@ -4,12 +4,15 @@ import config_log from "../config_log.js";
 import { meta_db } from "./meta_base.mjs";
 
 export function get_photos(callback) {
-    let query = "SELECT * FROM photo WHERE type='photo' and id IN (SELECT id FROM photo WHERE type='photo' ORDER BY RANDOM() LIMIT 100)"
+    let query = "SELECT * FROM photo WHERE id IN (SELECT id FROM photo WHERE type='photo' ORDER BY RANDOM() LIMIT 100)"
     //let query = "SELECT * FROM photo WHERE id IN(35001,38543,40368)";
     meta_db.all(query, (err, rows) => {
         if (err) {
             callback(err, null);
         } else {
+            rows.forEach(function (row) {
+                row.address = JSON.parse(row.address);
+            });
             callback(null, rows);
         }
     });

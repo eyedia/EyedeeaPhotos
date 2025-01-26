@@ -36,12 +36,12 @@ export const get_photo_v2 = async (req, res) => {
           photo_data = rows[0];
           if (rows[0].cache_key && rows[0].cache_key != "") {
             //syno get photo
-            syno_get_photo(rows[0].id, rows[0].cache_key, "xl").then(response => {
+            syno_get_photo(rows[0].photo_id, rows[0].cache_key, "xl").then(response => {
               if (response && response.headers) {
                 res.writeHead(200, {
                   'Content-Type': response.headers.get('content-type'),
                   'Content-Length': response.data.length,
-                  'photo-data': rows[0]
+                  'photo-data': JSON.stringify(rows[0])
                 });
                 res.end(response.data);
               }else{

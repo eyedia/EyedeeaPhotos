@@ -3,6 +3,7 @@ import fs from "fs";
 import config_log from "../config_log.js";
 import { meta_db, get_rows } from "./meta_base.mjs";
 
+const logger = config_log.logger;
 
 export function save_item(json_data) {
 

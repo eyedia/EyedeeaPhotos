@@ -3,6 +3,8 @@ import fs from "fs";
 import config_log from "../config_log.js";
 import { meta_db } from "./meta_base.mjs";
 
+const logger = config_log.logger;
+
 export function get_random_photos(limit = 2, callback) {
     let query = `SELECT * FROM photo WHERE id IN (SELECT id FROM photo WHERE type='photo' ORDER BY RANDOM() LIMIT ${limit})`;
     //let query = "SELECT * FROM photo WHERE id IN(35001,38543,40368)";

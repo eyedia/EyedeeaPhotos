@@ -1,4 +1,7 @@
 const api_images = window.location.protocol + "//" + window.location.host + "/api/viewer";
+const photo_url = window.location.protocol + "//" + window.location.host + "/api/viewer/next";
+//const photo_url = "http://127.0.0.1:8080/api/viewer/next";
+
 const html_img01 = document.getElementById("img01");
 const html_img02 = document.getElementById("img02");
 const html_title = document.querySelector(".intro h2");
@@ -8,65 +11,62 @@ const days_of_week = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 
-//setInterval(next_slide, 10000);
-//setInterval(displayImageWithTransition, 10000);
-
-displayImageWithTransition();
-
 setTimeout(function(){
   window.location.reload(1);
 }, 10000);
 
-function displayImageWithTransition() {
-  let imageUrl = "http://127.0.0.1:8080/api/viewer/next";
-  //get_photo_data();
-  html_img01.src = imageUrl;
-  html_img01.style.opacity = 0; // Initially hide the image
-  html_img01.style.transition = 'opacity 0.5s ease-in-out'; // Set transition effect
-
-  // Fade in the image after it's loaded
-  html_img01.onload = () => {
-    html_img01.style.opacity = 1; 
-  };
-}
-
-
-async function get_photo_data() {
-  const url = "http://127.0.0.1:8080/api/viewer/next/data";
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Response status: ${response.status}`);
-    }
-
-    const json = await response.json();
-    console.log(JSON.stringify(json));
-  } catch (error) {
-    console.error(error.message);
+async function get_photo() {
+  const response = await fetch(photo_url);
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
   }
+  const blob = await response.blob();
+  return [URL.createObjectURL(blob), response.headers];
 }
 
-function set_image_attributes() {
-  set_title();
-  set_sub_title();
-  set_sub_title_2();
-  set_orientation();
+get_photo()
+  .then(object_url_and_headers => {
+    html_img01.src = object_url_and_headers[0];
+    photo_data_obj = JSON.parse(JSON.stringify(object_url_and_headers[1].get("Photo-Data")));
+    let photo_data = JSON.parse(photo_data_obj);
+    set_image_attributes(photo_data);
+
+    html_img01.style.opacity = 0; 
+    html_img01.style.transition = 'opacity 0.5s ease-in-out';    
+    
+    html_img01.onload = () => {
+      html_img01.style.opacity = 1; 
+    };
+  })
+  .catch(error => {
+    console.error('Error fetching image:', error);
+  });
+
+
+function set_image_attributes(photo_data) {
+  set_title(photo_data);
+  set_sub_title(photo_data);
+  set_sub_title_2(photo_data);
+  set_orientation(photo_data);
 }
 
-function set_orientation() {
-  let orientation = html_img_current.data.orientation;
+function set_orientation(photo_data) {
+  let orientation = photo_data.orientation;
   if ((orientation == 6) || (orientation == 8)) {
-    html_sub_title_2.textContent = html_sub_title_2.textContent + " rotated|" + html_img_current.id;
-    html_img_current.style.rotate = "360deg";
+    html_sub_title_2.textContent = html_sub_title_2.textContent + " rotated|" + html_img01.id;
+    html_img01.style.rotate = "360deg";
   } else {
-    html_img_current.style.removeProperty("rotate");
-    html_sub_title_2.textContent = html_sub_title_2.textContent + " not rotated|" + html_img_current.id;
+    html_img01.style.removeProperty("rotate");
+    html_sub_title_2.textContent = html_sub_title_2.textContent + " not rotated|" + html_img01.id;
   }
 }
 
-function set_title() {
+function set_title(photo_data) {
   try {
-    let title = html_img_current.data.folder_name;
+    // x = JSON.parse(photo_data);
+    // console.log(x);
+    let title = photo_data.folder_name;
+    console.log(photo_data);
     title = title.split("/").pop(); //removing slash and taking last folder name. i.e. album name
     title = title.replace(" - ", " ");
     title = title.replace("-", " ");
@@ -99,24 +99,24 @@ function set_title() {
       "created_at": "2025-01-16 03:44:18"
   }
 */
-function set_sub_title() {
+function set_sub_title(photo_data) {
   try {
-    let taken_on = new Date(html_img_current.data.time * 1000);
+    let taken_on = new Date(photo_data.time * 1000);
     taken_on = `${days_of_week[taken_on.getDay()]} ${months[taken_on.getMonth()]} ${taken_on.getDate().toString().padStart(2, 0)} ${taken_on.getFullYear()}`;
     html_sub_title.textContent = taken_on;
 
     let address = "";
     try {
       let city_or_town = "";
-      if (html_img_current.data.address.city != "") { //city priority = low
-        city_or_town = html_img_current.data.address.city;
+      if (photo_data.address.city != "") { //city priority = low
+        city_or_town = photo_data.address.city;
       }
 
-      if (html_img_current.data.address.town != "") { //town priority = high
-        city_or_town = html_img_current.data.address.town;
+      if (photo_data.address.town != "") { //town priority = high
+        city_or_town = photo_data.address.town;
       }
 
-      address = `${city_or_town}, ${html_img_current.data.address.country}`;
+      address = `${city_or_town}, ${photo_data.address.country}`;
       html_sub_title.textContent = html_sub_title.textContent + " | " + address;
     } catch {
 
@@ -128,41 +128,12 @@ function set_sub_title() {
   }
 }
 
-function set_sub_title_2() {
+function set_sub_title_2(photo_data) {
   try {
-    html_sub_title_2.textContent = html_img_current.data.filename + "|" + html_img_current.data.orientation;
-    html_sub_title_2.textContent = html_sub_title_2.textContent + " | + " + JSON.stringify(html_img_current.data.address);
+    html_sub_title_2.textContent = photo_data.filename + "|" + photo_data.orientation;
+    html_sub_title_2.textContent = html_sub_title_2.textContent + " | + " + JSON.stringify(photo_data.address);
   } catch (error) {
     console.error(error);
     html_sub_title.textContent = "It's all about the journey"
   }
-}
-
-function step_counter() {
-  img_counter = img_counter + 1
-  if (img_counter >= images.length) {
-    img_counter = 0;
-    // html_imgs[0].style.opacity = 0;
-    // html_imgs[1].style.opacity = 0;
-    get_images();
-
-  }
-}
-
-function track_image_view() {
-  if (!view_log_enabled) {
-    return;
-  }
-  fetch(api_images, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      "photo_id": html_img_current.data.photo_id
-    })
-  })
-    .then(response => response.json())
-    .then(data => console.log("Success:", data))
-    .catch(error => console.error("Error", error));
 }

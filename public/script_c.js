@@ -1,4 +1,6 @@
 const api_images = window.location.protocol + "//" + window.location.host + "/api/viewer";
+const api_update_view_log = window.location.protocol + "//" + window.location.host + "/api/viewer";
+//const html_imgs = document.querySelectorAll(".intro-slideshow img");
 const html_img01 = document.getElementById("img01");
 const html_img02 = document.getElementById("img02");
 const html_title = document.querySelector(".intro h2");
@@ -8,42 +10,81 @@ const days_of_week = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 
-//setInterval(next_slide, 10000);
-//setInterval(displayImageWithTransition, 10000);
+let images = [];
+let img_counter = 0;
+let view_log_enabled = false;
+//let toggle_image = 0;
 
-displayImageWithTransition();
+let html_img_current = html_img01;
+let html_img_previous = html_img02;
 
-setTimeout(function(){
-  window.location.reload(1);
-}, 10000);
+get_images(start_slide_show);
 
-function displayImageWithTransition() {
-  let imageUrl = "http://127.0.0.1:8080/api/viewer/next";
-  //get_photo_data();
-  html_img01.src = imageUrl;
-  html_img01.style.opacity = 0; // Initially hide the image
-  html_img01.style.transition = 'opacity 0.5s ease-in-out'; // Set transition effect
-
-  // Fade in the image after it's loaded
-  html_img01.onload = () => {
-    html_img01.style.opacity = 1; 
-  };
+function get_images(callback) {
+  console.log("calling", api_images);
+  fetch(api_images)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      return response.json();
+    })
+    .then(data => {
+      images = data;
+      console.log(data);
+      if (callback)
+        callback(data);
+    })
+    .catch(error => {
+      console.error("Error:" + error);
+    });
 }
 
+function start_slide_show(imgs) {
+  html_img01.src = `${window.location.protocol}/api/viewer/${images[img_counter].cache_key}?size=xl`;
+  html_img01.data = images[img_counter];
+  html_img01.style.opacity = 1;
+  html_img_current = html_img01;
+  track_image_view();
 
-async function get_photo_data() {
-  const url = "http://127.0.0.1:8080/api/viewer/next/data";
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Response status: ${response.status}`);
-    }
+  step_counter();
+  html_img02.src = `${window.location.protocol}/api/viewer/${images[img_counter].cache_key}?size=xl`;
+  html_img02.data = images[img_counter];
+  html_img02.style.opacity = 0;
+  html_img_previous = html_img02;
 
-    const json = await response.json();
-    console.log(JSON.stringify(json));
-  } catch (error) {
-    console.error(error.message);
+  set_image_attributes();
+  setInterval(next_slide, 10000);
+}
+
+function next_slide() {
+
+  console.log(html_img01.style.opacity);
+  console.log(html_img02.style.opacity);
+
+  console.log(html_img_current.id, html_img_current.style.opacity, html_img_current.data.filename, html_img_previous.id, html_img_previous.style.opacity, html_img_previous.data.filename);
+
+  if (html_img_current.id == "img01") {
+    html_img_current = html_img02;
+    html_img_previous = html_img01;
+  } else {
+    html_img_current = html_img01;
+    html_img_previous = html_img02;
   }
+
+  html_img_current.style.opacity = 1;
+  html_img_previous.style.opacity = 0;
+
+  step_counter();
+  const timestamp = new Date().getTime();
+  html_img_previous.src = `${window.location.protocol}/api/viewer/${images[img_counter].cache_key}?size=xl`;
+  html_img_previous.data = images[img_counter];
+
+  set_image_attributes();
+
+  track_image_view();
+
+  //toggle_image = toggle_image === 0 ? 1 : 0;
 }
 
 function set_image_attributes() {
@@ -153,7 +194,7 @@ function track_image_view() {
   if (!view_log_enabled) {
     return;
   }
-  fetch(api_images, {
+  fetch(api_update_view_log, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"

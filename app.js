@@ -10,6 +10,7 @@ import repo_router from './api/routers/repo_router.js';
 
 const app = express();
 app.use(express.static('public'));
+//app.use(express.static('web'));
 app.use(express.json());
 app.use('/api/scanner', scanner_router);
 app.use('/api/viewer', viewer_router);

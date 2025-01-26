@@ -1,12 +1,17 @@
 import useragent from "useragent";
-import { get_photos, save_view_log as meta_save_view_log } from "../../meta/meta_view.mjs";
+import fs from 'fs';
+import { get_random_photos as meta_get_random_photos, save_view_log as meta_save_view_log } from "../../meta/meta_view.mjs";
 import { list_geo, get_photo as syno_get_photo } from "../../services/scanners/synology/syno_client.mjs";
 import config_log from "../../config_log.js";
+import { response } from "express";
 const logger = config_log.logger;
+
+let photo_data = {};
 
 export const get_random_photos = async (req, res) => {
   try {
-    get_photos((err, rows) => {
+    let limit = 1;
+    meta_get_random_photos(limit, (err, rows) => {
       if (err) {
         logger.error(err.message);
       } else {
@@ -18,6 +23,62 @@ export const get_random_photos = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+export const get_photo_v2 = async (req, res) => {
+  try {
+
+    let limit = 1;
+    meta_get_random_photos(limit, (err, rows) => {
+      if (err) {
+        logger.error(err.message);
+      } else {
+        if (rows && rows.length > 0) {
+          photo_data = rows[0];
+          if (rows[0].cache_key && rows[0].cache_key != "") {
+            //syno get photo
+            syno_get_photo(rows[0].id, rows[0].cache_key, "xl").then(response => {
+              if (response && response.headers) {
+                res.writeHead(200, {
+                  'Content-Type': response.headers.get('content-type'),
+                  'Content-Length': response.data.length,
+                  'photo-data': rows[0]
+                });
+                res.end(response.data);
+              }else{
+                fs.readFile('public/eyedeea_player.jpg', (err, data) => {
+                  if (err) {
+                    res.writeHead(500, { 'Content-Type': 'text/plain' });
+                    res.end('Error reading image file.');
+                    return;
+                  }
+                  res.writeHead(200, { 'Content-Type': 'image/jpeg' });
+                  res.end(data);
+                });
+              }
+            });
+
+          } else {
+            //fs get photo
+          }
+        }
+      }
+    });
+
+
+  } catch (err) {
+    logger.error(err);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+export const get_photo_data = async (req, res) => {
+  try {
+    res.json(photo_data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 
 export const get_photo = async (req, res) => {
   try {

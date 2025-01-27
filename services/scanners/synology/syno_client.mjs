@@ -208,6 +208,9 @@ function valid_response(response) {
 }
 
 export async function get_photo(id, cache_key, size = "sm") {
+  if (!nas_auth_token){
+    throw new Error('Synology client is not active! Most likely authentication was failed. Please check the server configuration and logs and try again.');
+  }
   try {
     let m_param = {
       api: "SYNO.FotoTeam.Thumbnail",

@@ -70,6 +70,9 @@ export const get_random_photo = async (req, res) => {
                   res.end(data);
                 });
               }
+            })
+            .catch(error => {
+              res.status(500).send(error);
             });
 
           } else {

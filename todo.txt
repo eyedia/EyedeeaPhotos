@@ -1,0 +1,1 @@
+when .env file not found or config not found

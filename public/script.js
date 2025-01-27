@@ -9,7 +9,7 @@ const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 
 setTimeout(function(){
   window.location.reload(1);
-}, 10000);
+}, 30000);
 
 async function get_photo() {
   const response = await fetch(photo_url);

@@ -6,14 +6,14 @@ import { meta_db, get_rows } from "./meta_base.mjs";
 const logger = config_log.logger;
 
 export function get_random_photo(callback) {
-    let query = "SELECT * FROM view_log WHERE current = true LIMIT 1";
+    let query = "select * from photo where photo_id in (SELECT photo_id FROM view_log WHERE current = true LIMIT 1)";
     //let query = "SELECT * FROM photo WHERE id IN(35001,38543,40368)";
     meta_db.all(query, (err, rows) => {
         if (err) {
             callback(err, null);
         } else {
             rows.forEach(function (row) {
-                row.detail = JSON.parse(JSON.stringify(row.detail));
+                row.address = JSON.parse(JSON.stringify(row.address));
             });
             callback(null, rows);
         }
@@ -39,8 +39,8 @@ export function set_random_photo() {
                         if (rows.length == 0) {
                             console.log("inserting...")
                             meta_db.run(
-                                `INSERT INTO view_log (photo_id, detail) VALUES (?, ?)`,
-                                [photo_data.photo_id, JSON.stringify(photo_data)],
+                                `INSERT INTO view_log (photo_id) VALUES (?)`,
+                                [photo_data.photo_id],
                                 function (err) {
                                     if (err) {
                                         logger.error('Error inserting data:', err);

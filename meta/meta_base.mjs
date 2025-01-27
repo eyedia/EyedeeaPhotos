@@ -95,7 +95,6 @@ function create_tables() {
             photo_id INT NOT NULL UNIQUE,
             count INT NOT NULL DEFAULT 1,
             current BOOL DEFAULT true NOT NULL,
-            detail TEXT NOT NULL,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP,
             updated_at TEXT
             );`

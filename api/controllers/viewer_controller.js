@@ -1,19 +1,20 @@
 import useragent from "useragent";
 import fs from 'fs';
-import { get_random_photo as meta_get_random_photo } from "../../meta/meta_view.mjs";
+import { get_random_photo as meta_get_random_photo, get_config } from "../../meta/meta_view.mjs";
 import { list_geo, get_photo as syno_get_photo } from "../../services/scanners/synology/syno_client.mjs";
 import config_log from "../../config_log.js";
 import { response } from "express";
 const logger = config_log.logger;
 
-/*
-export const get_random_photo = async (req, res) => {
+
+export const get_viewer_config = async (req, res) => {
+
   try {
-    meta_get_random_photo((err, rows) => {
+    get_config((err, config) => {
       if (err) {
         logger.error(err.message);
       } else {
-        res.json(rows);
+        res.json(config);
       }
     });
   } catch (err) {
@@ -21,7 +22,7 @@ export const get_random_photo = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-*/
+
 
 export const set_random_photo = async (req, res) => {
   try {
@@ -57,8 +58,8 @@ export const get_random_photo = async (req, res) => {
                   'photo-data': JSON.stringify(photo_data)
                 });
                 res.end(response.data);
-                
-              }else{
+
+              } else {
                 fs.readFile('public/eyedeea_player.jpg', (err, data) => {
                   if (err) {
                     res.writeHead(500, { 'Content-Type': 'text/plain' });

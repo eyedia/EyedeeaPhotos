@@ -3,7 +3,7 @@ import cron from "node-cron";
 
 import config_log from "./config_log.js";
 import { meta_init } from "./meta/meta_base.mjs";
-import { set_random_photo } from "./meta/meta_view.mjs";
+import { set_random_photo, get_config } from "./meta/meta_view.mjs";
 import { authenticate } from "./services/scanners/synology/syno_client.mjs";
 import scanner_router from './api/routers/scanner_router.js';
 import viewer_router from './api/routers/viewer_router.js';
@@ -18,10 +18,22 @@ app.use('/api/scanner', scanner_router);
 app.use('/api/viewer', viewer_router);
 app.use('/api/repo', repo_router);
 
-cron.schedule('*/30 * * * * *', () => {
-  console.log('Setting next random pic...');
-  set_random_photo();
-});
+let random_photo_set_interval = "*/25 * * * * *";
+
+get_config((err, config) => {
+      if (err) {
+        logger.error(err.message);
+      } else {
+        random_photo_set_interval = config.refresh_server;
+      }
+      logger.info(`Server side refresh is set to: ${random_photo_set_interval}`);
+      cron.schedule(random_photo_set_interval, () => {
+        logger.info('Setting next random pic...');
+        set_random_photo();
+      });
+    });
+
+
 
 const PORT = process.env.PORT || 8080;
 

@@ -1,5 +1,5 @@
 {
-  "name": "synoplayer",
+  "name": "eyedeeaphotos",
   "version": "1.0.0",
   "description": "A photo slide show app for Synology NAS",
   "main": "index.js",
@@ -9,16 +9,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/eyedia/synoplayer.git"
+    "url": "git+https://github.com/eyedia/eyedeeaphotos.git"
   },
   "type": "module",
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/eyedia/synoplayer/issues"
+    "url": "https://github.com/eyedia/eyedeeaphotos/issues"
   },
-  "homepage": "https://github.com/eyedia/synoplayer#readme",
+  "homepage": "https://github.com/eyedia/eyedeeaphotos#readme",
   "dependencies": {
     "axios": "^1.7.9",
     "axios-retry": "^4.5.0",

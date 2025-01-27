@@ -46,17 +46,18 @@ export const get_random_photo = async (req, res) => {
       } else {
         if (rows && rows.length > 0) {
           let photo_data = rows[0];
-          //console.log(photo_data);
-          if (rows[0].cache_key && rows[0].cache_key != "") {
+          photo_data.detail = JSON.parse(photo_data.detail);
+          if (photo_data.detail && photo_data.detail.cache_key && photo_data.detail.cache_key != "") {
             //syno get photo
-            syno_get_photo(photo_data.photo_id, photo_data.cache_key, "xl").then(response => {
+            syno_get_photo(photo_data.photo_id, photo_data.detail.cache_key, "xl").then(response => {
               if (response && response.headers) {
                 res.writeHead(200, {
                   'Content-Type': response.headers.get('content-type'),
                   'Content-Length': response.data.length,
-                  'photo-data': JSON.stringify(photo_data)
+                  'photo-data': JSON.stringify(photo_data.detail)
                 });
                 res.end(response.data);
+                
               }else{
                 fs.readFile('public/eyedeea_player.jpg', (err, data) => {
                   if (err) {

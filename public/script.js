@@ -1,9 +1,5 @@
-const api_images = window.location.protocol + "//" + window.location.host + "/api/viewer";
-const photo_url = window.location.protocol + "//" + window.location.host + "/api/viewer/next";
-//const photo_url = "http://127.0.0.1:8080/api/viewer/next";
-
+const photo_url = window.location.protocol + "//" + window.location.host + "/api/viewer";
 const html_img01 = document.getElementById("img01");
-const html_img02 = document.getElementById("img02");
 const html_title = document.querySelector(".intro h2");
 const html_sub_title = document.querySelector(".intro h3");
 const html_sub_title_2 = document.querySelector(".intro p");

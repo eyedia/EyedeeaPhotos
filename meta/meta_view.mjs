@@ -12,9 +12,9 @@ export function get_random_photo(callback) {
         if (err) {
             callback(err, null);
         } else {
-            // rows.forEach(function (row) {
-            //     row.address = JSON.parse(row.address);
-            // });
+            rows.forEach(function (row) {
+                row.detail = JSON.parse(JSON.stringify(row.detail));
+            });
             callback(null, rows);
         }
     });
@@ -31,7 +31,6 @@ export function set_random_photo() {
         } else {
             if (rows.length == 1) {
                 let photo_data = rows[0];
-                console.log(photo_data)
                 query = `SELECT * FROM view_log WHERE photo_id = ${photo_data.photo_id}`
                 get_rows(query, (err, rows) => {
                     if (err) {

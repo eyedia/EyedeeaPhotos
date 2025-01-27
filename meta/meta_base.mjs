@@ -93,10 +93,9 @@ function create_tables() {
         `CREATE TABLE view_log (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             photo_id INT NOT NULL UNIQUE,
-            count INT NOT NULL DEFAULT 0,
-            client_ip_address TEXT NOT NULL,
-            client_user_agent_family TEXT,
-            client_user_agent_os_family TEXT,
+            count INT NOT NULL DEFAULT 1,
+            current BOOL DEFAULT true NOT NULL,
+            detail TEXT NOT NULL,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP,
             updated_at TEXT
             );`

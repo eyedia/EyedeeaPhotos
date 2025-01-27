@@ -1,17 +1,31 @@
 import useragent from "useragent";
 import fs from 'fs';
-import { get_random_photos as meta_get_random_photos, save_view_log as meta_save_view_log } from "../../meta/meta_view.mjs";
+import { get_random_photo as meta_get_random_photo } from "../../meta/meta_view.mjs";
 import { list_geo, get_photo as syno_get_photo } from "../../services/scanners/synology/syno_client.mjs";
 import config_log from "../../config_log.js";
 import { response } from "express";
 const logger = config_log.logger;
 
-let photo_data = {};
-
-export const get_random_photos = async (req, res) => {
+/*
+export const get_random_photo = async (req, res) => {
   try {
-    let limit = 1;
-    meta_get_random_photos(limit, (err, rows) => {
+    meta_get_random_photo((err, rows) => {
+      if (err) {
+        logger.error(err.message);
+      } else {
+        res.json(rows);
+      }
+    });
+  } catch (err) {
+    logger.error(err);
+    res.status(500).json({ error: err.message });
+  }
+};
+*/
+
+export const set_random_photo = async (req, res) => {
+  try {
+    meta_set_random_photo((err, rows) => {
       if (err) {
         logger.error(err.message);
       } else {
@@ -24,24 +38,23 @@ export const get_random_photos = async (req, res) => {
   }
 };
 
-export const get_photo_v2 = async (req, res) => {
+export const get_random_photo = async (req, res) => {
   try {
-
-    let limit = 1;
-    meta_get_random_photos(limit, (err, rows) => {
+    meta_get_random_photo((err, rows) => {
       if (err) {
         logger.error(err.message);
       } else {
         if (rows && rows.length > 0) {
-          photo_data = rows[0];
+          let photo_data = rows[0];
+          //console.log(photo_data);
           if (rows[0].cache_key && rows[0].cache_key != "") {
             //syno get photo
-            syno_get_photo(rows[0].photo_id, rows[0].cache_key, "xl").then(response => {
+            syno_get_photo(photo_data.photo_id, photo_data.cache_key, "xl").then(response => {
               if (response && response.headers) {
                 res.writeHead(200, {
                   'Content-Type': response.headers.get('content-type'),
                   'Content-Length': response.data.length,
-                  'photo-data': JSON.stringify(rows[0])
+                  'photo-data': JSON.stringify(photo_data)
                 });
                 res.end(response.data);
               }else{
@@ -67,10 +80,12 @@ export const get_photo_v2 = async (req, res) => {
 
   } catch (err) {
     logger.error(err);
+    console.log(err);
     res.status(500).send('Internal Server Error');
   }
 };
 
+/*
 export const get_photo_data = async (req, res) => {
   try {
     res.json(photo_data);

@@ -61,6 +61,12 @@ function show_photo() {
 }
 
 function set_image_attributes(photo_data) {
+  if (photo_data == null){
+    html_title.textContent = "Memories";
+    html_sub_title.textContent = "It's all about the journey";
+    html_sub_title_2.textContent = "";
+    return;
+  }
   set_title(photo_data);
   set_sub_title(photo_data);
   set_sub_title_2(photo_data);

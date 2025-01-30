@@ -60,7 +60,7 @@ export const get_random_photo = async (req, res) => {
                 res.end(response.data);
 
               } else {
-                fs.readFile('public/eyedeea_player.jpg', (err, data) => {
+                fs.readFile('public/eyedeea_photos.jpg', (err, data) => {
                   if (err) {
                     res.writeHead(500, { 'Content-Type': 'text/plain' });
                     res.end('Error reading image file.');

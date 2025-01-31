@@ -27,7 +27,7 @@ export function clear_scan(callback) {
 
 
 export function save_item(json_data) {
-    const insert_query = `INSERT INTO photo (photo_id, filename, folder_id, folder_name, time, type, orientation, cache_key, unit_id, geocoding_id, tags, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const insert_query = `INSERT or IGNORE INTO photo (photo_id, filename, folder_id, folder_name, time, type, orientation, cache_key, unit_id, geocoding_id, tags, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
     meta_db.run(
         insert_query,

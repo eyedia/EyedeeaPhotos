@@ -10,6 +10,9 @@ let _interval_id = 0;
 let _scan_log_id = 0;
 let _failed_folders_tried = false;
 let _failed_folders = 0;
+let _offset = 0;
+let _limit = 1000;
+
 
 function keep_checking_when_insert_stops() {
     _interval_id = setInterval(() => {
@@ -33,7 +36,7 @@ function keep_checking_when_insert_stops() {
     setTimeout(() => {
         clearInterval(_interval_id);
         logger.error("Scanning timed out. Please check logs, read documentation and increase timeout if neccessary.");
-    }, 1000 * 60 * 7);    //Auto stop after 7 minutes
+    }, 1000 * 60 * 12);    //Auto stop after 12 minutes
 }
 
 function end_scan() {
@@ -64,11 +67,10 @@ function scan_failed_folders() {
             logger.error(err);
         } else {
             if (rows && rows.length > 0) {
-                _failed_folders = rows.length;
-                
+                _failed_folders = rows.length;                
                 rows.forEach(function (row) {
                     logger.info(`Retrying failed folders: ${row.folder_id}: ${row.folder_name}`);
-                    list_dir_loop(_scan_log_id, row.folder_id, row.folder_name, m_offset, m_limit);
+                    list_dir_loop(_scan_log_id, row.folder_id, row.folder_name, _offset, _limit);
                     update_scan_log(_scan_log_id, row.folder_id, 1);
                 });
             } else {
@@ -86,9 +88,7 @@ export async function scan(folder_id = -1, folder_name = "") {
     _interval_id = 0;
     keep_checking_when_insert_stops();
 
-    let m_offset = 0;
-    let m_limit = 1000;
-
+    
     //save scan log
     let scan_log_data = {
         "root_folder_id": folder_id,
@@ -105,11 +105,11 @@ export async function scan(folder_id = -1, folder_name = "") {
                 if ((folder_id === -1) && (folder_name === "")) {
                     let info = "";
                     //scan starts from root
-                    list_dir(undefined, m_offset, m_limit)
+                    list_dir(undefined, _offset, _limit)
                         .then(data => {
                             if (data && data.data.list.length > 0) {
                                 data.data.list.forEach(function (root_folder) {
-                                    list_dir_loop(scan_log_id, root_folder.id, root_folder.name, m_offset, m_limit);
+                                    list_dir_loop(scan_log_id, root_folder.id, root_folder.name, _offset, _limit);
                                 });
                             } else {
                                 logger.info("Nothing to scan. No root folders!");
@@ -126,7 +126,7 @@ export async function scan(folder_id = -1, folder_name = "") {
                 } else {
                     //scan starts from a specific folder
                     logger.info("Starting scanning from a specific folder...", folder_id, folder_name);
-                    list_dir_loop(scan_log_id, folder_id, folder_name, m_offset, m_limit);
+                    list_dir_loop(scan_log_id, folder_id, folder_name, _offset, _limit);
                 }
 
             }

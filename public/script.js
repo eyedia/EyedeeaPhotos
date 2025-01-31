@@ -143,7 +143,11 @@ function set_sub_title(photo_data) {
         city_or_town = photo_data.address.state;
       }
 
-      address = `${city_or_town}, ${photo_data.address.country}`;
+      if (city_or_town != "")
+        address = `${city_or_town}, ${photo_data.address.country}`;
+      else
+        address = photo_data.address.country;
+
       html_sub_title.textContent = html_sub_title.textContent + " | " + address;
     } catch {
 
@@ -157,7 +161,8 @@ function set_sub_title(photo_data) {
 
 function set_sub_title_2(photo_data) {
   try {
-    html_sub_title_2.textContent = photo_data.folder_name + "/" + photo_data.filename + "|" + photo_data.orientation;
+    html_sub_title_2.textContent = photo_data.filename;
+    //html_sub_title_2.textContent = photo_data.folder_name + "/" + photo_data.filename + "|" + photo_data.orientation;
     //html_sub_title_2.textContent = html_sub_title_2.textContent + " | + " + JSON.stringify(photo_data.address);
   } catch (error) {
     console.error(error);

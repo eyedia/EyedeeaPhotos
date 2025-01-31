@@ -93,8 +93,8 @@ export function set_random_photo() {
 
 export function get_config(callback) {
     let viewer_config = {
-        "refresh_server": "*/25 * * * * *",
-        "refresh_client": 30
+        "refresh_server": "*/55 * * * * *",
+        "refresh_client": 60
     }
     //let query = "select * from photo where photo_id in (SELECT photo_id FROM view_log WHERE current = true LIMIT 1)";
     //let query = "SELECT * FROM photo WHERE id IN(35001,38543,40368)";

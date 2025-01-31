@@ -8,7 +8,7 @@ const logger = config_log.logger;
 export function search_init() {
     const create_search_indexes = [
         `DELETE FROM fts`,
-        
+
         `INSERT INTO fts 
             (photo_id, folder_name, tags, address) 
             SELECT 
@@ -24,5 +24,35 @@ export function search_init() {
                 logger.info('Search indexes initialized successfully.');
             }
         });
+    });
+}
+
+
+
+export function search(callback) {
+    let query = `SELECT * FROM view_filter where current = 1 LIMIT 1`;
+
+    get_rows(query, (err, rows) => {
+        if (err) {
+            logger.error(err.message);
+        } else {
+            if (rows.length == 1) {
+                let filter_data = rows[0];
+                //let filter_data = {"filter_must": "belize"}
+                query = `SELECT photo_id 
+                        FROM fts 
+                        WHERE fts MATCH '${filter_data.filter_must}'`
+                get_rows(query, (err, rows) => {
+                    if (err) {
+                        callback(err, null);
+                    } else {
+                        const photo_ids = rows.map(row => row.photo_id).join(',');
+                        callback(null, photo_ids);
+                    }
+                });
+            }else{
+                callback(null, null);
+            }
+        }
     });
 }

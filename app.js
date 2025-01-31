@@ -4,7 +4,7 @@ import cron from "node-cron";
 import config_log from "./config_log.js";
 import { meta_init } from "./meta/meta_base.mjs";
 import { set_random_photo, get_config } from "./meta/meta_view.mjs";
-import { get_last_inserted_diff } from "./meta/meta_scan.mjs";
+import { search } from "./meta/meta_search.mjs";
 import { authenticate } from "./services/scanners/synology/syno_client.mjs";
 import scanner_router from './api/routers/scanner_router.js';
 import viewer_router from './api/routers/viewer_router.js';
@@ -28,10 +28,10 @@ get_config((err, config) => {
         random_photo_set_interval = config.refresh_server;
       }
       logger.info(`Server side refresh is set to: ${random_photo_set_interval}`);
-      // cron.schedule(random_photo_set_interval, () => {
-      //   logger.info('Setting next random pic...');
-      //   set_random_photo();
-      // });
+      cron.schedule(random_photo_set_interval, () => {
+        logger.info('Setting next random pic...');
+        set_random_photo();
+      });
     });
 
 
@@ -44,14 +44,12 @@ async function init() {
 
 
   app.get('/test', async (req, res) => {
-    get_last_inserted_diff((err, rows) => {
+    search((err, rows) => {
       if (err) {
         logger.error(err);
       } else {
-        console.log(rows);
         if (rows) {
-          let timed_out = rows.diff > 0.018;
-          res.json({"data": rows, "time": timed_out});
+          res.json(rows);
         }else{
           res.json({"data": -1});
         }

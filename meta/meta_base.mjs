@@ -100,7 +100,16 @@ function create_tables() {
             );`,
 
         `CREATE VIRTUAL TABLE fts 
-            USING FTS5(photo_id,folder_name,tags,address);`
+            USING FTS5(photo_id,folder_name,tags,address);`,
+            
+        `CREATE TABLE view_filter (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+			name TEXT NOT NULL,
+            filter_must TEXT NOT NULL,
+			filter_option TEXT,
+			current BOOL DEFAULT 1,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            );`
     ];
 
     createTableQueries.forEach((query) => {

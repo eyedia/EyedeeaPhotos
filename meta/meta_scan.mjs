@@ -8,8 +8,7 @@ const logger = config_log.logger;
 
 export function clear_scan(callback) {
     const clean_queries = [
-        `DELETE FROM photo`,
-        `DELETE FROM scan_log_detail`]
+        `DELETE FROM photo`]
     clean_queries.forEach((query) => {
         meta_db.run(
             query,
@@ -60,7 +59,6 @@ export function start_scan(json_data, callback) {
 }
 
 export function stop_scan(json_data, callback) {
-    console.log("stoppppppppppppppppppping");
     const insert_query = `UPDATE scan_log set updated_at =?, info =? WHERE id =?`;
     return meta_db.run(
         insert_query,

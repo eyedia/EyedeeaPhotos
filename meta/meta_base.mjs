@@ -97,7 +97,10 @@ function create_tables() {
             current BOOL DEFAULT true NOT NULL,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP,
             updated_at TEXT
-            );`
+            );`,
+
+        `CREATE VIRTUAL TABLE fts 
+            USING FTS5(photo_id,folder_name,tags,address);`
     ];
 
     createTableQueries.forEach((query) => {

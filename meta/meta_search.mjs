@@ -7,12 +7,9 @@ const logger = config_log.logger;
 
 export function search_init() {
     const create_search_indexes = [
-        `DROP TABLE IF EXISTS search;`,
+        `DELETE FROM fts`,
         
-        `CREATE VIRTUAL TABLE search 
-            USING FTS5(photo_id,folder_name,tags,address);`,
-
-        `INSERT INTO search 
+        `INSERT INTO fts 
             (photo_id, folder_name, tags, address) 
             SELECT 
             photo_id, folder_name, tags, address 

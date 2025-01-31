@@ -5,22 +5,28 @@ import { meta_db, get_rows } from "./meta_base.mjs";
 
 const logger = config_log.logger;
 
-export function save_item(json_data) {
 
-    // json_data = {
-    //     "photo_id": 32265,
-    //     "filename": "DSC_0173.JPG",
-    //     "folder_id": 820,
-    //     "folder_name": "folder name",
-    //     "time": 1422185896,
-    //     "type": "photo",
-    //     "orientation": 1,
-    //     "cache_key": "32265_1734881011",
-    //     "unit_id": 32265,
-    //     "geocoding_id": 4,
-    //     "tags": "devina,portrait",
-    //     "address": ""
-    // }
+export function clear_scan(callback) {
+    const clean_queries = [
+        `DELETE FROM photo`,
+        `DELETE FROM scan_log_detail`]
+    clean_queries.forEach((query) => {
+        meta_db.run(
+            query,
+            function (err) {
+                if (err) {
+                    logger.error('Error deleting data from photo:', err);
+                } else {
+                    if (callback) {
+                        callback();
+                    }
+                }
+            });
+    });
+}
+
+
+export function save_item(json_data) {
     const insert_query = `INSERT INTO photo (photo_id, filename, folder_id, folder_name, time, type, orientation, cache_key, unit_id, geocoding_id, tags, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
     meta_db.run(
@@ -54,6 +60,7 @@ export function start_scan(json_data, callback) {
 }
 
 export function stop_scan(json_data, callback) {
+    console.log("stoppppppppppppppppppping");
     const insert_query = `UPDATE scan_log set updated_at =?, info =? WHERE id =?`;
     return meta_db.run(
         insert_query,
@@ -122,3 +129,18 @@ export function update_scan_log(scan_log_id, folder_id, re_scanned) {
         });
 }
 
+
+export function get_last_inserted_diff(callback) {
+    let query = `select julianday(CURRENT_TIMESTAMP) - julianday(created_at) diff from photo order by created_at desc limit 1`
+    get_rows(query, (err, rows) => {
+        if (err) {
+            callback(err, null);
+        } else {
+            if(rows && rows.length > 0){
+                callback(null, rows[0]);
+            }else{
+                callback(null, 0);
+            }
+        }
+    });
+}

@@ -27,8 +27,6 @@ export function search_init() {
     });
 }
 
-
-
 export function search(callback) {
     let query = `SELECT * FROM view_filter where current = 1 LIMIT 1`;
 
@@ -50,9 +48,57 @@ export function search(callback) {
                         callback(null, filter_data.id, photo_ids);
                     }
                 });
-            }else{
+            } else {
                 callback(null, null);
             }
+        }
+    });
+}
+
+export function get_tokens_2(callback) {
+
+    let tokens = []
+    get_rows("SELECT distinct address FROM photo", (err, rows) => {
+        if (err) {
+            logger.error(err.message);
+        } else {
+            rows.forEach(row => {
+                let address = JSON.parse(row.address);
+                if (address != null) {                    
+                    const address_value_array = Object.values(address);
+                    address_value_array.forEach(v => {
+                        tokens = tokens.concat(v.split(" "));
+                    });                    
+                }
+            });
+            const unique_tokens = [...new Set(tokens.filter(t => t.length >= 3))];
+            callback(null, unique_tokens);
+        }
+    });
+}
+
+
+export function get_tokens(callback) {
+
+    let tokens = []
+    get_rows("SELECT distinct folder_name FROM photo", (err, rows) => {
+        if (err) {
+            logger.error(err.message);
+        } else {
+            rows.forEach(row => {
+                let items = row["folder_name"].split("/");
+                for (let i = 0; i < items.length; i++) {
+                    let item = items[i].replaceAll("-", " ")
+                        .replaceAll("_", " ")
+                        .replaceAll("'", " ")
+                        .replaceAll("&", " ");
+                    let words = item.split(" ");
+                    tokens = tokens.concat(words);
+                }
+                //tokens = tokens.concat(items);
+            });
+            const unique_tokens = [...new Set(tokens.filter(t => t.length >= 3))];
+            callback(null, unique_tokens);
         }
     });
 }

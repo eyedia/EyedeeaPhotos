@@ -5,9 +5,23 @@ import { meta_db, get_rows } from "./meta_base.mjs";
 import { search } from "./meta_search.mjs";
 
 const logger = config_log.logger;
+let get_random_photo_trying_viewed_photo = false;
+let get_random_photo_trying_viewed_photo_count = 0;
 
-export function get_random_photo(callback) {
-    let query = "select * from photo where photo_id in (SELECT photo_id FROM view_log WHERE current = true LIMIT 1)";
+export function get_random_photo(status = 0, callback) {
+    if(get_random_photo_trying_viewed_photo && get_random_photo_trying_viewed_photo_count >= 3){
+        logger.error("The sytem has not set up random photo. The operation aborted after 3 times!");
+
+        //the system gave up after trying 3 times. 
+        get_random_photo_trying_viewed_photo = false;
+        get_random_photo_trying_viewed_photo_count = 0;
+        return;
+    }
+    get_random_photo_trying_viewed_photo = false;   //start with default
+    get_random_photo_trying_viewed_photo_count = 0; //start with default
+
+    logger.info(`Getting random photo where status = ${status}...`);
+    let query = `select * from photo where photo_id in (SELECT photo_id FROM view_log WHERE status = ${status} LIMIT 1)`;
     //let query = "SELECT * FROM photo WHERE id IN(35001,38543,40368)";
     meta_db.all(query, (err, rows) => {
         if (err) {
@@ -15,8 +29,6 @@ export function get_random_photo(callback) {
         } else {
             if (rows.length == 1) {
                 rows[0].address = JSON.parse(JSON.stringify(rows[0].address));
-
-
                 if (rows[0].status == 1) {
                     //already picked up, return the records                    
                     callback(null, rows);
@@ -33,8 +45,12 @@ export function get_random_photo(callback) {
                             }
                         });
                 }
+            }else{
+                //get unviewed photo
+                get_random_photo_trying_viewed_photo = true;
+                get_random_photo_trying_viewed_photo_count = 0;
+                return get_random_photo(1, callback);
             }
-
 
         }
     });
@@ -63,21 +79,19 @@ export function set_random_photo() {
             } else {
                 if (photo_ids) {
                     //filtered random
-                    query = `SELECT * FROM photo WHERE id IN (SELECT id FROM photo WHERE type='photo' and photo_id in (${photo_ids}) ORDER BY RANDOM() LIMIT 1)`;
+                    query = `SELECT * FROM photo WHERE id IN (SELECT id FROM photo WHERE type='photo' and photo_id in (${photo_ids}) ORDER BY RANDOM() LIMIT 1000)`;
                 } else {
                     //default random
-                    query = `SELECT * FROM photo WHERE id IN (SELECT id FROM photo WHERE type='photo' ORDER BY RANDOM() LIMIT 1)`;
+                    query = `SELECT * FROM photo WHERE id IN (SELECT id FROM photo WHERE type='photo' ORDER BY RANDOM() LIMIT 1000)`;
                 }
             }
 
-            get_rows(query, (err, rows) => {
+            get_rows(query, (err, random_photos) => {
                 if (err) {
                     logger.error(err.message);
                 } else {
-                    if (rows.length == 1) {
-                        let photo_data = rows[0];
-                        //let photo_data = {"photo_id": 23816}
-                        query = `SELECT * FROM view_log WHERE photo_id = ${photo_data.photo_id}`
+                    random_photos.forEach((random_photo) => {
+                        query = `SELECT * FROM view_log WHERE photo_id = ${random_photo.photo_id}`
                         get_rows(query, (err, rows) => {
                             if (err) {
                                 logger.error(err.message);
@@ -85,35 +99,26 @@ export function set_random_photo() {
                                 if (rows.length == 0) {
                                     meta_db.run(
                                         `INSERT INTO view_log (photo_id, view_filter_id) VALUES (?, ?)`,
-                                        [photo_data.photo_id, view_filter_id],
+                                        [random_photo.photo_id, view_filter_id],
                                         function (err) {
                                             if (err) {
                                                 logger.error('Error inserting data:', err);
                                             }
                                         });
                                 } else {
-                                    photo_data["count"] = rows[0].count;
+                                    random_photo["count"] = rows[0].count;
                                     meta_db.run(
-                                        `UPDATE view_log set count = ?, view_filter_id = ?, current = true, updated_at = ? where photo_id = ?`,
-                                        [photo_data.count + 1, view_filter_id, Date.now(), photo_data.photo_id],
+                                        `UPDATE view_log set status = 0, count = ?, view_filter_id = ?, updated_at = ? where photo_id = ?`,
+                                        [random_photo.count + 1, view_filter_id, Date.now(), random_photo.photo_id],
                                         function (err) {
                                             if (err) {
                                                 logger.error('Error updating data:', err);
                                             }
                                         });
                                 }
-
-                                meta_db.run(
-                                    `UPDATE view_log set current = false where photo_id != ?`,
-                                    [photo_data.photo_id],
-                                    function (err) {
-                                        if (err) {
-                                            logger.error('Error updating data:', err);
-                                        }
-                                    });
                             }
                         });
-                    }
+                    });
                 }
             });
 

@@ -41,7 +41,7 @@ export const set_random_photo = async (req, res) => {
 
 export const get_random_photo = async (req, res) => {
   try {
-    meta_get_random_photo((err, rows) => {
+    meta_get_random_photo(0, (err, rows) => {
       if (err) {
         logger.error(err.message);
       } else {

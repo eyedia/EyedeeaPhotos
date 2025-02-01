@@ -30,7 +30,6 @@ get_config((err, config) => {
       }
       logger.info(`Server side refresh is set to: ${random_photo_set_interval}`);
       cron.schedule(random_photo_set_interval, () => {
-        logger.info('Setting next random photo...');
         set_random_photo();
       });
 

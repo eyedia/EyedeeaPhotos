@@ -44,10 +44,10 @@ export function search(callback) {
                         WHERE fts MATCH '${filter_data.filter_must}'`
                 get_rows(query, (err, rows) => {
                     if (err) {
-                        callback(err, null);
+                        callback(err, null, null);
                     } else {
                         const photo_ids = rows.map(row => row.photo_id).join(',');
-                        callback(null, photo_ids);
+                        callback(null, filter_data.id, photo_ids);
                     }
                 });
             }else{

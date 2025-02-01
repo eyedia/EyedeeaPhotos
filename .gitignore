@@ -27,6 +27,7 @@ logs
 .cache
 info.txt
 *.db
+*.db-journal
 html5up-helios.zip
 web/
 private/

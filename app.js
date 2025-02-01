@@ -4,6 +4,7 @@ import cron from "node-cron";
 import config_log from "./config_log.js";
 import { meta_init } from "./meta/meta_base.mjs";
 import { set_random_photo, get_config } from "./meta/meta_view.mjs";
+import { scan as syno_scan } from "./services/scanners/synology/syno_scanner.mjs";
 import { search } from "./meta/meta_search.mjs";
 import { authenticate } from "./services/scanners/synology/syno_client.mjs";
 import scanner_router from './api/routers/scanner_router.js';
@@ -29,8 +30,13 @@ get_config((err, config) => {
       }
       logger.info(`Server side refresh is set to: ${random_photo_set_interval}`);
       cron.schedule(random_photo_set_interval, () => {
-        logger.info('Setting next random pic...');
+        logger.info('Setting next random photo...');
         set_random_photo();
+      });
+
+      cron.schedule("0 1 * * *", () => {
+        logger.info('Auto scanning...');
+        syno_scan(undefined, undefined);
       });
     });
 

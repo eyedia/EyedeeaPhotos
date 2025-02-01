@@ -95,8 +95,11 @@ function create_tables() {
             photo_id INT NOT NULL UNIQUE,
             count INT NOT NULL DEFAULT 1,
             current BOOL DEFAULT true NOT NULL,
+            status INT DEFAULT 0,
+            view_filter_id INT,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            updated_at TEXT
+            updated_at TEXT,            
+			FOREIGN KEY(view_filter_id) REFERENCES view_filter(id)
             );`,
 
         `CREATE VIRTUAL TABLE fts 

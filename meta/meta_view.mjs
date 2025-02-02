@@ -9,7 +9,7 @@ let get_random_photo_trying_viewed_photo = false;
 let get_random_photo_trying_viewed_photo_count = 0;
 
 export function get_random_photo(status = 0, callback) {
-    if(get_random_photo_trying_viewed_photo && get_random_photo_trying_viewed_photo_count >= 3){
+    if (get_random_photo_trying_viewed_photo && get_random_photo_trying_viewed_photo_count >= 3) {
         logger.error("The sytem has not set up random photo. The operation aborted after 3 times!");
 
         //the system gave up after trying 3 times. 
@@ -45,13 +45,32 @@ export function get_random_photo(status = 0, callback) {
                             }
                         });
                 }
-            }else{
+            } else {
                 //get unviewed photo
                 get_random_photo_trying_viewed_photo = true;
                 get_random_photo_trying_viewed_photo_count = 0;
                 return get_random_photo(1, callback);
             }
 
+        }
+    });
+}
+
+export function get_photo_history(callback) {
+    logger.info(`Getting last 12 photo history...`);
+    let query = `select photo.photo_id, cache_key, tags, address from photo 
+                    inner join view_log on view_log.photo_id = photo.photo_id 
+                    order by update_sequence desc limit 12`;
+    meta_db.all(query, (err, rows) => {
+        if (err) {
+            callback(err, null);
+        } else {
+            rows.forEach(row => {
+                if (row.address != null) {
+                    row.address = JSON.parse(JSON.stringify(row.address));                    
+                }
+            });
+            callback(null, rows);
         }
     });
 }

@@ -35,7 +35,7 @@ for(i =0;i < 12; i++){
     
 }
 
-//setInterval(refresh_pic, 10000);
+setInterval(refresh_pic, 10000);
 let auto_refreshed = "";
 let toggle = 0;
 
@@ -50,9 +50,9 @@ function refresh_pic(){
     const e_p = document.getElementById("p-01");
 
     if(toggle == 0){
-        e_a.href = "images/fulls/12.jpg";
-        e_img.href = "images/fulls/12.jpg";
-        auto_refreshed = "images/fulls/12.jpg";
+        e_a.href = "api/viewer";
+        e_img.href = "api/viewer";
+        auto_refreshed = "api/viewer";
         toggle = 1;
     }else{
         e_a.href = "images/fulls/07.jpg";

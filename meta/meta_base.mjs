@@ -95,6 +95,7 @@ function create_tables() {
             photo_id INT NOT NULL UNIQUE,
             count INT NOT NULL DEFAULT 1,
             status INT DEFAULT 0 NOT NULL,
+            current BOOL DEFAULT 0,
             view_filter_id INT,
             update_sequence INT default 0,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP,

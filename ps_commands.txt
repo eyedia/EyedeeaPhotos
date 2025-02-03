@@ -3,3 +3,6 @@ Get-ChildItem *.txt | Rename-Item -NewName { $_.Name -replace "Maya_", "Maya" }
 
 --rename files with sequence number
 Get-ChildItem | ForEach-Object {$i = 1} {Rename-Item $_ -NewName ("Belize-{0}{1}" -f $i++, $_.Extension)}
+
+--update geolocation
+C:\Work\Tools\exiftool\exiftool -GPSLatitude="17.76433601496803" -GPSLongitude="-88.3473649153436" -GPSAltitude="10" Belize-Maya-03.jpg

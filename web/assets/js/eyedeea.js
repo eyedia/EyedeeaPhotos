@@ -16,6 +16,21 @@ let refresh_client = 10;
 </article> */}
 
 document.addEventListener('DOMContentLoaded', function () {
+    
+    //init materialize
+    var elems = document.querySelectorAll('.fixed-action-btn');
+    let options = {
+        direction: 'left',
+        hoverEnabled: false,
+        toolbarEnabled: false
+    }
+
+    var instances = M.FloatingActionButton.init(elems, options);
+
+    var elems_tooltips = document.querySelectorAll('.tooltipped');
+    var instances_tooltips = M.Tooltip.init(elems_tooltips, {position: 'top'});
+
+    //refresh timer configs from server
     get_config()
         .then(config_from_server => {
             if (config_from_server && config_from_server.refresh_client) {
@@ -245,4 +260,38 @@ function addScript(scriptSrc) {
     script.src = scriptSrc;
     document.head.appendChild(script);
 
+}
+
+function mt_hangle_tool_click(id){
+    
+    switch(id){
+        case "mt_trash_it":
+            console.log(id);
+            break;
+        case "mt_mark_it":            
+            break;
+        case "mt_incorrect_location":
+            break;
+        case "mt_incorrect_date":            
+            break;
+        case "mt_incorrect_album":           
+            break;
+        case "mt_dont_show":            
+            break;
+        case "mt_love_it":            
+            break;
+    }
+
+    toggle_lighten(document.getElementById(id), "lighten-4");
+   
+}
+
+function toggle_lighten(element, toggle_color){
+    if(!element.classList.contains(toggle_color)){
+        element.classList.add(toggle_color);
+        return true;
+    }else{
+        element.classList.remove(toggle_color);
+        return false;
+    }
 }

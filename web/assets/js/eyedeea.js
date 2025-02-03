@@ -87,18 +87,20 @@ function refresh_history() {
 
                 const e_h2 = document.createElement('h2');
                 e_h2.setAttribute("id", `h2-${String(foo + 1).padStart(2, '0')}`);
-                //e_h2.textContent = `title ${foo + 1}`;
+
+                const e_h3 = document.createElement('h3');
+                e_h3.setAttribute("id", `h3-${String(foo + 1).padStart(2, '0')}`);
 
                 const e_p = document.createElement('p');
                 e_p.setAttribute("id", `p-${String(foo + 1).padStart(2, '0')}`);
-                //e_p.textContent = `subbbbbbb title ${foo + 1}`;
 
                 let photo_data_obj = JSON.parse(JSON.stringify(object_url_and_headers[1].get("Photo-Data")));
                 let photo_data = JSON.parse(photo_data_obj);
-                set_image_attributes(photo_data, e_h2, e_p);
+                set_image_attributes(photo_data, e_h2, e_h3, e_p);
 
                 e_article.appendChild(e_a);
                 e_article.appendChild(e_h2);
+                e_article.appendChild(e_h3);
                 e_article.appendChild(e_p);
 
                 e_thumbnails.appendChild(e_article);
@@ -134,21 +136,21 @@ async function get_photo(photo_index) {
 }
 
 
-function set_image_attributes(photo_data, e_title, e_sub_title) {
+function set_image_attributes(photo_data, e_title, e_sub_title, e_sub_title2) {
     if (photo_data == null) {
         e_title.textContent = "Memories";
         e_sub_title.textContent = "It's all about the journey";
         //html_sub_title_2.textContent = "";
         return;
     }
-    set_title(photo_data, e_title, e_sub_title);
-    set_sub_title(photo_data, e_title, e_sub_title);
-    //set_sub_title_2(photo_data);
+    set_title(photo_data, e_title);
+    set_sub_title(photo_data, e_sub_title);
+    set_sub_title_2(photo_data, e_sub_title2);
     //set_orientation(photo_data);
 }
 
 
-function set_title(photo_data, e_title, e_sub_title) {
+function set_title(photo_data, e_title) {
     try {
         let title = photo_data.folder_name;
         title = title.split("/").pop(); //removing slash and taking last folder name. i.e. album name
@@ -163,7 +165,7 @@ function set_title(photo_data, e_title, e_sub_title) {
     }
 }
 
-function set_sub_title(photo_data, e_title, e_sub_title) {
+function set_sub_title(photo_data, e_sub_title) {
     try {
         let taken_on = new Date(photo_data.time * 1000);
         taken_on = `${days_of_week[taken_on.getDay()]} ${months[taken_on.getMonth()]} ${taken_on.getDate().toString().padStart(2, 0)} ${taken_on.getFullYear()}`;
@@ -203,6 +205,19 @@ function set_sub_title(photo_data, e_title, e_sub_title) {
         e_sub_title.textContent = "It's all about the journey"
     }
 }
+
+
+function set_sub_title_2(photo_data, e_sub_title2) {
+    try {
+        e_sub_title2.textContent = photo_data.filename;
+      //html_sub_title_2.textContent = photo_data.folder_name + "/" + photo_data.filename + "|" + photo_data.orientation;
+      //html_sub_title_2.textContent = html_sub_title_2.textContent + " | + " + JSON.stringify(photo_data.address);
+    } catch (error) {
+      console.error(error);
+      e_sub_title2.textContent = "It's all about the journey"
+    }
+  }
+  
 
 function set_orientation(photo_data) {
     let orientation = photo_data.orientation;

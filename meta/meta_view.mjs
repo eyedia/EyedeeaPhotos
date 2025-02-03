@@ -34,16 +34,16 @@ export function get_random_photo(status = 0, callback) {
                     callback(null, rows);
                 } else {
                     //update that the photo has been picked_up
-                    // meta_db.run(
-                    //     `UPDATE view_log set status = 1 where photo_id = ?`,
-                    //     [rows[0].photo_id],
-                    //     function (err) {
-                    //         if (err) {
-                    //             logger.error('Error updating data:', err);
-                    //         } else {
+                    meta_db.run(
+                        `UPDATE view_log set status = 1 where photo_id = ?`,
+                        [rows[0].photo_id],
+                        function (err) {
+                            if (err) {
+                                logger.error('Error updating data:', err);
+                            } else {
                                  callback(null, rows);
-                    //         }
-                    //     });
+                            }
+                        });
                 }
             } else {
                 //get unviewed photo
@@ -57,7 +57,6 @@ export function get_random_photo(status = 0, callback) {
 }
 
 export function get_photo_history(callback) {
-    logger.info(`Getting last 12 photo history...`);
     let query = `select * from photo 
                     inner join view_log on view_log.photo_id = photo.photo_id 
                     order by update_sequence desc limit 12`;

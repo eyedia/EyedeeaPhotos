@@ -50,7 +50,6 @@ export const get_random_photo = async (req, res) => {
         } else {
           if (rows && rows.length > 0) {
             let photo_data = rows[req.query.photo_index];
-            console.log(photo_data.photo_id);
             //photo_data.address = JSON.parse(photo_data.address);
             if (photo_data.cache_key && photo_data.cache_key != "") {
               get_photo_from_synology(photo_data, req, res);

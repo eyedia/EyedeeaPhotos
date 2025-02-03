@@ -1,6 +1,9 @@
+const days_of_week = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
 const photo_url = window.location.protocol + "//" + window.location.host + "/api/viewer";
 const e_thumbnails = document.getElementById("thumbnails");
-let auto_refreshed = "api/viewer";
+//let auto_refreshed = "api/viewer";
 let toggle = 0;
 
 refresh_pic();
@@ -18,9 +21,9 @@ document.addEventListener('DOMContentLoaded', function () {
             if (config_from_server && config_from_server.refresh_client) {
                 refresh_client = config_from_server.refresh_client;
             }
-            setInterval(function () {
-                refresh_pic();
-            }, refresh_client * 1000);
+            // setInterval(function () {
+            //     refresh_pic();
+            // }, 5 * 1000);
         });
 
 
@@ -36,22 +39,22 @@ async function get_config() {
 
 
 function refresh_pic() {
-    if (auto_refreshed == "PAUSE") {
-        return;
-    }
+    // if (auto_refreshed == "PAUSE") {
+    //     return;
+    // }
     console.log("refreshing...");
-    get_photo()
-        .then(object_url_and_headers => {
-            //html_img_photo.src = object_url_and_headers[0];
-            let photo_data_obj = JSON.parse(JSON.stringify(object_url_and_headers[1].get("Photo-Data")));
-            let photo_data = JSON.parse(photo_data_obj);
-            console.log(photo_data);
-            refresh_history();
+    refresh_history();
+    // get_photo()
+    //     .then(object_url_and_headers => {
+    //         //html_img_photo.src = object_url_and_headers[0];
+    //         let photo_data_obj = JSON.parse(JSON.stringify(object_url_and_headers[1].get("Photo-Data")));
+    //         let photo_data = JSON.parse(photo_data_obj);
+    //         refresh_history();
 
-        })
-        .catch(error => {
-            console.error('Error fetching image:', error);
-        });
+    //     })
+    //     .catch(error => {
+    //         console.error('Error fetching image:', error);
+    //     });
 }
 
 function refresh_history() {
@@ -60,41 +63,54 @@ function refresh_history() {
     removeScript("/assets/js/main.js");
     removeScript("/assets/js/breakpoints.min.js");
 
+    var total = 12;
+    var count = 0;
 
-    for (i = 0; i < 12; i++) {
-        const e_article = document.createElement('article');
-        get_photo(i);
-        const e_a = document.createElement('a');
-        e_a.setAttribute("id", `a-${String(i + 1).padStart(2, '0')}`);
-        e_a.setAttribute("class", "thumbnail");
-        e_a.setAttribute("href", `api/viewer?photo_index=${i}`);
+    for (i = 0; i < total; i++) {
+        (function (foo) {
+            const e_article = document.createElement('article');
+            get_photo(foo).then(object_url_and_headers => {
 
-        const e_img = document.createElement('img');
-        e_img.setAttribute("id", `img-${String(i + 1).padStart(2, '0')}`);
-        e_img.setAttribute("src", `api/viewer?photo_index=${i}`);
-        e_a.appendChild(e_img);
+                const e_a = document.createElement('a');
+                e_a.setAttribute("id", `a-${String(foo + 1).padStart(2, '0')}`);
+                e_a.setAttribute("class", "thumbnail");
+                e_a.setAttribute("href", object_url_and_headers[0]);
 
-        const e_h2 = document.createElement('h2');
-        e_h2.setAttribute("id", `h2-${String(i + 1).padStart(2, '0')}`);
-        e_h2.textContent = `title ${i + 1}`;
+                const e_img = document.createElement('img');
+                e_img.setAttribute("id", `img-${String(foo + 1).padStart(2, '0')}`);
+                e_img.setAttribute("src", object_url_and_headers[0]);
+                e_a.appendChild(e_img);
 
-        const e_p = document.createElement('p');
-        e_p.setAttribute("id", `p-${String(i + 1).padStart(2, '0')}`);
-        e_p.textContent = `subbbbbbb title ${i + 1}`;
+                const e_h2 = document.createElement('h2');
+                e_h2.setAttribute("id", `h2-${String(foo + 1).padStart(2, '0')}`);
+                //e_h2.textContent = `title ${foo + 1}`;
 
-        e_article.appendChild(e_a);
-        e_article.appendChild(e_h2);
-        e_article.appendChild(e_p);
+                const e_p = document.createElement('p');
+                e_p.setAttribute("id", `p-${String(foo + 1).padStart(2, '0')}`);
+                //e_p.textContent = `subbbbbbb title ${foo + 1}`;
 
-        e_thumbnails.appendChild(e_article);
+                let photo_data_obj = JSON.parse(JSON.stringify(object_url_and_headers[1].get("Photo-Data")));
+                let photo_data = JSON.parse(photo_data_obj);
+                set_image_attributes(photo_data, e_h2, e_p);
 
-        set_image_attributes(photo_data, e_h2, e_p);
+                e_article.appendChild(e_a);
+                e_article.appendChild(e_h2);
+                e_article.appendChild(e_p);
+
+                e_thumbnails.appendChild(e_article);
+                count++;
+                if (count > total - 1)
+                    addScript("assets/js/main.js");
+
+            })
+            .catch(error => {
+                console.error('Error fetching image:', error);
+            });
+        }(i));
 
     }
 
-    addScript("assets/js/main.js");
 }
-
 
 
 async function get_photo(photo_index) {
@@ -129,7 +145,6 @@ function set_image_attributes(photo_data, e_title, e_sub_title) {
 function set_title(photo_data, e_title, e_sub_title) {
     try {
         let title = photo_data.folder_name;
-        console.log(photo_data);
         title = title.split("/").pop(); //removing slash and taking last folder name. i.e. album name
         title = title.replaceAll(" - ", " ");
         title = title.replaceAll("-", " ");
@@ -144,44 +159,44 @@ function set_title(photo_data, e_title, e_sub_title) {
 
 function set_sub_title(photo_data, e_title, e_sub_title) {
     try {
-      let taken_on = new Date(photo_data.time * 1000);
-      taken_on = `${days_of_week[taken_on.getDay()]} ${months[taken_on.getMonth()]} ${taken_on.getDate().toString().padStart(2, 0)} ${taken_on.getFullYear()}`;
-      e_sub_title.textContent = taken_on;
-  
-      let address = "";
-      try {
-        let city_or_town = "";
-        if (photo_data.address.city != "") { //city priority = low
-          city_or_town = photo_data.address.city;
+        let taken_on = new Date(photo_data.time * 1000);
+        taken_on = `${days_of_week[taken_on.getDay()]} ${months[taken_on.getMonth()]} ${taken_on.getDate().toString().padStart(2, 0)} ${taken_on.getFullYear()}`;
+        e_sub_title.textContent = taken_on;
+
+        let address = "";
+        try {
+            let city_or_town = "";
+            if (photo_data.address.city != "") { //city priority = low
+                city_or_town = photo_data.address.city;
+            }
+
+            if (photo_data.address.town != "") { //town priority = high
+                city_or_town = photo_data.address.town;
+            }
+
+            if (city_or_town == "") { //if still blank, then county
+                city_or_town = photo_data.address.county;
+            }
+
+            if (city_or_town == "") { //if still blank, then state
+                city_or_town = photo_data.address.state;
+            }
+
+            if (city_or_town != "")
+                address = `${city_or_town}, ${photo_data.address.country}`;
+            else
+                address = photo_data.address.country;
+
+            e_sub_title.textContent = html_sub_title.textContent + " | " + address;
+        } catch {
+
         }
-  
-        if (photo_data.address.town != "") { //town priority = high
-          city_or_town = photo_data.address.town;
-        }
-  
-        if (city_or_town == "") { //if still blank, then county
-          city_or_town = photo_data.address.county;
-        }
-  
-        if (city_or_town == "") { //if still blank, then state
-          city_or_town = photo_data.address.state;
-        }
-  
-        if (city_or_town != "")
-          address = `${city_or_town}, ${photo_data.address.country}`;
-        else
-          address = photo_data.address.country;
-  
-          e_sub_title.textContent = html_sub_title.textContent + " | " + address;
-      } catch {
-  
-      }
-  
+
     } catch (error) {
-      console.error(error);
-      e_sub_title.textContent = "It's all about the journey"
+        console.error(error);
+        e_sub_title.textContent = "It's all about the journey"
     }
-  }
+}
 
 function set_orientation(photo_data) {
     let orientation = photo_data.orientation;
@@ -204,7 +219,9 @@ function removeScript(scriptSrc) {
 }
 
 function addScript(scriptSrc) {
+    
     const script = document.createElement("script");
     script.src = scriptSrc;
     document.head.appendChild(script);
+
 }

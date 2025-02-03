@@ -58,7 +58,7 @@ export function get_random_photo(status = 0, callback) {
 
 export function get_photo_history(callback) {
     logger.info(`Getting last 12 photo history...`);
-    let query = `select photo.photo_id, cache_key, tags, address from photo 
+    let query = `select * from photo 
                     inner join view_log on view_log.photo_id = photo.photo_id 
                     order by update_sequence desc limit 12`;
     meta_db.all(query, (err, rows) => {

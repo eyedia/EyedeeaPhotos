@@ -339,7 +339,7 @@ var main = (function ($) {
 
 				});
 			// Toggle.
-			_.$toggle.on('click', function () {
+			_.$toggle.on('click', function () {				
 				_.toggle();
 			});
 
@@ -637,7 +637,7 @@ var main = (function ($) {
 		 * Switches to the next slide.
 		 */
 		next: function () {
-			auto_refreshed = "PAUSE";
+			//auto_refreshed = "PAUSE";
 			// Calculate new index.
 			var i, c = _.current, l = _.slides.length;
 
@@ -655,7 +655,7 @@ var main = (function ($) {
 		 * Switches to the previous slide.
 		 */
 		previous: function () {
-			auto_refreshed = "PAUSE";
+			//auto_refreshed = "PAUSE";
 			// Calculate new index.
 			var i, c = _.current, l = _.slides.length;
 
@@ -752,10 +752,14 @@ var main = (function ($) {
 		 */
 		toggle: function () {
 
-			if (_.$body.hasClass('fullscreen'))
+			if (_.$body.hasClass('fullscreen')){
+				console.log("showing..")
 				_.show();
-			else
+			}
+			else{
+				console.log("hiding..")
 				_.hide();
+			}
 
 		},
 

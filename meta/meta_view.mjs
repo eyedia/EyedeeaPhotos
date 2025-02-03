@@ -34,16 +34,16 @@ export function get_random_photo(status = 0, callback) {
                     callback(null, rows);
                 } else {
                     //update that the photo has been picked_up
-                    meta_db.run(
-                        `UPDATE view_log set status = 1 where photo_id = ?`,
-                        [rows[0].photo_id],
-                        function (err) {
-                            if (err) {
-                                logger.error('Error updating data:', err);
-                            } else {
-                                callback(null, rows);
-                            }
-                        });
+                    // meta_db.run(
+                    //     `UPDATE view_log set status = 1 where photo_id = ?`,
+                    //     [rows[0].photo_id],
+                    //     function (err) {
+                    //         if (err) {
+                    //             logger.error('Error updating data:', err);
+                    //         } else {
+                                 callback(null, rows);
+                    //         }
+                    //     });
                 }
             } else {
                 //get unviewed photo

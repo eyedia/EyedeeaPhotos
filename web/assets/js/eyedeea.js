@@ -1,8 +1,10 @@
+const photo_url = window.location.protocol + "//" + window.location.host + "/api/viewer";
 const e_thumbnails = document.getElementById("thumbnails");
-
-setInterval(refresh_pic, 10000);
-let auto_refreshed = "";
+let auto_refreshed = "api/viewer";
 let toggle = 0;
+
+refresh_pic();
+let refresh_client = 10;
 
 {/* <article>
     <a class="thumbnail" href="images/fulls/09.jpg"><img src="images/thumbs/09.jpg" alt="" /></a>
@@ -10,17 +12,58 @@ let toggle = 0;
     <p>In quis vulputate dui. Maecenas metus elit, dictum praesent lacinia lacus.</p>
 </article> */}
 
+document.addEventListener('DOMContentLoaded', function () {
+    get_config()
+        .then(config_from_server => {
+            if (config_from_server && config_from_server.refresh_client) {
+                refresh_client = config_from_server.refresh_client;
+            }
+            setInterval(function () {
+                refresh_pic();
+            }, refresh_client * 1000);
+        });
+
+
+});
+
+async function get_config() {
+    return fetch(photo_url + "/config")
+        .then(response => response.json())
+        .then(data => {
+            return data;
+        });
+}
+
+
 function refresh_pic() {
     if (auto_refreshed == "PAUSE") {
         return;
     }
+    console.log("refreshing...");
+    get_photo()
+        .then(object_url_and_headers => {
+            //html_img_photo.src = object_url_and_headers[0];
+            let photo_data_obj = JSON.parse(JSON.stringify(object_url_and_headers[1].get("Photo-Data")));
+            let photo_data = JSON.parse(photo_data_obj);
+            console.log(photo_data);
+            refresh_history();
+
+        })
+        .catch(error => {
+            console.error('Error fetching image:', error);
+        });
+}
+
+function refresh_history() {
+
     e_thumbnails.innerHTML = "";
     removeScript("/assets/js/main.js");
     removeScript("/assets/js/breakpoints.min.js");
 
+
     for (i = 0; i < 12; i++) {
         const e_article = document.createElement('article');
-
+        get_photo(i);
         const e_a = document.createElement('a');
         e_a.setAttribute("id", `a-${String(i + 1).padStart(2, '0')}`);
         e_a.setAttribute("class", "thumbnail");
@@ -45,36 +88,111 @@ function refresh_pic() {
 
         e_thumbnails.appendChild(e_article);
 
+        set_image_attributes(photo_data, e_h2, e_p);
+
     }
+
     addScript("assets/js/main.js");
 }
 
-/*
-function refresh_pic() {
-    if (auto_refreshed == "PAUSE") {
+
+
+async function get_photo(photo_index) {
+    let local_photo_url = photo_url
+    if (photo_index) {
+        local_photo_url = local_photo_url + `?photo_index=${photo_index}`;
+    }
+    //console.log(`calling...${local_photo_url}`)
+    const response = await fetch(local_photo_url);
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const blob = await response.blob();
+    return [URL.createObjectURL(blob), response.headers];
+}
+
+
+function set_image_attributes(photo_data, e_title, e_sub_title) {
+    if (photo_data == null) {
+        e_title.textContent = "Memories";
+        e_sub_title.textContent = "It's all about the journey";
+        //html_sub_title_2.textContent = "";
         return;
     }
-    removeScript("/assets/js/main.js");
-    removeScript("/assets/js/breakpoints.min.js");
-    const e_a = document.getElementById("a-01");
-    const e_img = document.getElementById("img-01");
-    const e_p = document.getElementById("p-01");
-
-    if (toggle == 0) {
-        e_a.href = "api/viewer";
-        e_img.href = "api/viewer";
-        auto_refreshed = "api/viewer";
-        toggle = 1;
-    } else {
-        e_a.href = "images/fulls/07.jpg";
-        e_img.href = "images/fulls/07.jpg";
-        auto_refreshed = "images/fulls/07.jpg";
-        toggle = 0;
-    }
-
-    addScript("assets/js/main.js");
+    set_title(photo_data, e_title, e_sub_title);
+    set_sub_title(photo_data, e_title, e_sub_title);
+    //set_sub_title_2(photo_data);
+    //set_orientation(photo_data);
 }
-*/
+
+
+function set_title(photo_data, e_title, e_sub_title) {
+    try {
+        let title = photo_data.folder_name;
+        console.log(photo_data);
+        title = title.split("/").pop(); //removing slash and taking last folder name. i.e. album name
+        title = title.replaceAll(" - ", " ");
+        title = title.replaceAll("-", " ");
+        title = title.replaceAll("_", " ");
+        e_title.textContent = title;
+
+    } catch (error) {
+        console.error(error);
+        e_title.textContent = "Memories"
+    }
+}
+
+function set_sub_title(photo_data, e_title, e_sub_title) {
+    try {
+      let taken_on = new Date(photo_data.time * 1000);
+      taken_on = `${days_of_week[taken_on.getDay()]} ${months[taken_on.getMonth()]} ${taken_on.getDate().toString().padStart(2, 0)} ${taken_on.getFullYear()}`;
+      e_sub_title.textContent = taken_on;
+  
+      let address = "";
+      try {
+        let city_or_town = "";
+        if (photo_data.address.city != "") { //city priority = low
+          city_or_town = photo_data.address.city;
+        }
+  
+        if (photo_data.address.town != "") { //town priority = high
+          city_or_town = photo_data.address.town;
+        }
+  
+        if (city_or_town == "") { //if still blank, then county
+          city_or_town = photo_data.address.county;
+        }
+  
+        if (city_or_town == "") { //if still blank, then state
+          city_or_town = photo_data.address.state;
+        }
+  
+        if (city_or_town != "")
+          address = `${city_or_town}, ${photo_data.address.country}`;
+        else
+          address = photo_data.address.country;
+  
+          e_sub_title.textContent = html_sub_title.textContent + " | " + address;
+      } catch {
+  
+      }
+  
+    } catch (error) {
+      console.error(error);
+      e_sub_title.textContent = "It's all about the journey"
+    }
+  }
+
+function set_orientation(photo_data) {
+    let orientation = photo_data.orientation;
+    if ((orientation == 6) || (orientation == 8)) {
+        html_img_photo.style.rotate = "360deg";
+        html_img_photo.style.setProperty("object-position", "top 30% right 0px");
+    } else {
+        html_img_photo.style.removeProperty("rotate");
+        html_img_photo.style.setProperty("object-position", "50% 50%");
+    }
+}
 
 function removeScript(scriptSrc) {
     const scripts = document.querySelectorAll('script');

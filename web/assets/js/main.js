@@ -548,6 +548,10 @@ var main = (function ($) {
 
 			}
 
+			if(!newSlide){
+				//the dynamic images have not bee loaded yet.
+				return
+			}
 			// Activate new slide.
 
 			// Thumbnail.
@@ -563,14 +567,7 @@ var main = (function ($) {
 					oldSlide.$slide.detach();
 
 				// Attach new slide.
-				// DDD
-				if (auto_refreshed && auto_refreshed != "PAUSE"){
-					newSlide.url = auto_refreshed;
-					const my_div = _.$body.find(".image");
-					my_div.css("background-image", `url("${auto_refreshed}")`);
-				}else{
-					newSlide.$slide.appendTo(_.$viewer);
-				}
+				newSlide.$slide.appendTo(_.$viewer);
 
 				// New slide not yet loaded?
 				if (!newSlide.loaded) {

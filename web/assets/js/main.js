@@ -3,8 +3,9 @@
 	html5up.net | @ajlkn
 	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 */
-
-var main = (function ($) {
+var main = null;
+function top_init(){
+main = (function ($) {
 	var _ = {
 
 		/**
@@ -146,9 +147,10 @@ var main = (function ($) {
 			// Thumbnails.
 			_.$thumbnails = $('#thumbnails');
 
+			//DDD
 			// Viewer.
-			const viewer_created = _.$body.find("#viewer");
-			if (viewer_created.length == 0) {
+			// const viewer_created = _.$body.find("#viewer");
+			// if (viewer_created.length == 0) {
 				_.$viewer = $(
 					'<div id="viewer">' +
 					'<div class="inner">' +
@@ -157,10 +159,10 @@ var main = (function ($) {
 					'<div class="toggle"></div>' +
 					'</div>' +
 					'</div>'
-				).appendTo(_.$body);
-			} else {
-				_.$viewer = viewer_created;
-			}
+			 	).appendTo(_.$body);
+			// } else {
+			// 	_.$viewer = viewer_created;
+			// }
 
 			// Nav.
 			_.$navNext = _.$viewer.find('.nav-next');
@@ -171,15 +173,15 @@ var main = (function ($) {
 
 			// Toggle.
 			//DDD
-			const toggle_created = _.$body.find("#toggle");
-			if (toggle_created.length == 0) {
+			// const toggle_created = _.$body.find("#toggle");
+			// if (toggle_created.length == 0) {
 				$('<div class="toggle"></div>')
 					.appendTo(_.$main);
 
 				_.$toggle = $('.toggle');
-			} else {
-				_.$toggle = toggle_created;
-			}
+			// } else {
+			// 	_.$toggle = toggle_created;
+			// }
 
 		},
 
@@ -765,3 +767,4 @@ var main = (function ($) {
 
 	}; return _;
 })(jQuery); main.init();
+}

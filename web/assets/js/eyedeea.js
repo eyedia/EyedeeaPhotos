@@ -5,7 +5,7 @@ const photo_url = window.location.protocol + "//" + window.location.host + "/api
 const e_thumbnails = document.getElementById("thumbnails");
 //let auto_refreshed = "api/viewer";
 let toggle = 0;
-
+top_init();
 refresh_pic();
 let refresh_client = 10;
 
@@ -21,9 +21,9 @@ document.addEventListener('DOMContentLoaded', function () {
             if (config_from_server && config_from_server.refresh_client) {
                 refresh_client = config_from_server.refresh_client;
             }
-            // setInterval(function () {
-            //     refresh_pic();
-            // }, 5 * 1000);
+            setInterval(function () {
+                refresh_pic();
+            }, refresh_client * 1000);
         });
 
 
@@ -60,8 +60,12 @@ function refresh_pic() {
 function refresh_history() {
 
     e_thumbnails.innerHTML = "";
-    removeScript("/assets/js/main.js");
-    removeScript("/assets/js/breakpoints.min.js");
+    const element = document.getElementById("viewer");
+    if (element) {
+    element.remove(); 
+    }
+    //removeScript("/assets/js/main.js");
+    //removeScript("/assets/js/breakpoints.min.js");
 
     var total = 12;
     var count = 0;
@@ -99,8 +103,10 @@ function refresh_history() {
 
                 e_thumbnails.appendChild(e_article);
                 count++;
-                if (count > total - 1)
-                    addScript("assets/js/main.js");
+                if (count > total - 1){
+                    //addScript("assets/js/main.js");
+                    top_init();
+                    }
 
             })
             .catch(error => {

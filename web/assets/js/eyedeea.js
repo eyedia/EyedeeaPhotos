@@ -97,7 +97,7 @@ function refresh_history() {
 
                 const e_img = document.createElement('img');
                 e_img.setAttribute("id", `img-${String(foo + 1).padStart(2, '0')}`);
-                e_img.setAttribute("src", object_url_and_headers[0]);
+                e_img.setAttribute("src", object_url_and_headers[0]);                
                 e_a.appendChild(e_img);
 
                 const e_h2 = document.createElement('h2');
@@ -111,6 +111,7 @@ function refresh_history() {
 
                 let photo_data_obj = JSON.parse(JSON.stringify(object_url_and_headers[1].get("Photo-Data")));
                 let photo_data = JSON.parse(photo_data_obj);
+                e_img.setAttribute("title", photo_data.filename);
                 set_image_attributes(photo_data, e_h2, e_h3, e_p);
 
                 e_article.appendChild(e_a);

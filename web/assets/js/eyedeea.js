@@ -2,21 +2,10 @@ const days_of_week = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 const photo_url = window.location.protocol + "//" + window.location.host + "/api/view";
-const e_thumbnails = document.getElementById("thumbnails");
-//let auto_refreshed = "api/view";
-let toggle = 0;
-top_init();
-refresh_pic();
-let refresh_client = 10;
-
-{/* <article>
-    <a class="thumbnail" href="images/fulls/09.jpg"><img src="images/thumbs/09.jpg" alt="" /></a>
-    <h2>Morbi eget vitae adipiscing</h2>
-    <p>In quis vulputate dui. Maecenas metus elit, dictum praesent lacinia lacus.</p>
-</article> */}
+let refresh_client = 60;
 
 document.addEventListener('DOMContentLoaded', function () {
-    
+
     //init materialize
     var elems = document.querySelectorAll('.fixed-action-btn');
     let options = {
@@ -26,10 +15,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     var instances = M.FloatingActionButton.init(elems, options);
-
     var elems_tooltips = document.querySelectorAll('.tooltipped');
-    var instances_tooltips = M.Tooltip.init(elems_tooltips, {position: 'top'});
-
+    var instances_tooltips = M.Tooltip.init(elems_tooltips, { position: 'top' });
+    top_init();     //this is required to initialize design time urls.
+   
     //refresh timer configs from server
     get_config()
         .then(config_from_server => {
@@ -54,86 +43,65 @@ async function get_config() {
 
 
 function refresh_pic() {
-    // if (auto_refreshed == "PAUSE") {
-    //     return;
-    // }
-    console.log("refreshing...");
-    refresh_history();
-    // get_photo()
-    //     .then(object_url_and_headers => {
-    //         //html_img_photo.src = object_url_and_headers[0];
-    //         let photo_data_obj = JSON.parse(JSON.stringify(object_url_and_headers[1].get("Photo-Data")));
-    //         let photo_data = JSON.parse(photo_data_obj);
-    //         refresh_history();
-
-    //     })
-    //     .catch(error => {
-    //         console.error('Error fetching image:', error);
-    //     });
-}
-
-function refresh_history() {
-
-    e_thumbnails.innerHTML = "";
-    const element = document.getElementById("viewer");
-    if (element) {
-    element.remove(); 
-    }
-    //removeScript("/assets/js/main.js");
-    //removeScript("/assets/js/breakpoints.min.js");
 
     var total = 12;
     var count = 0;
 
-    for (i = 0; i < total; i++) {
-        (function (foo) {
-            const e_article = document.createElement('article');
-            get_photo(foo).then(object_url_and_headers => {
+    let e_viewer = document.getElementById("viewer");
+    if (e_viewer)
+        e_viewer.remove();
 
-                const e_a = document.createElement('a');
-                e_a.setAttribute("id", `a-${String(foo + 1).padStart(2, '0')}`);
-                e_a.setAttribute("class", "thumbnail");
-                e_a.setAttribute("href", object_url_and_headers[0]);
-
-                const e_img = document.createElement('img');
-                e_img.setAttribute("id", `img-${String(foo + 1).padStart(2, '0')}`);
-                e_img.setAttribute("src", object_url_and_headers[0]);                
-                e_a.appendChild(e_img);
-
-                const e_h2 = document.createElement('h2');
-                e_h2.setAttribute("id", `h2-${String(foo + 1).padStart(2, '0')}`);
-
-                const e_h3 = document.createElement('h3');
-                e_h3.setAttribute("id", `h3-${String(foo + 1).padStart(2, '0')}`);
-
-                const e_p = document.createElement('p');
-                e_p.setAttribute("id", `p-${String(foo + 1).padStart(2, '0')}`);
-
-                let photo_data_obj = JSON.parse(JSON.stringify(object_url_and_headers[1].get("Photo-Data")));
-                let photo_data = JSON.parse(photo_data_obj);
-                e_img.setAttribute("title", photo_data.filename);
-                set_image_attributes(photo_data, e_h2, e_h3, e_p);
-
-                e_article.appendChild(e_a);
-                e_article.appendChild(e_h2);
-                e_article.appendChild(e_h3);
-                e_article.appendChild(e_p);
-
-                e_thumbnails.appendChild(e_article);
-                count++;
-                if (count > total - 1){
-                    //addScript("assets/js/main.js");
-                    top_init();
-                    }
-
-            })
-            .catch(error => {
-                console.error('Error fetching image:', error);
-            });
-        }(i));
+    let e_toggles = document.getElementsByClassName("toggle");
+    if (e_toggles) {
+        for (t = 0; t < e_toggles.length; t++) {
+            e_toggles[t].remove();
+        }
 
     }
 
+    for (i = 0; i < total; i++) {
+        (function (foo) {
+            get_photo(foo).then(object_url_and_headers => {
+                
+                const photo_data = JSON.parse(object_url_and_headers[1].get("Photo-Data"));
+
+                if (photo_data) {
+                    let id_suffix = String(photo_data.photo_index).padStart(2, '0');
+                    const e_article = document.getElementById('article-' + id_suffix);
+
+                    let e_img = document.getElementById("img-" + id_suffix);
+                    e_img.setAttribute("src", object_url_and_headers[0]);
+                    e_img.setAttribute("title", photo_data.filename);
+
+                    let e_a = document.getElementById("a-" + id_suffix);
+                    e_a.setAttribute("href", object_url_and_headers[0]);
+                    
+                    const e_title = document.createElement('h2');
+                    e_title.setAttribute("id", `title-${id_suffix}`);                    
+                    e_article.appendChild(e_title);
+
+                    const e_sub_title = document.createElement('h3');
+                    e_sub_title.setAttribute("id", `sub-title-${id_suffix}}`);
+                    e_article.appendChild(e_sub_title);
+
+                    const e_sub_sub_title = document.createElement('p');
+                    e_sub_sub_title.setAttribute("id", `sub-sub-title-${id_suffix}}`);
+                    e_article.appendChild(e_sub_sub_title);
+
+                    set_image_attributes(photo_data, e_title, e_sub_title, e_sub_sub_title);
+                }
+
+                count++;
+                if (count > total - 1) {
+                    top_init();
+                }
+
+            })
+                .catch(error => {
+                    console.error('Error fetching image:', error);
+                });
+        }(i));
+    }
 }
 
 
@@ -226,14 +194,14 @@ function set_sub_title(photo_data, e_sub_title) {
 function set_sub_title_2(photo_data, e_sub_title2) {
     try {
         e_sub_title2.textContent = photo_data.filename;
-      //html_sub_title_2.textContent = photo_data.folder_name + "/" + photo_data.filename + "|" + photo_data.orientation;
-      //html_sub_title_2.textContent = html_sub_title_2.textContent + " | + " + JSON.stringify(photo_data.address);
+        //html_sub_title_2.textContent = photo_data.folder_name + "/" + photo_data.filename + "|" + photo_data.orientation;
+        //html_sub_title_2.textContent = html_sub_title_2.textContent + " | + " + JSON.stringify(photo_data.address);
     } catch (error) {
-      console.error(error);
-      e_sub_title2.textContent = "It's all about the journey"
+        console.error(error);
+        e_sub_title2.textContent = "It's all about the journey"
     }
-  }
-  
+}
+
 
 function set_orientation(photo_data) {
     let orientation = photo_data.orientation;
@@ -256,42 +224,42 @@ function removeScript(scriptSrc) {
 }
 
 function addScript(scriptSrc) {
-    
+
     const script = document.createElement("script");
     script.src = scriptSrc;
     document.head.appendChild(script);
 
 }
 
-function mt_hangle_tool_click(id){
-    
-    switch(id){
+function mt_hangle_tool_click(id) {
+
+    switch (id) {
         case "mt_trash_it":
             console.log(id);
             break;
-        case "mt_mark_it":            
+        case "mt_mark_it":
             break;
         case "mt_incorrect_location":
             break;
-        case "mt_incorrect_date":            
+        case "mt_incorrect_date":
             break;
-        case "mt_incorrect_album":           
+        case "mt_incorrect_album":
             break;
-        case "mt_dont_show":            
+        case "mt_dont_show":
             break;
-        case "mt_love_it":            
+        case "mt_love_it":
             break;
     }
 
     toggle_lighten(document.getElementById(id), "lighten-4");
-   
+
 }
 
-function toggle_lighten(element, toggle_color){
-    if(!element.classList.contains(toggle_color)){
+function toggle_lighten(element, toggle_color) {
+    if (!element.classList.contains(toggle_color)) {
         element.classList.add(toggle_color);
         return true;
-    }else{
+    } else {
         element.classList.remove(toggle_color);
         return false;
     }

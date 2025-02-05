@@ -3428,6 +3428,20 @@ table span.badge {
           font-feature-settings: 'liga';
 }
 
+/*DDD*/
+.auto-hide{  
+  transition: opacity .5s ease-out;
+  -moz-transition: opacity .5s ease-out;
+  -webkit-transition: opacity .5s ease-out;
+  -o-transition: opacity .5s ease-out;
+  opacity: 0;
+}
+
+.auto-hide:hover{
+  opacity: 1;
+}
+/*DDD : END*/
+
 .container {
   margin: 0 auto;
   max-width: 1280px;

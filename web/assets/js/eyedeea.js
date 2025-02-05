@@ -214,22 +214,6 @@ function set_orientation(photo_data) {
     }
 }
 
-function removeScript(scriptSrc) {
-    const scripts = document.querySelectorAll('script');
-    for (const script of scripts) {
-        if (script.src.endsWith(scriptSrc)) {
-            script.remove();
-        }
-    }
-}
-
-function addScript(scriptSrc) {
-
-    const script = document.createElement("script");
-    script.src = scriptSrc;
-    document.head.appendChild(script);
-
-}
 
 function mt_hangle_tool_click(id) {
 

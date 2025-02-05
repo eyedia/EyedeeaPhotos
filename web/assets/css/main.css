@@ -1153,6 +1153,17 @@ input, select, textarea {
 				z-index: 1;
 				right: 0;
 				background-position: calc(100% - 0.75em) 0.75em;
+
+				/*DDD*/
+				transition: opacity .5s ease-out;
+				-moz-transition: opacity .5s ease-out;
+				-webkit-transition: opacity .5s ease-out;
+				-o-transition: opacity .5s ease-out;
+				opacity: 0;
+			}
+			
+			#viewer .inner .toggle:hover{
+				opacity: 1;
 			}
 
 			#viewer .inner .nav-next,
@@ -1176,10 +1187,6 @@ input, select, textarea {
 				opacity: 0;
 			}
 
-			#viewer .inner .nav-next:hover,
-			#viewer .inner .nav-previous:hover{
-				opacity: 1;
-			}
 
 			#viewer .inner .nav-previous {
 				-moz-transform: scaleX(-1);
@@ -1212,7 +1219,7 @@ input, select, textarea {
 				background-image: -webkit-linear-gradient(bottom, rgba(16,16,16,0.75), rgba(16,16,16,0.25) 80%, rgba(16,16,16,0));
 				background-image: -ms-linear-gradient(bottom, rgba(16,16,16,0.75), rgba(16,16,16,0.25) 80%, rgba(16,16,16,0));
 				background-image: linear-gradient(bottom, rgba(16,16,16,0.75), rgba(16,16,16,0.25) 80%, rgba(16,16,16,0));
-				padding: 2em 2em 0.75em 2em ;
+				padding: 1em 1em 0.75em 1em ;
 				position: absolute;
 				bottom: 0;
 				left: 0;

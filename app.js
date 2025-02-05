@@ -7,22 +7,24 @@ import { set_random_photo, get_config } from "./meta/meta_view.mjs";
 import { scan as syno_scan } from "./services/scanners/synology/syno_scanner.mjs";
 import { create_or_update } from "./meta/meta_source.mjs";
 import { authenticate } from "./services/scanners/synology/syno_client.mjs";
-import scan_router from './api/routers/scan_router.js';
 import view_manage_router from './api/routers/view_manage_router.js';
 import view_router from './api/routers/view_router.js';
 import repo_router from './api/routers/repo_router.js';
 import source_router from './api/routers/source_router.js';
+import source_scan_router from './api/routers/source_scan_router.js';
+
 
 const logger = config_log.logger;
 const app = express();
 //app.use(express.static('public'));
 app.use(express.static('web'));
 app.use(express.json());
-app.use('/api/scan', scan_router);
+
 app.use('/api/view', view_router);
 app.use('/api/view/manage', view_manage_router);
 app.use('/api/repo', repo_router);
 app.use('/api/sources', source_router);
+app.use('/api/sources/:id', source_scan_router);
 
 let random_photo_set_interval = "*/25 * * * * *";
 

@@ -32,7 +32,21 @@ export function get_random_photo(callback) {
                         });
                 }
             } else {
-                logger.error("Fatal error! No photo was set to current.");
+                logger.error("Fatal error! No photo was set to current. This issue was taken care for the next cycle.");
+                 
+                //This case occurred only once, when view_log had a photo_id which never existed in the photo table.
+                //if can clear all non existent photo_id from the view_log, we should be good.
+                 meta_db.run(
+                    `delete from view_log where photo_id not in (select photo_id from photo)`,
+                    [],
+                    function (err) {
+                        if (err) {
+                            logger.error('Error updating data:', err);
+                        } else {
+                            set_current_photo();
+                            callback(null, rows);
+                        }
+                    });
             }
 
         }
@@ -145,7 +159,8 @@ function set_current_photo(callback) {
                 //let query = "SELECT * FROM photo WHERE id IN(35001,38543,40368)";
                 meta_db.all("SELECT photo_id FROM view_log WHERE status = 0 ORDER BY RANDOM() LIMIT 1", (err, rows) => {
                     if (err) {
-                        callback(err, null);
+                        if(callback)
+                            callback(err, null);
                     } else {
                         if (rows.length >= 1) {
                             meta_db.run(
@@ -172,7 +187,8 @@ function set_current_photo(callback) {
                                 });
                         } else {
                             logger.error("Fatal error! No random photo was set.");
-                            callback(null, null);
+                            if(callback)
+                                callback(null, null);
                         }
                     }
                 });

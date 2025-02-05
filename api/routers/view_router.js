@@ -1,5 +1,5 @@
 import express from 'express';
-import { get_random_photo, get_viewer_config } from '../controllers/viewer_controller.js';
+import { get_random_photo, get_viewer_config } from '../controllers/view_controller.js';
 const router = express.Router();
 
 router.get('/', get_random_photo);

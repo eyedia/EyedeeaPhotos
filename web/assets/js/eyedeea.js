@@ -1,9 +1,9 @@
 const days_of_week = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-const photo_url = window.location.protocol + "//" + window.location.host + "/api/viewer";
+const photo_url = window.location.protocol + "//" + window.location.host + "/api/view";
 const e_thumbnails = document.getElementById("thumbnails");
-//let auto_refreshed = "api/viewer";
+//let auto_refreshed = "api/view";
 let toggle = 0;
 top_init();
 refresh_pic();

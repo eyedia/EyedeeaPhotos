@@ -1,5 +1,5 @@
 import express from 'express';
-import { scan, logs, geo } from '../controllers/scanner_controller.js';
+import { scan, logs, geo } from '../controllers/scan_controller.js';
 
 const router = express.Router();
 

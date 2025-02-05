@@ -52,6 +52,18 @@ function create_tables() {
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
             );`,
 
+        `CREATE TABLE source (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE NOT NULL,
+			url TEXT NOT NULL,
+			user TEXT,
+			password TEXT,
+            config TEXT,
+            cache TEXT,            
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+			updated_at TEXT
+            );`,
+            
         `CREATE TABLE photo (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             photo_id INT UNIQUE NOT NULL,

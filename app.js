@@ -5,11 +5,12 @@ import config_log from "./config_log.js";
 import { meta_init } from "./meta/meta_base.mjs";
 import { set_random_photo, get_config } from "./meta/meta_view.mjs";
 import { scan as syno_scan } from "./services/scanners/synology/syno_scanner.mjs";
-import { get_tokens_2 } from "./meta/meta_search.mjs";
+import { create_or_update } from "./meta/meta_source.mjs";
 import { authenticate } from "./services/scanners/synology/syno_client.mjs";
 import scanner_router from './api/routers/scanner_router.js';
 import viewer_router from './api/routers/viewer_router.js';
 import repo_router from './api/routers/repo_router.js';
+import source_router from './api/routers/source_router.js';
 
 const logger = config_log.logger;
 const app = express();
@@ -19,6 +20,7 @@ app.use(express.json());
 app.use('/api/scanner', scanner_router);
 app.use('/api/viewer', viewer_router);
 app.use('/api/repo', repo_router);
+app.use('/api/sources', source_router);
 
 let random_photo_set_interval = "*/25 * * * * *";
 
@@ -49,7 +51,7 @@ async function init() {
 
 
   app.get('/test', async (req, res) => {
-    get_tokens_2((err, rows) => {
+    create_or_update((err, rows) => {
       if (err) {
         logger.error(err);
       } else {

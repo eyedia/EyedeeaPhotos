@@ -1,77 +1,104 @@
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import https from 'https';
-import dotenv from 'dotenv';
 import fs from 'fs';
 import config_log from "../../../config_log.js";
+import { get as meta_get_source, update_cache as meta_update_cache } from "../../../meta/meta_source.mjs"
 
 const logger = config_log.logger;
 const httpsAgent = new https.Agent({ rejectUnauthorized: false })
-
-const api_client = axios.create({
-  baseURL: "https://192.168.86.218:5001/webapi",
-  headers: {
-    //'Content-Type': 'application/json',
-    // Add any other headers you need
-  },
-});
-
-// Configure retry behavior
-axiosRetry(api_client, {
-  retries: 3, // Number of retries
-  retryDelay: axiosRetry.exponentialDelay, // Exponential backoff
-  retryCondition: (error) => {
-    // Retry on ECONNRESET and network errors
-    return error.code === 'ECONNRESET' || axiosRetry.isNetworkError(error);
-  },
-});
-
 export let nas_auth_token = {}
+
+let api_client = null;
+//let nas_url = "https://192.168.86.218:5001/webapi";
+
+function init_syno(callback) {
+  meta_get_source("nas", (err, nas_config) => {
+    if (err) {
+      logger.error(err.message);
+      callback(err, null);
+    } else {
+      if(!nas_config){
+        logger.error("NAS was not configured!");
+        return;
+      }
+      api_client = axios.create({
+        baseURL: nas_config.url,
+        headers: {
+          //'Content-Type': 'application/json',
+          // Add any other headers you need
+        },
+      });
+
+      // Configure retry behavior
+      axiosRetry(api_client, {
+        retries: 3, // Number of retries
+        retryDelay: axiosRetry.exponentialDelay, // Exponential backoff
+        retryCondition: (error) => {
+          // Retry on ECONNRESET and network errors
+          return error.code === 'ECONNRESET' || axiosRetry.isNetworkError(error);
+        },
+      });
+      callback(null, nas_config);
+    }
+  });
+
+}
+
 
 export async function authenticate() {
   try {
-    //read from cache
-    nas_auth_token = await read_cache()
-      .then(data => {
-        if (data) {
-          return data;
+    init_syno((err, nas_config) => {
+      if (nas_config) {
+        //read from cache
+        // nas_auth_token = read_cache()
+        //   .then(data => {
+        //     if (data) {
+        //       return data;
+        //     }
+        //   })
+        //   .catch(error => {
+        //     return nas_auth_token;
+        //   });
+
+        if (nas_config.cache && Object.keys(nas_config.cache).length != 0) {
+          logger.info("NAS Auth initiated from cache!");
+          return;
         }
-      })
-      .catch(error => {
-        return nas_auth_token;
-      });
+        
+        //not in cache, lets authenticate
+        logger.info("Authenticating NAS...");
+        api_client.get('/auth.cgi', {
+          params: {
+            api: "SYNO.API.Auth",
+            version: 7,
+            method: "login",
+            account: nas_config.user,
+            passwd: nas_config.password,
+            enable_syno_token: "yes"
+          },
+          httpsAgent: httpsAgent
+        })
+          .then(function (response) {
+            nas_config.cache = response.data.data;
+            console.log(response.data);
+            meta_update_cache(nas_config, (update_err, updated_nas_config, status_code) =>{
+              logger.info(nas_config.cache);
+            });
+            l
+          })
+          .catch(function (error) {
+            if (error.code === 'ECONNRESET') {
+              logger.error('Connection reset by peer.');
+            } else {
+              logger.info(error.message);
+            }
+          });
 
-    if (Object.keys(nas_auth_token).length != 0) {
-      logger.info("NAS Auth initiated from cache!");
-      return;
-    }
+        return;
+      }
+    });
 
-    //not in cache, lets authenticate
-    api_client.get('/auth.cgi', {
-      params: {
-        api: "SYNO.API.Auth",
-        version: 7,
-        method: "login",
-        account: process.env.nas_user,
-        passwd: process.env.nas_password,
-        enable_syno_token: "yes"
-      },
-      httpsAgent: httpsAgent
-    })
-      .then(function (response) {
-        nas_auth_token = response.data.data;
-        write_cache(nas_auth_token);
-        logger.info(nas_auth_token);
-      })
-      .catch(function (error) {
-        if (error.code === 'ECONNRESET') {
-          logger.error('Connection reset by peer.');
-        } else {
-          logger.info(error.message);
-        }
-      });
-
-    return;
 
   } catch (error) {
     logger.error('Authentication failed:', error.response?.data || error.message);
@@ -208,7 +235,7 @@ function valid_response(response) {
 }
 
 export async function get_photo(id, cache_key, size = "sm") {
-  if (!nas_auth_token){
+  if (!nas_auth_token) {
     throw new Error('Synology client is not active! Most likely authentication was failed. Please check the server configuration and logs and try again.');
   }
   try {

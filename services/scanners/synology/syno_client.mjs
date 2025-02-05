@@ -232,7 +232,7 @@ export async function get_photo(id, cache_key, size = "sm") {
         return response;
       })
       .catch(function (error) {
-        logger.info(error);
+        logger.error("syno_client-236" + error);
       });
 
   } catch (error) {

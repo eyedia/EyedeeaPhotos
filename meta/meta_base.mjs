@@ -103,24 +103,6 @@ function create_tables() {
 			FOREIGN KEY(view_filter_id) REFERENCES view_filter(id)
             );`,
 
-            `CREATE TRIGGER trg_view_log_sequence_insert
-                AFTER INSERT ON view_log 
-            BEGIN
-                UPDATE view_log
-                SET update_sequence = view_log_update_seq.max_seq + 1
-                FROM (select max(update_sequence) as max_seq from view_log) AS view_log_update_seq
-				WHERE id = NEW.id;
-            END;`
-
-            `CREATE TRIGGER trg_view_log_sequence_update
-                AFTER UPDATE ON view_log 
-            BEGIN
-                UPDATE view_log
-                SET update_sequence = view_log_update_seq.max_seq + 1
-                FROM (select max(update_sequence) as max_seq from view_log) AS view_log_update_seq
-				WHERE id = NEW.id;
-            END;`
-
         `CREATE VIRTUAL TABLE fts 
             USING FTS5(photo_id,folder_name,tags,address);`,
             

@@ -754,14 +754,10 @@ main = (function ($) {
 		 */
 		toggle: function () {
 
-			if (_.$body.hasClass('fullscreen')){
-				console.log("showing..")
+			if (_.$body.hasClass('fullscreen'))
 				_.show();
-			}
-			else{
-				console.log("hiding..")
+			else
 				_.hide();
-			}
 
 		},
 

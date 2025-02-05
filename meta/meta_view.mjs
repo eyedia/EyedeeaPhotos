@@ -127,8 +127,6 @@ export function set_random_photo() {
         set_current_photo((err, rows) => {
             if (err) {
                 logger.error(err);
-            } else {
-                console.log("Current photo was updated!");
             }
         });
 
@@ -151,7 +149,10 @@ function set_current_photo(callback) {
                     } else {
                         if (rows.length >= 1) {
                             meta_db.run(
-                                `UPDATE view_log set current = 1, updated_at = ? where photo_id = ?`,
+                                `UPDATE view_log set current = 1, 
+                                    update_sequence = (select max(update_sequence) + 1 from view_log),
+                                    updated_at = ? 
+                                    where photo_id = ?`,
                                 [Date.now(), rows[0]["photo_id"]],
                                 function (err) {
                                     if (err) {
@@ -201,3 +202,4 @@ export function get_config(callback) {
     // });
     callback(null, viewer_config)
 }
+

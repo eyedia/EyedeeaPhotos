@@ -21,10 +21,11 @@ export function search_init() {
             if (err) {
                 logger.error(err.message);
             } else {
-                logger.info('Search indexes initialized successfully.');
+                logger.info('.');
             }
         });
     });
+    
 }
 
 export function search(callback) {

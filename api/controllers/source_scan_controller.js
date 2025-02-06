@@ -1,4 +1,4 @@
-import { scan as syno_scan } from "../../services/scanners/synology/syno_scanner.mjs";
+import { scan as syno_scan, scanner_is_busy } from "../../services/scanners/synology/syno_scanner.mjs";
 import config_log from "../../config_log.js";
 
 const logger = config_log.logger;
@@ -16,9 +16,13 @@ export const scan = async (req, res) => {
   }
 
   try {
-    await syno_scan(folder_id, folder_name);
-    logger.info("Scanning started...");
-    res.json({"message": "Scanning started..."});
+    if (!scanner_is_busy()) {
+      await syno_scan(folder_id, folder_name);
+      logger.info("Scanning started...");
+      res.json({ "message": "Scanning started..." });
+    } else {
+      res.status(503).json({ error: "Scanning is already in progress." });
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

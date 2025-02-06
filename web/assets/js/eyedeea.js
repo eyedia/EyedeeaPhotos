@@ -16,8 +16,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var instances = M.FloatingActionButton.init(elems, options);
     var elems_tooltips = document.querySelectorAll('.tooltipped');
-    var instances_tooltips = M.Tooltip.init(elems_tooltips, { position: 'top' });
+    var instances_tooltips = M.Tooltip.init(elems_tooltips, { position: 'top' });    
     top_init();     //this is required to initialize design time urls.
+
    
     //refresh timer configs from server
     get_config()

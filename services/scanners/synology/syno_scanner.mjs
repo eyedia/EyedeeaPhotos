@@ -1,93 +1,48 @@
 import { list_dir, list_dir_items } from "./syno_client.mjs"
-import { clear_scan, get_last_inserted_diff, save_item, 
-    start_scan, stop_scan, save_scan_log_detail, 
-    get_scan_log_detail, update_scan_log } from "../../../meta/meta_scan.mjs"
-import {search_init} from "../../../meta/meta_search.mjs";
+import {
+    clear_scan, get_last_inserted_diff, save_item,
+    start_scan, stop_scan, save_scan_log_detail,
+    get_scan_log_detail, update_scan_log
+} from "../../../meta/meta_scan.mjs"
+import { get_rows } from "../../../meta/meta_base.mjs";
+import { search_init } from "../../../meta/meta_search.mjs";
 import config_log from "../../../config_log.js";
 
 const logger = config_log.logger;
 let _interval_id = 0;
+let _timeout_id = 0;
 let _scan_log_id = 0;
 let _failed_folders_tried = false;
 let _failed_folders = 0;
 let _offset = 0;
 let _limit = 1000;
 
-
-function keep_checking_when_insert_stops() {
-    _interval_id = setInterval(() => {
-        logger.info("Validating last scan...");
-        get_last_inserted_diff((err, rows) => {
-            if (err) {
-                logger.error(err);
-            } else {
-                if (rows) {
-                    let timed_out = rows.diff > 0.0005;
-                    logger.info(`Diff: ${rows.diff}, timed out: ${timed_out}`)
-                    if (timed_out) {
-                        end_scan();
-                    }
-                }
-            }
-        });
-    }, 1000 * 30);          // Check every 30 seconds
-
-
-    setTimeout(() => {
-        clearInterval(_interval_id);
-        logger.error("Scanning timed out. Please check logs, read documentation and increase timeout if neccessary.");
-    }, 1000 * 60 * 12);    //Auto stop after 12 minutes
-}
-
-function end_scan() {
-    logger.info("Started secondary scans (retrying failed folders)...");
-
-    if (!_failed_folders_tried) {
-        scan_failed_folders();
-    } else {
-        logger.info("Scan completed successfully!");
-        let info = "Scan completed successfully";
-        let scan_log_end_data = {
-            "id": _scan_log_id,
-            "info": info
-        }
-        stop_scan(scan_log_end_data);
-        clearTimeout(_interval_id);
-        search_init();
-        logger.info("Scanning FINiiiiiiiiiiiiiiiiished.");
-    }
-
-
-}
-
-function scan_failed_folders() {
-    _failed_folders_tried = true;
-    get_scan_log_detail(_scan_log_id, undefined, (err, rows) => {
-        if (err) {
-            logger.error(err);
-        } else {
-            if (rows && rows.length > 0) {
-                _failed_folders = rows.length;                
-                rows.forEach(function (row) {
-                    logger.info(`Retrying failed folders: ${row.folder_id}: ${row.folder_name}`);
-                    list_dir_loop(_scan_log_id, row.folder_id, row.folder_name, _offset, _limit);
-                    update_scan_log(_scan_log_id, row.folder_id, 1);
-                });
-            } else {
-                end_scan();
-            }
-        }
-    });
-
+export function scanner_is_busy() {
+    return _timeout_id == 0 ? false : true;
 }
 
 export async function scan(folder_id = -1, folder_name = "") {
 
+    if (_timeout_id != 0) {
+        //already a scan running, return bad
+        logger.error("Another scan was requested and the request was ignored as scanning is already in progress.");
+        return;
+    }
+
     _failed_folders_tried = false;
     _scan_log_id = 0;
-    _interval_id = 0;
-    keep_checking_when_insert_stops();
 
+    _timeout_id = setTimeout(() => {
+        clearInterval(_interval_id);
+        _interval_id = 0;
+        logger.error("Scanning timed out. Please check logs, read documentation and increase timeout if neccessary.");
+    }, 1000 * 60 * 2);    //Auto stop after 12 minutes
+
+    _interval_id = setInterval(() => {
+        keep_checking_when_insert_stops();
+    }, 1000 * 30);          // Check every 30 seconds
+
+    logger.info(`Scanner root timeout id:${_timeout_id} and interval id:${_interval_id}`);
     
     //save scan log
     let scan_log_data = {
@@ -192,6 +147,93 @@ async function list_dir_loop(scan_log_id, folder_id, folder_name, offset, limit)
                 //await wait(5000);
             }
         });
+}
+
+
+function keep_checking_when_insert_stops() {
+    logger.info("Validating last scan...");
+    get_last_inserted_diff((err, rows) => {
+        if (err) {
+            logger.error(err);
+        } else {
+            if (rows) {
+                let timed_out = rows.diff > 0.0005;
+                logger.info(`Diff: ${rows.diff}, timed out: ${timed_out}`)
+                if (timed_out) {
+                    clearInterval(_interval_id);
+                    _interval_id = 0;
+                    end_scan();
+                }
+            }
+        }
+    });
+
+}
+
+
+function end_scan(timed_out) {
+
+    if (!_failed_folders_tried) {
+        logger.info("Started secondary scans (retrying failed folders)...");
+        scan_failed_folders();
+    } else {
+        if (!timed_out) {
+            logger.info("Scan completed successfully. Getting summary data...");
+            get_rows("select count(*) as cnt from photo", (err, rows) => {
+                let total_photos = 0;
+                if (err) {
+                    logger.error(err.message);
+                } else {
+                    if (rows.length == 1) {
+                        total_photos = rows[0]["cnt"];
+                    }
+                }
+
+                let scan_log_end_data = {
+                    "id": _scan_log_id,
+                    "info": `Scan completed successfully. Total photos: ${total_photos}`
+                }
+                stop_scan(scan_log_end_data);
+                clearTimeout(_timeout_id);
+                _timeout_id = 0;
+                logger.info("Scanning Finished.");
+            });
+        } else {
+            logger.info("Ending a timed out scan..");
+            let scan_log_end_data = {
+                "id": _scan_log_id,
+                "info": "Scan timed out!"
+            }
+            stop_scan(scan_log_end_data);
+            clearInterval(_interval_id);
+            _interval_id = 0;
+
+            clearTimeout(_timeout_id);
+            _timeout_id = 0;
+            logger.info("Scanning Finished(timed out).");
+        }
+    }
+}
+
+function scan_failed_folders() {
+    _failed_folders_tried = true;
+    get_scan_log_detail(_scan_log_id, undefined, (err, rows) => {
+        if (err) {
+            logger.error(err);
+        } else {
+            if (rows && rows.length > 0) {
+                _failed_folders = rows.length;
+                rows.forEach(function (row) {
+                    logger.info(`Retrying failed folders: ${row.folder_id}: ${row.folder_name}`);
+                    list_dir_loop(_scan_log_id, row.folder_id, row.folder_name, _offset, _limit);
+                    update_scan_log(_scan_log_id, row.folder_id, 1);
+                });
+            } else {
+                end_scan();
+            }
+        }
+    });
+
 }
 
 function wait(ms) {

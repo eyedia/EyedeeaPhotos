@@ -24,6 +24,7 @@ export const get_viewer_config = async (req, res) => {
 
 export const get_random_photo = async (req, res) => {
   if (req.query.photo_index && !isNaN(parseInt(req.query.photo_index))) {
+    
     //UI requesting specific photos (max up to 12)
     get_photo_history((err, rows) => {      
       if (err) {
@@ -49,7 +50,7 @@ export const get_random_photo = async (req, res) => {
   } else {
     meta_get_random_photo((err, rows) => {
       if (err) {
-        logger.error(err.message);
+        logger.error(err);
         return get_default_photo(res);
       } else {
         if (rows && rows.length > 0) {

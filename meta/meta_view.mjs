@@ -45,7 +45,6 @@ export function get_random_photo(callback) {
                         } else {
                             set_current_photo((err, rows) => {
                                 if (err) {
-                                    logger.error(err);
                                     callback(err, null);
                                 }else{
                                     callback(null, rows);
@@ -79,7 +78,7 @@ export function get_photo_history(callback) {
 }
 
 export function set_random_photo() {
-
+    
     let number_of_already_set_photos = 0;
     get_rows("select count(*) as cnt from view_log where status = 0", (err, rows) => {
         if (err) {
@@ -88,17 +87,17 @@ export function set_random_photo() {
             if (rows.length == 1) {
                 number_of_already_set_photos = rows[0]["cnt"];
             }
-        }
+        }        
         if (number_of_already_set_photos < 25) {
             let query = "";
             search((err, view_filter_id, photo_ids) => {
                 if (err) {
                     logger.error(err);
-                } else {
+                } else {                    
                     if (photo_ids) {
                         //filtered random
                         query = `SELECT * FROM photo WHERE id IN (SELECT id FROM photo WHERE type='photo' and photo_id in (${photo_ids}) ORDER BY RANDOM() LIMIT 1000)`;
-                    } else {
+                    } else {                        
                         //default random
                         query = `SELECT * FROM photo WHERE id IN (SELECT id FROM photo WHERE type='photo' ORDER BY RANDOM() LIMIT 1000)`;
                     }
@@ -193,10 +192,9 @@ function set_current_photo(callback) {
                                             });
                                     }
                                 });
-                        } else {
-                            logger.error("Fatal error! No random photo was set.");
-                            if(callback)
-                                callback("Fatal error! No random photo was set.", null);                            
+                        } else {                            
+                            if(callback)                               
+                                callback({"message":"Fatal error! No random photo was set."}, null);
                         }
                     }
                 });

@@ -25,10 +25,10 @@ export const get_viewer_config = async (req, res) => {
 export const get_random_photo = async (req, res) => {
   if (req.query.photo_index && !isNaN(parseInt(req.query.photo_index))) {
     //UI requesting specific photos (max up to 12)
-    get_photo_history((err, rows) => {
-      //console.log(rows);
+    get_photo_history((err, rows) => {      
       if (err) {
         logger.error(err.message);
+        return get_default_photo(res);
       } else {
         if (rows && rows.length > 0) {
           let photo_data = rows[req.query.photo_index];
@@ -38,8 +38,10 @@ export const get_random_photo = async (req, res) => {
             get_photo_from_synology(photo_data, req, res);
           } else {
             //some issue, return default pic
-            return get_default_photo();
+            return get_default_photo(res);
           }
+        }else{
+          return get_default_photo(res);
         }
       }
     });
@@ -48,6 +50,7 @@ export const get_random_photo = async (req, res) => {
     meta_get_random_photo((err, rows) => {
       if (err) {
         logger.error(err.message);
+        return get_default_photo(res);
       } else {
         if (rows && rows.length > 0) {
           let photo_data = rows[0];
@@ -57,8 +60,10 @@ export const get_random_photo = async (req, res) => {
             get_photo_from_synology(photo_data, req, res);
           } else {
             //some issue, return default pic
-            return get_default_photo();
+            return get_default_photo(res);
           }
+        }else{
+          return get_default_photo(res);
         }
       }
     });

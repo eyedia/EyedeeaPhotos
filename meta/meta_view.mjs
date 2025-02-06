@@ -43,8 +43,15 @@ export function get_random_photo(callback) {
                         if (err) {
                             logger.error('Error updating data:', err);
                         } else {
-                            set_current_photo();
-                            callback(null, rows);
+                            set_current_photo((err, rows) => {
+                                if (err) {
+                                    logger.error(err);
+                                    callback(err, null);
+                                }else{
+                                    callback(null, rows);
+                                }
+                            });
+                            
                         }
                     });
             }
@@ -189,7 +196,7 @@ function set_current_photo(callback) {
                         } else {
                             logger.error("Fatal error! No random photo was set.");
                             if(callback)
-                                callback(null, null);
+                                callback("Fatal error! No random photo was set.", null);                            
                         }
                     }
                 });

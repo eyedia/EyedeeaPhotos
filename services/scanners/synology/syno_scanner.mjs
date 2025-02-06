@@ -35,6 +35,7 @@ export async function scan(folder_id = -1, folder_name = "") {
     _timeout_id = setTimeout(() => {
         clearInterval(_interval_id);
         _interval_id = 0;
+        end_scan(true);
         logger.error("Scanning timed out. Please check logs, read documentation and increase timeout if neccessary.");
     }, 1000 * 60 * 12);    //Auto stop after 12 minutes
 

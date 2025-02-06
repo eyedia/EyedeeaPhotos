@@ -35,7 +35,7 @@ function close_database() {
         if (err) {
             console.error('Error closing database:', err.message);
         } else {
-            console.log('Database closed successfully.');
+            logger.info('Database closed successfully.');
         }
         process.exit(0);
     });

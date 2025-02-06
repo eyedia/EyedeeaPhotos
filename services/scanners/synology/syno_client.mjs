@@ -81,7 +81,7 @@ export async function authenticate() {
         })
           .then(function (response) {
             nas_config.cache = response.data.data;
-            console.log(response.data);
+            logger.info(response.data);
             meta_update_cache(nas_config, (update_err, updated_nas_config, status_code) =>{
               logger.info(nas_config.cache);
             });

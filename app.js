@@ -15,6 +15,12 @@ import source_scan_router from './api/routers/source_scan_router.js';
 
 
 const logger = config_log.logger;
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  logger.error(err);
+});
+
 const app = express();
 //app.use(express.static('public'));
 app.use(express.static('web'));

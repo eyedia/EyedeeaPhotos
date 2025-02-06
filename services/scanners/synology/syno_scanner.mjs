@@ -23,7 +23,7 @@ function keep_checking_when_insert_stops() {
             } else {
                 if (rows) {
                     let timed_out = rows.diff > 0.0005;
-                    console.log(`Diff: ${rows.diff}, timed out: ${timed_out}`)
+                    logger.info(`Diff: ${rows.diff}, timed out: ${timed_out}`)
                     if (timed_out) {
                         end_scan();
                     }
@@ -54,7 +54,7 @@ function end_scan() {
         stop_scan(scan_log_end_data);
         clearTimeout(_interval_id);
         search_init();
-        console.log("Scanning FINiiiiiiiiiiiiiiiiished.");
+        logger.info("Scanning FINiiiiiiiiiiiiiiiiished.");
     }
 
 

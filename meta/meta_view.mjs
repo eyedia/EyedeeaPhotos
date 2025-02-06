@@ -156,8 +156,9 @@ function set_current_photo(callback) {
             callback(err, null);
         } else {
             if (rows.length == 0) {
-                //let query = "SELECT * FROM photo WHERE id IN(35001,38543,40368)";
-                meta_db.all("SELECT photo_id FROM view_log WHERE status = 0 ORDER BY RANDOM() LIMIT 1", (err, rows) => {
+                //let query = "SELECT * FROM photo WHERE photo_id = 39672";
+                let query = "SELECT photo_id FROM view_log WHERE status = 0 ORDER BY RANDOM() LIMIT 1";
+                meta_db.all(query, (err, rows) => {
                     if (err) {
                         if(callback)
                             callback(err, null);

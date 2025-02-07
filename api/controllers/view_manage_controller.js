@@ -1,6 +1,7 @@
 import { create_or_update as meta_create_or_update,
   get as meta_get,
-  list as meta_list
+  list as meta_list,
+  make_active as meta_make_active
  } from "../../meta/meta_view_manage.mjs";
 import config_log from "../../config_log.js";
 
@@ -44,6 +45,22 @@ export const list_items = async (req, res) => {
 export const get_item = async (req, res) => {
   try {
     meta_get(req.params.id, (err, item) => {      
+      if (err) {
+        logger.error(err.message);
+      } else {
+          res.json(item);        
+      }
+    });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+
+export const make_active = async (req, res) => {
+  try {
+    meta_make_active(req.params.id, (err, item) => {      
       if (err) {
         logger.error(err.message);
       } else {

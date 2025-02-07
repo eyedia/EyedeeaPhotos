@@ -1,5 +1,6 @@
 import config_log from "../config_log.js";
 import { meta_db, get_rows } from "./meta_base.mjs";
+import {set_random_photo} from "./meta_view.mjs";
 
 const logger = config_log.logger;
 
@@ -54,7 +55,7 @@ export function set_current(name, callback) {
                         if (err) {
                             logger.error('Error updating data:', err);
                             callback(err, null, 500);
-                        } else {                            
+                        } else {
                             meta_db.run(
                                 `UPDATE view_filter set current = 0 where name != ?`,
                                 [name],
@@ -88,6 +89,7 @@ export function list(callback) {
     });
 }
 
+
 export function get(id, callback) {
     const try_id = parseInt(id);
     let query = `select * from view_filter where id = ${id}`;
@@ -99,6 +101,60 @@ export function get(id, callback) {
             callback(err, null);
         } else {
             callback(null, rows[0]);
+        }
+    });
+}
+
+
+export function make_active(id, callback) {
+    const try_id = parseInt(id);
+    let query = `select * from view_filter where id = ${id}`;
+    if (isNaN(try_id))
+        query = `select * from view_filter where name = '${id}' COLLATE NOCASE`;
+    get_rows(query, (err, rows) => {
+        if (err) {
+            logger.error(err.message);
+            callback(err, null);
+        } else {
+            if (rows.length == 1) {
+                meta_db.run(
+                    `UPDATE view_filter set current = 1 where id == ?`,
+                    [rows[0]["id"]],
+                    function (err) {
+                        if (err) {
+                            logger.error('Error updating data:', err);
+                            callback(err, null);
+                        } else {
+                            meta_db.run(
+                                `UPDATE view_filter set current = 0 where id != ?`,
+                                [rows[0]["id"]],
+                                function (err) {
+                                    if (err) {
+                                        logger.error('Error updating data:', err);
+                                        callback(err, null);
+                                    } else {
+                                        meta_db.run(
+                                            //disable pending random photos (status is non zero)
+                                            //so that new photos from new filter are picked up
+                                            `UPDATE view_log set status = 2 where status = 0`,
+                                            [rows[0]["id"]],
+                                            function (err) {
+                                                if (err) {
+                                                    logger.error('Error updating data:', err);
+                                                    callback(err, null);
+                                                } else {
+                                                    set_random_photo();
+                                                    rows[0].current = 1;
+                                                    callback(null, rows[0]);
+                                                }
+                                            });
+                                    }
+                                });
+                        }
+                    });
+            } else {
+                callback({ "message": "No record found!" }, null);
+            }
         }
     });
 }

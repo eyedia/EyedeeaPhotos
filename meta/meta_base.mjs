@@ -123,7 +123,7 @@ function create_tables() {
 			name TEXT NOT NULL,
             filter_must TEXT NOT NULL,
 			filter_option TEXT,
-			current BOOL DEFAULT 1,
+			current BOOL DEFAULT 0,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
             );`
     ];

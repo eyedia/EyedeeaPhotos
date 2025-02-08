@@ -29,6 +29,9 @@ document.addEventListener('DOMContentLoaded', function () {
             setInterval(function () {
                 refresh_pic();
             }, refresh_client * 1000);
+        })
+        .catch(err => {
+            console.log(err);
         });
 
 
@@ -39,6 +42,8 @@ async function get_config() {
         .then(response => response.json())
         .then(data => {
             return data;
+        }).error( err => {
+            return null;
         });
 }
 
@@ -114,7 +119,20 @@ async function get_photo(photo_index) {
     //console.log(`calling...${local_photo_url}`)
     const response = await fetch(local_photo_url);
     if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        //we want to hide the error. I believe Firestick browser like Amazon Silk
+        //goes to sleep mode after 'x' times
+        //we silently show the logo for this cycle.
+        //The actual root cause: At times Synology API returns 404 
+        // which could be handled at the server side.
+        console.log(`HTTP error! status: ${response.status}`);
+        const fake_headers = new Map();
+        fake_headers.set('Content-Type', 'image/jpeg');
+        const photo_data = {
+            "folder_name": "Eyedeea Photos", 
+            "photo_index": photo_index,
+            "time": Math.floor(Date.now() / 1000)};
+        fake_headers.set('Photo-Data', JSON.stringify(photo_data));
+        return ["/eyedeea_photos.jpg", fake_headers];
     }
     const blob = await response.blob();
     return [URL.createObjectURL(blob), response.headers];

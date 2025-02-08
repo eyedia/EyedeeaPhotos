@@ -35,7 +35,9 @@ I also declutter my collection by removing duplicates and keeping only meaningfu
 Storing photos efficiently is great, but what's the use if I can't easily view and share them? I don’t want to just send folders of images via email—I want a seamless way to rediscover and showcase my memories.
 
 ## The Solution: Eyedeea Photos
-![Eyedeea Photos](graphics/Eyedeea_Photos_logo.png)
+Solarized dark             |  Solarized Ocean
+:-------------------------:|:-------------------------:
+![Eyedeea Photos](graphics/Eyedeea_Photos_m_logo.png) | ![Eyedeea Photos](graphics/eyedeea_photos_2_m.jpg)
 
 **Eyedeea Photos** is an app designed to bring forgotten memories back to life. It integrates with **Synology Photos** to display random photos from the collection. Here’s how it works:
 - **Scan:** Interacts with **Synology Photos API** to extract metadata (filename, path, date taken, geolocation, album name, etc.).

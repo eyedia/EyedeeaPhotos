@@ -53,10 +53,13 @@
     </mxGraphModel>
   </diagram>
   <diagram id="EPdBU6BF7TBcX3I5jlfZ" name="Folder Structure">
-    <mxGraphModel dx="794" dy="458" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1764" dy="1018" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
+        <mxCell id="pF7nhSST6ZVsNBKIfmL9-27" value="&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;The album names&lt;/span&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="18.929999999999993" y="625" width="110.36" height="30" as="geometry" />
+        </mxCell>
         <mxCell id="pF7nhSST6ZVsNBKIfmL9-1" value="Root" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/general/Folder_Blank.svg;" vertex="1" parent="1">
           <mxGeometry x="80" y="40" width="49.29" height="40" as="geometry" />
         </mxCell>
@@ -80,6 +83,9 @@
         </mxCell>
         <mxCell id="pF7nhSST6ZVsNBKIfmL9-8" value="The Great Blue Hole" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/general/Folder_Blank.svg;" vertex="1" parent="1">
           <mxGeometry x="289.29" y="620" width="49.29" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="pF7nhSST6ZVsNBKIfmL9-29" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#999999;" edge="1" parent="1" source="pF7nhSST6ZVsNBKIfmL9-9" target="pF7nhSST6ZVsNBKIfmL9-27">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="pF7nhSST6ZVsNBKIfmL9-9" value="Placencia" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/general/Folder_Blank.svg;" vertex="1" parent="1">
           <mxGeometry x="289.29" y="780" width="49.29" height="40" as="geometry" />
@@ -128,6 +134,15 @@
         </mxCell>
         <mxCell id="pF7nhSST6ZVsNBKIfmL9-24" value="Photo" style="html=1;whiteSpace=wrap;strokeColor=none;fillColor=#0079D6;labelPosition=center;verticalLabelPosition=middle;verticalAlign=top;align=center;fontSize=12;outlineConnect=0;spacingTop=-6;fontColor=#FFFFFF;sketch=0;shape=mxgraph.sitemap.photo;" vertex="1" parent="pF7nhSST6ZVsNBKIfmL9-20">
           <mxGeometry x="30" y="30" width="70" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="pF7nhSST6ZVsNBKIfmL9-25" value="" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;shadow=0;dashed=0;strokeWidth=1;shape=mxgraph.ios.iInfoIcon;fillColor=#8BbEff;fillColor2=#135Ec8;strokeColor=#ffffff;sketch=0;" vertex="1" parent="1">
+          <mxGeometry x="120" y="632.5" width="15" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="pF7nhSST6ZVsNBKIfmL9-26" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.841;entryY=0.183;entryDx=0;entryDy=0;entryPerimeter=0;strokeColor=#999999;" edge="1" parent="1" source="pF7nhSST6ZVsNBKIfmL9-7" target="pF7nhSST6ZVsNBKIfmL9-25">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pF7nhSST6ZVsNBKIfmL9-28" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.701;entryY=0.585;entryDx=0;entryDy=0;entryPerimeter=0;strokeColor=#999999;" edge="1" parent="1" source="pF7nhSST6ZVsNBKIfmL9-8" target="pF7nhSST6ZVsNBKIfmL9-25">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

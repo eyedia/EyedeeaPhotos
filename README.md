@@ -35,7 +35,7 @@ I also declutter my collection by removing duplicates and keeping only meaningfu
 Storing photos efficiently is great, but what's the use if I can't easily view and share them? I don’t want to just send folders of images via email—I want a seamless way to rediscover and showcase my memories.
 
 ## The Solution: Eyedeea Photos
-Solarized dark             |  Solarized Ocean
+Eyedeea Photos             |  Eyedeea Photos
 :-------------------------:|:-------------------------:
 ![Eyedeea Photos](graphics/Eyedeea_Photos_m_logo.png) | ![Eyedeea Photos](graphics/eyedeea_photos_2_m.jpg)
 

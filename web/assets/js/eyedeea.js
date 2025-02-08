@@ -42,8 +42,6 @@ async function get_config() {
         .then(response => response.json())
         .then(data => {
             return data;
-        }).error( err => {
-            return null;
         });
 }
 

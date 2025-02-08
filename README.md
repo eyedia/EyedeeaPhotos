@@ -35,6 +35,8 @@ I also declutter my collection by removing duplicates and keeping only meaningfu
 Storing photos efficiently is great, but what's the use if I can't easily view and share them? I don’t want to just send folders of images via email—I want a seamless way to rediscover and showcase my memories.
 
 ## The Solution: Eyedeea Photos
+![Eyedeea Photos](graphics/Eyedeea_Photos_logo.png)
+
 **Eyedeea Photos** is an app designed to bring forgotten memories back to life. It integrates with **Synology Photos** to display random photos from the collection. Here’s how it works:
 - **Scan:** Interacts with **Synology Photos API** to extract metadata (filename, path, date taken, geolocation, album name, etc.).
 - **Show:** Displays random photos across devices.
@@ -77,7 +79,7 @@ With this setup, my photos are **secure, organized, and easily viewable**—givi
 With this setup, my photos are **secure, organized, and easily viewable**—giving me peace of mind and a better way to enjoy my memories. No hefty cloud fees, no privacy concerns—just **my photos, my way**.
 
 ## Eyedeea Photos Diagram:
-![Eyedeea Photos](graphics/EyedeeaPhotos_Diagram.png)
+![Eyedeea Photos Diagram](graphics/EyedeeaPhotos_Diagram.png)
 
 ## Folder Structure
 My folder structure looks as follows, but the code should traverse through any folder structure.

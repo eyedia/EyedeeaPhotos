@@ -53,7 +53,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="EPdBU6BF7TBcX3I5jlfZ" name="Folder Structure">
-    <mxGraphModel dx="1764" dy="1018" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="662" dy="382" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -143,6 +143,24 @@
         </mxCell>
         <mxCell id="pF7nhSST6ZVsNBKIfmL9-28" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.701;entryY=0.585;entryDx=0;entryDy=0;entryPerimeter=0;strokeColor=#999999;" edge="1" parent="1" source="pF7nhSST6ZVsNBKIfmL9-8" target="pF7nhSST6ZVsNBKIfmL9-25">
           <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pF7nhSST6ZVsNBKIfmL9-30" value="" style="verticalLabelPosition=bottom;shadow=0;dashed=0;align=center;html=1;verticalAlign=top;strokeWidth=1;shape=mxgraph.mockup.markup.curlyBrace;whiteSpace=wrap;strokeColor=#999999;rotation=45;" vertex="1" parent="1">
+          <mxGeometry x="239.75" y="384.75" width="170" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="pF7nhSST6ZVsNBKIfmL9-34" value="" style="group" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="340" y="370" width="210" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="pF7nhSST6ZVsNBKIfmL9-31" value="" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;shadow=0;dashed=0;strokeWidth=1;shape=mxgraph.ios.iInfoIcon;fillColor=#8BbEff;fillColor2=#135Ec8;strokeColor=#ffffff;sketch=0;" vertex="1" parent="pF7nhSST6ZVsNBKIfmL9-34">
+          <mxGeometry y="7.5" width="15" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="pF7nhSST6ZVsNBKIfmL9-32" value="Folder hierarchy as per your need." style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="pF7nhSST6ZVsNBKIfmL9-34">
+          <mxGeometry x="15" width="195" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="pF7nhSST6ZVsNBKIfmL9-35" value="" style="verticalLabelPosition=bottom;verticalAlign=top;html=1;shadow=0;dashed=0;strokeWidth=1;shape=mxgraph.ios.iInfoIcon;fillColor=#8BbEff;fillColor2=#135Ec8;strokeColor=#ffffff;sketch=0;" vertex="1" parent="1">
+          <mxGeometry x="560" y="483" width="15" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="pF7nhSST6ZVsNBKIfmL9-36" value="Eyedeea Photos will automatically consider &quot;2024&quot;, &quot;Belize&quot;, &quot;Cay Caulker&quot; as tags apart from your meta data tags.&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;You can easily set up a view filter using keyword &quot;Belize&quot; which will show photos from all 3 folders. Or you can set up with &quot;Belize&quot; and &quot;Cay Caulker&quot;&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="575" y="465.5" width="225" height="54.5" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

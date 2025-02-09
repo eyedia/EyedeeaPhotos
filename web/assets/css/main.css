@@ -938,14 +938,14 @@ input, select, textarea {
 
 		#header img {
 			float: left;
+			padding-left: 1.5em;
 		}
 
 		#header h2 {
 			font-size: 1.25em;
 			font-weight: 700;
 			text-align: left;
-			padding-top: 0.6em;
-			padding-left: 3.5em;
+			padding-left: 3.5em; 
 		}
 		#header h3 {
 			font-size: 0.5em;

@@ -248,12 +248,32 @@ function mt_hangle_tool_click(id) {
             break;
         case "mt_dont_show":
             break;
-        case "mt_love_it":
+        case "mt_download":
+            mt_download();
             break;
     }
 
-    toggle_lighten(document.getElementById(id), "lighten-4");
+    if(id != "mt_download")
+        toggle_lighten(document.getElementById(id), "lighten-4");
 
+}
+
+async function mt_download(){
+    get_photo(main.current).then(object_url_and_headers => {
+        if(object_url_and_headers){
+            const a = document.createElement("a");
+            a.href = object_url_and_headers[0];
+            const photo_data = JSON.parse(object_url_and_headers[1].get("Photo-Data"));
+            if(photo_data)
+                a.download = photo_data.filename;
+            else
+                a.download = "photo.jpg";
+
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+    });
 }
 
 function toggle_lighten(element, toggle_color) {

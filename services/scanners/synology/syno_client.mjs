@@ -259,7 +259,10 @@ export async function get_photo(id, cache_key, size = "sm") {
         return response;
       })
       .catch(function (error) {
-        logger.error("syno_client-236" + error);
+        let err_info = "Error getting photo from Synology. The server returned ";
+        err_info += error + ". ";
+        err_info += `The request was for ${id}, ${cache_key}`;
+        logger.error(err_info);
       });
 
   } catch (error) {

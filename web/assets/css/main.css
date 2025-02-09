@@ -1334,9 +1334,9 @@ input, select, textarea {
 					right: 0;
 				}
 
-				body.fullscreen #viewer .inner .toggle {
+				/* body.fullscreen #viewer .inner .toggle {
 					opacity: 1;
-				}
+				} */
 
 		}
 

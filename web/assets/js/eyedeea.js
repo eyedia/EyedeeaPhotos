@@ -76,10 +76,12 @@ function refresh_pic() {
                     let e_img = document.getElementById("img-" + id_suffix);
                     e_img.setAttribute("src", object_url_and_headers[0]);
                     e_img.setAttribute("title", photo_data.filename);
+                    e_img.setAttribute("orientation", photo_data.orientation);
 
                     let e_a = document.getElementById("a-" + id_suffix);
                     e_a.setAttribute("href", object_url_and_headers[0]);
-                    
+                    e_a.setAttribute("orientation", photo_data.orientation);
+
                     const e_title = document.createElement('h2');
                     e_title.setAttribute("id", `title-${id_suffix}`);                    
                     e_article.appendChild(e_title);
@@ -222,12 +224,11 @@ function set_sub_title_2(photo_data, e_sub_title2) {
 
 function set_orientation(photo_data) {
     let orientation = photo_data.orientation;
+    console.log(orientation);
     if ((orientation == 6) || (orientation == 8)) {
-        html_img_photo.style.rotate = "360deg";
-        html_img_photo.style.setProperty("object-position", "top 30% right 0px");
+        main.slides[main.current].$slideImage.css("background-size", "contain");
     } else {
-        html_img_photo.style.removeProperty("rotate");
-        html_img_photo.style.setProperty("object-position", "50% 50%");
+        main.slides[main.current].$slideImage.css("background-size", "cover");
     }
 }
 
@@ -247,6 +248,7 @@ function mt_hangle_tool_click(id) {
         case "mt_incorrect_album":
             break;
         case "mt_dont_show":
+            mt_dont_show();
             break;
         case "mt_download":
             mt_download();
@@ -256,6 +258,11 @@ function mt_hangle_tool_click(id) {
     if(id != "mt_download")
         toggle_lighten(document.getElementById(id), "lighten-4");
 
+}
+
+async function mt_dont_show(){
+    // console.log(main.slides[main.current].$slideImage);  
+    // main.slides[main.current].$slideImage.css("background-size", "contain");
 }
 
 async function mt_download(){

@@ -427,6 +427,7 @@ main = (function ($) {
 						$slideImage: null,
 						$slideCaption: null,
 						url: $thumbnail.attr('href'),
+						orientation: $thumbnail.attr('orientation'),
 						loaded: false
 					};
 
@@ -578,7 +579,7 @@ main = (function ($) {
 
 						// Mark as loading.
 						newSlide.$slide.addClass('loading');
-
+						
 						// Wait for it to load.
 						$('<img src="' + newSlide.url + '" />').on('load', function () {
 							//window.setTimeout(function() {
@@ -586,6 +587,15 @@ main = (function ($) {
 							// Set background image.
 							newSlide.$slideImage
 								.css('background-image', 'url(' + newSlide.url + ')');
+
+							//DDD: set orientation
+							if ((newSlide.orientation == 6) || (newSlide.orientation == 8)) {
+								newSlide.$slideImage
+								.css("background-size", "contain");
+							} else {
+								newSlide.$slideImage
+								.css("background-size", "cover");
+							}
 
 							// Mark as loaded.
 							newSlide.loaded = true;

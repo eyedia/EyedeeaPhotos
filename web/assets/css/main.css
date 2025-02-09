@@ -1198,6 +1198,10 @@ input, select, textarea {
 				opacity: 0;
 			}
 
+			#viewer .inner .nav-next:hover,
+			#viewer .inner .nav-previous:hover{
+				opacity: 1;
+			}
 
 			#viewer .inner .nav-previous {
 				-moz-transform: scaleX(-1);

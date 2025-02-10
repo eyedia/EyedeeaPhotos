@@ -3,7 +3,12 @@ import axiosRetry from 'axios-retry';
 import https from 'https';
 import fs from 'fs';
 import config_log from "../../../config_log.js";
-import { get as meta_get_source, update_cache as meta_update_cache } from "../../../meta/meta_source.mjs"
+import {
+  get as meta_get_source,
+  update_cache as meta_update_cache,
+  clear_cache as meta_clear_cache
+} from "../../../meta/meta_source.mjs"
+import { meta_db } from '../../../meta/meta_base.mjs';
 
 const logger = config_log.logger;
 const httpsAgent = new https.Agent({ rejectUnauthorized: false })
@@ -18,7 +23,7 @@ function init_syno(callback) {
       logger.error(err.message);
       callback(err, null);
     } else {
-      if(!nas_config){
+      if (!nas_config) {
         logger.error("NAS was not configured!");
         return;
       }
@@ -46,29 +51,20 @@ function init_syno(callback) {
 }
 
 
-export async function authenticate() {
+export async function authenticate(callback) {
   try {
-    init_syno((err, nas_config) => {
+    return init_syno((err, nas_config) => {
       if (nas_config) {
-        //read from cache
-        // nas_auth_token = read_cache()
-        //   .then(data => {
-        //     if (data) {
-        //       return data;
-        //     }
-        //   })
-        //   .catch(error => {
-        //     return nas_auth_token;
-        //   });
-
-        if (nas_config.cache && Object.keys(nas_config.cache).length != 0) {
+        if (nas_config.cache && Object.keys(nas_config.cache).length != 0) {          
+          nas_auth_token = JSON.parse(nas_config.cache);
           logger.info("NAS Auth initiated from cache!");
+          if(callback)
+            callback(true);
           return;
         }
-        
         //not in cache, lets authenticate
         logger.info("Authenticating NAS...");
-        api_client.get('/auth.cgi', {
+        return api_client.get('/auth.cgi', {
           params: {
             api: "SYNO.API.Auth",
             version: 7,
@@ -81,11 +77,12 @@ export async function authenticate() {
         })
           .then(function (response) {
             nas_config.cache = response.data.data;
-            logger.info(response.data);
-            meta_update_cache(nas_config, (update_err, updated_nas_config, status_code) =>{
-              logger.info(nas_config.cache);
+            nas_auth_token = nas_config.cache;
+            return meta_update_cache(nas_config, (update_err, updated_nas_config, status_code) => {
+              if(callback)
+                callback(true);
             });
-            l
+           
           })
           .catch(function (error) {
             if (error.code === 'ECONNRESET') {
@@ -93,12 +90,14 @@ export async function authenticate() {
             } else {
               logger.info(error.message);
             }
+            if(callback)
+              callback(false);
           });
-
-        return;
+      }else{
+        if(callback)
+          callback(false);
       }
     });
-
 
   } catch (error) {
     logger.error('Authentication failed:', error.response?.data || error.message);
@@ -217,28 +216,12 @@ export async function list_geo(offset = 0, limit = 1000) {
   }
 }
 
-function valid_response(response) {
-  logger.info(response.data.success);
-  if (!response.data.success) {
-    if (response.data.error.code === 119) {
-      logger.info("here");
-      fs.unlink(".cache", (err) => {
-        logger.info("Cache cleared! re-authenticating...");
-        authenticate();
-      });
 
-      return false;
-    }
-  }
-
-  return true;
-}
-
-export async function get_photo(id, cache_key, size = "sm") {
-  if (!nas_auth_token) {
+export async function get_photo(id, cache_key, size = "sm") { 
+  if (!nas_auth_token.synotoken) {
     throw new Error('Synology client is not active! Most likely authentication was failed. Please check the server configuration and logs and try again.');
   }
-  try {
+  try {    
     let m_param = {
       api: "SYNO.FotoTeam.Thumbnail",
       SynoToken: nas_auth_token.synotoken,
@@ -271,21 +254,85 @@ export async function get_photo(id, cache_key, size = "sm") {
   }
 }
 
-function read_cache() {
-  return new Promise((resolve, reject) => {
-    fs.readFile('.cache', 'utf8', (err, data) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(JSON.parse(data));
-      }
-    })
+export async function create_eyedeea_tags() {
+  let eyedeea_tags = ["eyedeea_dns", "eyedeea_mark"];
+  eyedeea_tags.forEach(eyedeea_tag => {
+    create_tag(eyedeea_tag).then(result => {
+      const query = `insert or ignore into tag(name, syno_id) values (${eyedeea_tag}, ${result.data.tag.id})`;
+        meta_db.run(query, (err) => {
+            if (err) {
+                logger.error(err.message);
+            } else {
+                logger.info(`${eyedeea_tag} created successfully.`);
+            }
+        });
+    });
   });
 }
 
-function write_cache(data) {
-  fs.writeFile('.cache', JSON.stringify(data), (err) => {
-    if (err) throw err;
-    logger.info('The file has been saved!');
-  });
+export async function create_tag(name) {
+
+  if (!nas_auth_token.synotoken) {
+    throw new Error('Synology client is not active! Most likely authentication was failed. Please check the server configuration and logs and try again.');
+  }
+  try {
+    let m_param = {
+      api: "SYNO.FotoTeam.Browse.GeneralTag",
+      SynoToken: nas_auth_token.synotoken,
+      _sid: nas_auth_token.sid,
+      version: 1,
+      method: "create",
+      name: name
+    };
+
+    return api_client.get('/entry.cgi', {
+      params: m_param,
+      httpsAgent: httpsAgent
+    })
+      .then(function (response) {
+        return response.data;
+      })
+      .catch(function (error) {
+        let err_info = `Could not create tag '${name}' in Synology. The server returned `;
+        err_info += error + ". ";
+        logger.error(err_info);
+      });
+
+  } catch (error) {
+    logger.error('Could not create tag:', error.response?.data || error.message);
+    throw error;
+  }
+}
+
+function check_valid_data(data, callback) {
+
+  if (data.error) {
+    if (data.error.code && data.error.code == 119) {
+      logger.info("Server returned error code 119. Preparing to re-authenticate. Clearing cache...");
+      meta_clear_cache("nas", (err, nas) => {
+        if (err) {
+          logger.error(err.message);
+          //callback(err, null);
+        } else {
+          if (!nas) {
+            logger.error("Could not clear cache of NAS!");
+            //callback(err, null);
+          } else {
+            logger.info("cache cleared...")
+            // authenticate(result => {
+            //   if(result)
+            //     callback({"retry": true, "data": data});
+            //   else{
+            //     logger.error("Fatal error while clear cache and re-authentication!");
+            //   }
+            // });
+          }
+        }
+      });
+    }
+    return callback({"retry": false, "data": data});;
+  } else {
+    return callback({"retry": false, "data": data});;
+  }
+
 }

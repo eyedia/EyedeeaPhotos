@@ -10,12 +10,14 @@ const dbFile = './meta/eyedeea_photos.db';
 export let meta_db = null;
 
 
-export async function meta_init() {
+export async function meta_init(callback) {
     const dbExists = fs.existsSync(dbFile);
     meta_db = open_database();
     if (!dbExists) {
         create_tables();
+        callback(true);
     }
+    callback(true); //newly created db or existing
 }
 function open_database() {
     return new sqlite3.Database(dbFile,
@@ -125,6 +127,14 @@ function create_tables() {
 			filter_option TEXT,
 			current BOOL DEFAULT 0,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            );`,
+        
+        `CREATE TABLE tag (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+			name TEXT NOT NULL,
+            syno_id INTEGER UNIQUE NOT NULL,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+			updated_at TEXT
             );`
     ];
 
@@ -138,6 +148,7 @@ function create_tables() {
         });
     });
 }
+
 
 export function get_rows(query, callback) {
 

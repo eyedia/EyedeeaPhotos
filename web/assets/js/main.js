@@ -250,8 +250,8 @@ main = (function ($) {
 					// Calculate stuff.
 					var diffX = _.$viewer.touchPosX - event.originalEvent.touches[0].pageX,
 						diffY = _.$viewer.touchPosY - event.originalEvent.touches[0].pageY;
-					boundary = 20,
-						delta = 50;
+					const boundary = 20;
+					const delta = 50;
 
 					// Swipe left (next).
 					if ((diffY < boundary && diffY > (-1 * boundary)) && (diffX > delta))
@@ -304,9 +304,9 @@ main = (function ($) {
 					// Calculate stuff.
 					var diffX = _.$main.touchPosX - event.originalEvent.touches[0].pageX,
 						diffY = _.$main.touchPosY - event.originalEvent.touches[0].pageY;
-					boundary = 20,
-						delta = 50,
-						result = false;
+					boundary = 20;
+					delta = 50;
+					let result = false;
 
 					// Swipe to close.
 					switch (_.settings.mainSide) {

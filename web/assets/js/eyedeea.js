@@ -57,13 +57,13 @@ function refresh_pic() {
 
     let e_toggles = document.getElementsByClassName("toggle");
     if (e_toggles) {
-        for (t = 0; t < e_toggles.length; t++) {
+        for (let t = 0; t < e_toggles.length; t++) {
             e_toggles[t].remove();
         }
 
     }
 
-    for (i = 0; i < total; i++) {
+    for (let i = 0; i < total; i++) {
         (function (foo) {
             get_photo(foo).then(object_url_and_headers => {
                 

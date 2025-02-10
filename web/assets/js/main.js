@@ -592,9 +592,13 @@ main = (function ($) {
 							if ((newSlide.orientation == 6) || (newSlide.orientation == 8)) {
 								newSlide.$slideImage
 								.css("background-size", "contain");
+								newSlide.$slideImage.parent()
+								.css('background-image', 'url(' + newSlide.url + ')');
 							} else {
 								newSlide.$slideImage
 								.css("background-size", "cover");
+								newSlide.$slideImage.parent()
+								.css('background-image', 'none');
 							}
 
 							// Mark as loaded.

@@ -55,13 +55,16 @@ get_config((err, config) => {
 const PORT = process.env.PORT || 8080;
 
 async function init() {
-  meta_init( fresh_db => {
+  meta_init(fresh_db => {    
+  authenticate( auth_result =>{
     if(fresh_db){
       console.log("Fresh db");
+      create_eyedeea_tags();
     }
   });
+    
+  });
  
-  await authenticate();
 
 
   app.get('/test', async (req, res) => {

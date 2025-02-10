@@ -428,6 +428,7 @@ main = (function ($) {
 						$slideCaption: null,
 						url: $thumbnail.attr('href'),
 						orientation: $thumbnail.attr('orientation'),
+						photo_id: $thumbnail.attr('photo_id'),
 						loaded: false
 					};
 

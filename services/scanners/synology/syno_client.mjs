@@ -258,7 +258,7 @@ export async function create_eyedeea_tags() {
   let eyedeea_tags = ["eyedeea_dns", "eyedeea_mark"];
   eyedeea_tags.forEach(eyedeea_tag => {
     create_tag(eyedeea_tag).then(result => {
-      const query = `insert or ignore into tag(name, syno_id) values (${eyedeea_tag}, ${result.data.tag.id})`;
+      const query = `insert or ignore into tag(name, syno_id) values ('${eyedeea_tag}', ${result.data.tag.id})`;
         meta_db.run(query, (err) => {
             if (err) {
                 logger.error(err.message);
@@ -294,6 +294,41 @@ export async function create_tag(name) {
       })
       .catch(function (error) {
         let err_info = `Could not create tag '${name}' in Synology. The server returned `;
+        err_info += error + ". ";
+        logger.error(err_info);
+      });
+
+  } catch (error) {
+    logger.error('Could not create tag:', error.response?.data || error.message);
+    throw error;
+  }
+}
+
+
+export async function add_tag(photo_id, tag_id) {
+
+  if (!nas_auth_token.synotoken) {
+    throw new Error('Synology client is not active! Most likely authentication was failed. Please check the server configuration and logs and try again.');
+  }
+  try {
+    let m_param = {
+      api: "SYNO.FotoTeam.Browse.Item",
+      SynoToken: nas_auth_token.synotoken,
+      version: 2,
+      method: "add_tag",
+      id: photo_id,
+      tag: tag_id
+    };
+
+    return api_client.get('/entry.cgi', {
+      params: m_param,
+      httpsAgent: httpsAgent
+    })
+      .then(function (response) {
+        return response.data;
+      })
+      .catch(function (error) {
+        let err_info = `Could not set tag '${tag_id}' to ${photo_id} in Synology. The server returned `;
         err_info += error + ". ";
         logger.error(err_info);
       });

@@ -48,8 +48,8 @@ export function update_cache(source, callback) {
             if (rows.length == 1) {
 
                 meta_db.run(
-                    `UPDATE source set cache = ?, updated_at = ? where name = ?`,
-                    [source.cache, Date.now(), source.name],
+                    `UPDATE source set [cache] = ?, updated_at = ? where name = ?`,
+                    [JSON.stringify(source.cache), Date.now(), source.name],
                     function (err) {
                         if (err) {
                             logger.error('Error updating data:', err);
@@ -90,10 +90,39 @@ export function get(id, callback) {
             callback(err, null);
         } else {
             let source = rows[0];
-            // console.log(source.cache);
-            // source.cache = JSON.parse(JSON.stringify(source.cache));
-            // console.log(source.cache);
             callback(null, source);
+        }
+    });
+}
+
+export function clear_cache(id, callback) {
+    const try_id = parseInt(id);
+    let query = `select * from source where id = ${id}`;
+    if (isNaN(try_id))
+        query = `select * from source where name = '${id}' COLLATE NOCASE`;
+    get_rows(query, (err, rows) => {
+        if (err) {
+            logger.error(err.message);
+            callback(err, null);
+        } else {
+            if (rows.length == 1) {                
+                meta_db.run(
+                    `UPDATE source set [cache] = null, updated_at = ? where id = ?`,
+                    [Date.now(), rows[0]["id"]],
+                    function (err) {
+                        if (err) {
+                            logger.error('Error updating data:', err);
+                            callback(err, null, 500);
+                        } else {
+                            console.log(`Row(s) updated: ${this.changes}`);
+                            console.log("1");
+                            rows[0]["cache"] = undefined;
+                            callback(null, rows[0], 200);
+                        }
+                    });
+            } else {
+                callback(null, null);
+            }
         }
     });
 }

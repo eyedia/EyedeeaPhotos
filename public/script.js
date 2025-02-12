@@ -44,7 +44,7 @@ function show_photo() {
   get_photo()
     .then(object_url_and_headers => {
       html_img_photo.src = object_url_and_headers[0];
-      photo_data_obj = JSON.parse(JSON.stringify(object_url_and_headers[1].get("Photo-Data")));
+      const photo_data_obj = JSON.parse(JSON.stringify(object_url_and_headers[1].get("Photo-Data")));
       let photo_data = JSON.parse(photo_data_obj);
       set_image_attributes(photo_data);
 

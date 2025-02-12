@@ -57,13 +57,13 @@ function refresh_pic() {
 
     let e_toggles = document.getElementsByClassName("toggle");
     if (e_toggles) {
-        for (t = 0; t < e_toggles.length; t++) {
+        for (let t = 0; t < e_toggles.length; t++) {
             e_toggles[t].remove();
         }
 
     }
 
-    for (i = 0; i < total; i++) {
+    for (let i = 0; i < total; i++) {
         (function (foo) {
             get_photo(foo).then(object_url_and_headers => {
                 
@@ -76,11 +76,12 @@ function refresh_pic() {
                     let e_img = document.getElementById("img-" + id_suffix);
                     e_img.setAttribute("src", object_url_and_headers[0]);
                     e_img.setAttribute("title", photo_data.filename);
-                    e_img.setAttribute("orientation", photo_data.orientation);
+                    //e_img.setAttribute("orientation", photo_data.orientation);
 
                     let e_a = document.getElementById("a-" + id_suffix);
                     e_a.setAttribute("href", object_url_and_headers[0]);
                     e_a.setAttribute("orientation", photo_data.orientation);
+                    e_a.setAttribute("photo_id", photo_data.photo_id);
 
                     const e_title = document.createElement('h2');
                     e_title.setAttribute("id", `title-${id_suffix}`);                    
@@ -261,7 +262,7 @@ function mt_hangle_tool_click(id) {
 }
 
 async function mt_dont_show(){
-    // console.log(main.slides[main.current].$slideImage);  
+    console.log(main.slides[main.current].photo_id);  
     // main.slides[main.current].$slideImage.css("background-size", "contain");
 }
 

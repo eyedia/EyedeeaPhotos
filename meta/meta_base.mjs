@@ -10,22 +10,19 @@ const dbFile = './meta/eyedeea_photos.db';
 export let meta_db = null;
 
 
-export async function meta_init() {
+export async function meta_init(callback) {
     const dbExists = fs.existsSync(dbFile);
-    meta_db = open_database();
-    if (!dbExists) {
-        create_tables();
-    }
-}
-function open_database() {
-    return new sqlite3.Database(dbFile,
+    meta_db = new sqlite3.Database(dbFile,
         sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE,
         (err) => {
             if (err) {
                 logger.error('Error opening database:', err.message);
                 process.exit(1);
             }
-            logger.info('Connected to database:', dbFile);
+            logger.info(`Connected to database: ${dbFile}`);
+            if (!dbExists)
+                create_tables();
+            callback(!dbExists);    //true = newly created
         });
 }
 
@@ -63,7 +60,7 @@ function create_tables() {
             created_at TEXT DEFAULT CURRENT_TIMESTAMP,
 			updated_at TEXT
             );`,
-            
+
         `CREATE TABLE photo (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             photo_id INT UNIQUE NOT NULL,
@@ -117,7 +114,7 @@ function create_tables() {
 
         `CREATE VIRTUAL TABLE fts 
             USING FTS5(photo_id,folder_name,tags,address);`,
-            
+
         `CREATE TABLE view_filter (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
 			name TEXT NOT NULL,
@@ -125,6 +122,14 @@ function create_tables() {
 			filter_option TEXT,
 			current BOOL DEFAULT 0,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            );`,
+
+        `CREATE TABLE tag (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+			name TEXT NOT NULL,
+            syno_id INTEGER UNIQUE NOT NULL,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+			updated_at TEXT
             );`
     ];
 
@@ -138,6 +143,7 @@ function create_tables() {
         });
     });
 }
+
 
 export function get_rows(query, callback) {
 

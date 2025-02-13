@@ -1,7 +1,12 @@
 import useragent from "useragent";
 import fs from 'fs';
-import { get_random_photo as meta_get_random_photo, get_photo_history, get_config } from "../../meta/meta_view.mjs";
-import { list_geo, get_photo as syno_get_photo } from "../../services/scanners/synology/syno_client.mjs";
+import { get_random_photo as meta_get_random_photo, 
+  get_photo_history, 
+  get_config,
+  get_tag as meta_get_tag } from "../../meta/meta_view.mjs";
+import { list_geo, 
+  get_photo as syno_get_photo,
+  add_tag as syno_add_tag } from "../../services/scanners/synology/syno_client.mjs";
 import config_log from "../../config_log.js";
 const logger = config_log.logger;
 
@@ -109,5 +114,39 @@ function get_default_photo(res) {
     }
     res.writeHead(200, { 'Content-Type': 'image/jpeg' });
     res.end(data);
+  });
+}
+
+export const add_tag_dns = async (req, res) => {
+  meta_get_tag("eyedeea_dns", (err, e_tag) => {
+    if (err) {
+      logger.error(err.message);
+    } else {
+      if(e_tag){
+        syno_add_tag(req.params.photo_id, e_tag.syno_id).then(response_data => {
+          console.log(response_data);
+          res.json(response_data);
+        });
+      }else{
+        res.status(500).json({ error: "Something went wrong while adding tag!" });
+      }
+    }
+  });
+}
+
+export const add_tag_mark = async (req, res) => {
+  meta_get_tag("eyedeea_mark", (err, e_tag) => {
+    if (err) {
+      logger.error(err.message);
+    } else {
+      if(e_tag){
+        syno_add_tag(req.params.photo_id, e_tag.syno_id).then(response_data => {
+          console.log(response_data);
+          res.json(response_data);
+        });
+      }else{
+        res.status(500).json({ error: "Something went wrong while adding tag!" });
+      }
+    }
   });
 }

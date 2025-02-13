@@ -205,6 +205,22 @@ function set_current_photo(callback) {
     });
 }
 
+
+export function get_tag(name, callback) {
+    let query = `select * from tag where name = '${name}' COLLATE NOCASE`;
+    meta_db.all(query, (err, rows) => {
+        if (err) {
+            callback(err, null);
+        } else {
+            if(rows.length >= 0){            
+                callback(null, rows[0]);
+            }else{
+                callback({"message": "Something went wrong while retrieving tag from meta data!"}, null);
+            }
+        }
+    });
+}
+
 export function get_config(callback) {
     let viewer_config = {
         "refresh_server": "* * * * *",

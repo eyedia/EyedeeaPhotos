@@ -88,3 +88,8 @@ I also declutter my collection by removing duplicates and keeping only meaningfu
 
 ## Conclusion
 With this setup, my photos are **secure, organized, and easily viewable**—giving me peace of mind and a better way to enjoy my memories. No hefty cloud fees, no privacy concerns—just **my photos, my way**.
+
+
+## Credits:
+- **Website Template:** https://html5up.net
+- **Synology API Documentation** [at github by zeichensatz](https://github.com/zeichensatz/SynologyPhotosAPI)

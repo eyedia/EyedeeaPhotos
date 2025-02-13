@@ -428,6 +428,7 @@ main = (function ($) {
 						$slideCaption: null,
 						url: $thumbnail.attr('href'),
 						orientation: $thumbnail.attr('orientation'),
+						orientation_v2: $thumbnail.attr('orientation_v2'),
 						photo_id: $thumbnail.attr('photo_id'),
 						loaded: false
 					};
@@ -590,7 +591,7 @@ main = (function ($) {
 								.css('background-image', 'url(' + newSlide.url + ')');
 
 							//DDD: set orientation
-							if ((newSlide.orientation == 6) || (newSlide.orientation == 8)) {
+							if ((newSlide.orientation_v2 == "P") || ((newSlide.orientation == 6) || (newSlide.orientation == 8))) {
 								newSlide.$slideImage
 								.css("background-size", "contain");
 								newSlide.$slideImage.parent()

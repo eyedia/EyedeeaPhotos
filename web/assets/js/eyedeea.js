@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             setInterval(function () {
                 refresh_pic();
-            }, refresh_client * 1000);
+            }, 10 * 1000);
         })
         .catch(err => {
             console.log(err);
@@ -65,21 +65,21 @@ function refresh_pic() {
 
     for (let i = 0; i < total; i++) {
         (function (foo) {
-            get_photo(foo).then(object_url_and_headers => {
+            get_photo(foo).then(photo_url_etc => {
                 
-                const photo_data = JSON.parse(object_url_and_headers[1].get("Photo-Data"));
+                const photo_data = JSON.parse(photo_url_etc[2].get("Photo-Data"));
 
                 if (photo_data) {
                     let id_suffix = String(photo_data.photo_index).padStart(2, '0');
                     const e_article = document.getElementById('article-' + id_suffix);
 
                     let e_img = document.getElementById("img-" + id_suffix);
-                    e_img.setAttribute("src", object_url_and_headers[0]);
+                    e_img.setAttribute("src", photo_url_etc[0]);                    
                     e_img.setAttribute("title", photo_data.filename);
-                    //e_img.setAttribute("orientation", photo_data.orientation);
 
                     let e_a = document.getElementById("a-" + id_suffix);
-                    e_a.setAttribute("href", object_url_and_headers[0]);
+                    e_a.setAttribute("href", photo_url_etc[0]);
+                    e_img.setAttribute("orientation_v2", photo_url_etc[1]);
                     e_a.setAttribute("orientation", photo_data.orientation);
                     e_a.setAttribute("photo_id", photo_data.photo_id);
 
@@ -136,9 +136,26 @@ async function get_photo(photo_index) {
         return ["/eyedeea_photos.jpg", fake_headers];
     }
     const blob = await response.blob();
-    return [URL.createObjectURL(blob), response.headers];
+    const this_photo_url = URL.createObjectURL(blob); 
+    const this_photo_size = await get_photo_size(this_photo_url);
+    let photo_orientation = (this_photo_size.height > this_photo_size.width)? "P": "L";
+    return [this_photo_url, photo_orientation, response.headers];
 }
 
+async function get_photo_size(photo_url) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+        img.onload = () => {
+        const { width, height } = img;
+        resolve({ width, height });
+      };
+  
+      img.onerror = () => {
+        reject(new Error('Failed to load image'));
+      };
+      img.src = photo_url;
+    });
+  }
 
 function set_image_attributes(photo_data, e_title, e_sub_title, e_sub_title2) {
     if (photo_data == null) {
@@ -267,11 +284,11 @@ async function mt_dont_show(){
 }
 
 async function mt_download(){
-    get_photo(main.current).then(object_url_and_headers => {
+    get_photo(main.current).then(photo_url_etc => {
         if(object_url_and_headers){
             const a = document.createElement("a");
-            a.href = object_url_and_headers[0];
-            const photo_data = JSON.parse(object_url_and_headers[1].get("Photo-Data"));
+            a.href = photo_url_etc[0];
+            const photo_data = JSON.parse(photo_url_etc[2].get("Photo-Data"));
             if(photo_data)
                 a.download = photo_data.filename;
             else

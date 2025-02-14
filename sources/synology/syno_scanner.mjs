@@ -3,10 +3,10 @@ import {
     clear_scan, get_last_inserted_diff, save_item,
     start_scan, stop_scan, save_scan_log_detail,
     get_scan_log_detail, update_scan_log
-} from "../../../meta/meta_scan.mjs"
-import { get_rows } from "../../../meta/meta_base.mjs";
-import { search_init } from "../../../meta/meta_search.mjs";
-import config_log from "../../../config_log.js";
+} from "../../meta/meta_scan.mjs"
+import { get_rows } from "../../meta/meta_base.mjs";
+import { search_init } from "../../meta/meta_search.mjs";
+import config_log from "../../config_log.js";
 
 const logger = config_log.logger;
 let _interval_id = 0;

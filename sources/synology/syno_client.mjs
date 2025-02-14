@@ -2,13 +2,13 @@ import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import https from 'https';
 import fs from 'fs';
-import config_log from "../../../config_log.js";
+import config_log from "../../config_log.js";
 import {
   get as meta_get_source,
   update_cache as meta_update_cache,
   clear_cache as meta_clear_cache
-} from "../../../meta/meta_source.mjs"
-import { meta_db } from '../../../meta/meta_base.mjs';
+} from "../../meta/meta_source.mjs"
+import { meta_db } from '../../meta/meta_base.mjs';
 
 const logger = config_log.logger;
 const httpsAgent = new https.Agent({ rejectUnauthorized: false })
@@ -49,7 +49,6 @@ function init_syno(callback) {
   });
 
 }
-
 
 export async function authenticate(callback) {
   try {
@@ -104,7 +103,6 @@ export async function authenticate(callback) {
     throw error;
   }
 }
-
 
 export async function list_dir(folder_id = -1, offset = 0, limit = 1000) {
   try {
@@ -178,7 +176,6 @@ export async function list_dir_items(folder_id, offset = 0, limit = 1000) {
   }
 }
 
-
 export async function list_geo(offset = 0, limit = 1000) {
   try {
     let m_param = {
@@ -215,7 +212,6 @@ export async function list_geo(offset = 0, limit = 1000) {
     throw error;
   }
 }
-
 
 export async function get_photo(id, cache_key, size = "sm") { 
   if (!nas_auth_token.synotoken) {
@@ -303,7 +299,6 @@ export async function create_tag(name) {
     throw error;
   }
 }
-
 
 export async function add_tag(photo_id, tag_id) {
 

@@ -1,4 +1,4 @@
-import { scan as syno_scan, scanner_is_busy } from "../../services/scanners/synology/syno_scanner.mjs";
+import { scan as syno_scan, scanner_is_busy } from "../../sources/synology/syno_scanner.mjs";
 import config_log from "../../config_log.js";
 
 const logger = config_log.logger;

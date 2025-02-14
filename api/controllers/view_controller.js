@@ -6,7 +6,7 @@ import { get_random_photo as meta_get_random_photo,
   get_tag as meta_get_tag } from "../../meta/meta_view.mjs";
 import { list_geo, 
   get_photo as syno_get_photo,
-  add_tag as syno_add_tag } from "../../services/scanners/synology/syno_client.mjs";
+  add_tag as syno_add_tag } from "../../sources/synology/syno_client.mjs";
 import config_log from "../../config_log.js";
 const logger = config_log.logger;
 

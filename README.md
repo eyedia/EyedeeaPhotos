@@ -1,5 +1,7 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=eyedia_EyedeeaPhotos&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=eyedia_EyedeeaPhotos)
 
+![example workflow](https://github.com/github/eyedeeaphotos/actions/workflows/main.yml/badge.svg)
+
 # Rediscover Your Photos
 
 ## The Problem: Viewing and Sharing My Photos

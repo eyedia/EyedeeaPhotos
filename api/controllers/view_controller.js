@@ -4,9 +4,11 @@ import { get_random_photo as meta_get_random_photo,
   get_photo_history, 
   get_config,
   get_tag as meta_get_tag } from "../../meta/meta_view.mjs";
+import { get_photo as fs_get_photo } from "../../sources/fs/fs_client.js";
+
 import { list_geo, 
-  get_photo as syno_get_photo,
-  add_tag as syno_add_tag } from "../../sources/synology/syno_client.mjs";
+    get_photo as syno_get_photo,
+    add_tag as syno_add_tag } from "../../sources/synology/syno_client.mjs";
 import config_log from "../../config_log.js";
 const logger = config_log.logger;
 
@@ -42,6 +44,8 @@ export const get_random_photo = async (req, res) => {
           //photo_data.address = JSON.parse(photo_data.address);
           if (photo_data.cache_key && photo_data.cache_key != "") {
             get_photo_from_synology(photo_data, req, res);
+          }else if (photo_data.source_id == 2){
+            fs_get_photo(photo_data, res);
           } else {
             //some issue, return default pic
             return get_default_photo(res);
@@ -64,6 +68,8 @@ export const get_random_photo = async (req, res) => {
           photo_data.address = JSON.parse(photo_data.address);
           if (photo_data.cache_key && photo_data.cache_key != "") {
             get_photo_from_synology(photo_data, req, res);
+          }else if (photo_data.source_id == 2){
+            fs_get_photo(photo_data, res);
           } else {
             //some issue, return default pic
             return get_default_photo(res);

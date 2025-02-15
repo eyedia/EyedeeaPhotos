@@ -63,9 +63,10 @@ function create_tables() {
 
         `CREATE TABLE photo (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            photo_id INT UNIQUE NOT NULL,
+            source_id INT,
+            photo_id INT UNIQUE,            
             filename TEXT NOT NULL, 
-            folder_id INT NOT NULL,
+            folder_id INT,
             folder_name TEXT,
             time INT,
             type TEXT,
@@ -75,7 +76,8 @@ function create_tables() {
             geocoding_id INT,
             tags TEXT,
             address TEXT,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(source_id) REFERENCES source(id)
             );`,
 
         `CREATE TABLE scan_log (

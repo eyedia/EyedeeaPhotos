@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             setInterval(function () {
                 refresh_pic();
-            }, 10 * 1000);
+            }, refresh_client * 1000);
         })
         .catch(err => {
             console.log(err);

@@ -1,10 +1,23 @@
-import { scan as syno_scan, scanner_is_busy } from "../../sources/synology/syno_scanner.mjs";
+import { scan as syno_scan_service, scanner_is_busy } from "../../sources/synology/syno_scanner.mjs";
+import { scan as fs_scan_service, scanner_is_busy as fs_scanner_is_busy } from "../../sources/fs/fs_scanner.js";
+import {
+  get as meta_get_source
+} from "../../meta/meta_source.mjs"
+
 import config_log from "../../config_log.js";
 
 const logger = config_log.logger;
 
+export const scan  = async (req, res) => {  
+  meta_get_source(req.params.id, (err, source) => {   
+    if (req.params.id == 1)
+      syno_scan(source, req, res);
+    else
+      fs_scan(source, req, res);
+  });
+}
 
-export const scan = async (req, res) => {
+const syno_scan = async (source, req, res) => {
   let folder_id = undefined;
   if (req.params.folder_id) {
     folder_id = req.params.folder_id;
@@ -17,7 +30,23 @@ export const scan = async (req, res) => {
 
   try {
     if (!scanner_is_busy()) {
-      await syno_scan(folder_id, folder_name);
+      await syno_scan_service(folder_id, folder_name);
+      logger.info("Scanning started...");
+      res.json({ "message": "Scanning started..." });
+    } else {
+      res.status(503).json({ error: "Scanning is already in progress." });
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+const fs_scan = async (source, req, res) => {
+
+  try {
+    if (!fs_scanner_is_busy()) {
+      await fs_scan_service(source, source.url);
       logger.info("Scanning started...");
       res.json({ "message": "Scanning started..." });
     } else {

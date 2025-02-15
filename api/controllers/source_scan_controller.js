@@ -30,7 +30,7 @@ const syno_scan = async (source, req, res) => {
 
   try {
     if (!scanner_is_busy()) {
-      await syno_scan_service(folder_id, folder_name);
+      await syno_scan_service(source, folder_id, folder_name);
       logger.info("Scanning started...");
       res.json({ "message": "Scanning started..." });
     } else {

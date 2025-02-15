@@ -1,100 +1,60 @@
-import { list_dir, list_dir_items } from "./syno_client.mjs"
-import {
-    clear_scan, get_last_inserted_diff, save_item,
-    start_scan, stop_scan, save_scan_log_detail,
+import { list_dir, list_dir_items } from "./syno_client.mjs";
+import { save_item, save_scan_log_detail,
     get_scan_log_detail, update_scan_log
-} from "../../meta/meta_scan.mjs"
-import { get_rows } from "../../meta/meta_base.mjs";
-import { search_init } from "../../meta/meta_search.mjs";
+} from "../../meta/meta_scan.mjs";
+import { start_scanning, scanner_is_busy as base_scanner_is_busy } from '../scanner.js';
 import config_log from "../../config_log.js";
 
 const logger = config_log.logger;
-let _interval_id = 0;
-let _timeout_id = 0;
-let _scan_log_id = 0;
 let _failed_folders_tried = false;
-let _failed_folders = 0;
+
 let _offset = 0;
 let _limit = 1000;
-let source_id = 1;
+
 
 export function scanner_is_busy() {
-    return _timeout_id == 0 ? false : true;
+    return base_scanner_is_busy()
 }
 
-export async function scan(source, folder_id = -1, folder_name = "") {
-
-    source_id = source.id;
-    if (_timeout_id != 0) {
-        //already a scan running, return bad
-        logger.error("Synology scanning is already in progress.");
-        return;
+export async function scan(source, folder_id, folder_name, callback) {
+  let scan_start_data = {
+    source: source,
+    max_time_in_mins: 12,
+    interval_in_secs: 30,
+    insert_data_threshold: 0.0005
+  }
+  start_scanning(scan_start_data, (err, scan_started_data) => {
+    if (err) {
+      logger.error(err);
+      callback(err, null);
+    } else {
+      callback(null, scan_started_data);
+      internal_scan(scan_started_data, folder_id, folder_name);
     }
+  },
+    syno_scanning_ended);
+}
 
-    _failed_folders_tried = false;
-    _scan_log_id = 0;
-
-    _timeout_id = setTimeout(() => {
-        clearInterval(_interval_id);
-        _interval_id = 0;
-        end_scan(true);
-        logger.error("Scanning timed out. Please check logs, read documentation and increase timeout if neccessary.");
-    }, 1000 * 60 * 12);    //Auto stop after 12 minutes
-
-    _interval_id = setInterval(() => {
-        keep_checking_when_insert_stops();
-    }, 1000 * 30);          // Check every 30 seconds
-
-    logger.info(`Scanner root timeout id:${_timeout_id} and interval id:${_interval_id}`);
-    
-    //save scan log
-    let scan_log_data = {
-        "source_id": source.id,
-        "root_folder_id": folder_id,
-        "root_folder_name": folder_name,
-        "info": ""
-    }
-
-    clear_scan(source.id, () => {
-        start_scan(scan_log_data, (err, scan_log_id) => {
-            if (err) {
-                logger.error(err.message);
-            } else {
-                _scan_log_id = scan_log_id;
-                if ((folder_id === -1) && (folder_name === "")) {
-                    let info = "";
-                    //scan starts from root
-                    list_dir(undefined, _offset, _limit)
-                        .then(data => {
-                            if (data && data.data.list.length > 0) {
-                                data.data.list.forEach(function (root_folder) {
-                                    list_dir_loop(scan_log_id, root_folder.id, root_folder.name, _offset, _limit);
-                                });
-                            } else {
-                                logger.info("Nothing to scan. No root folders!");
-                                info = "";
-                                let scan_log_end_data = {
-                                    "id": scan_log_id,
-                                    "info": info
-                                }
-                                stop_scan(scan_log_end_data);
-                            }
-                        });
-
-
-                } else {
-                    //scan starts from a specific folder
-                    logger.info("Starting scanning from a specific folder...", folder_id, folder_name);
-                    list_dir_loop(scan_log_id, folder_id, folder_name, _offset, _limit);
+async function internal_scan(scan_started_data, folder_id = -1, folder_name = "") {
+    if ((folder_id === -1) && (folder_name === "")) {        
+        //scan starts from root
+        list_dir(undefined, _offset, _limit)
+            .then(data => {
+                if (data && data.data.list.length > 0) {
+                    data.data.list.forEach(function (root_folder) {
+                        list_dir_loop(scan_started_data, root_folder.id, root_folder.name, _offset, _limit);
+                    });
                 }
+            });
 
-            }
-        });
-    });
-
+    } else {
+        //scan starts from a specific folder
+        logger.info("Starting scanning from a specific folder...", folder_id, folder_name);
+        list_dir_loop(scan_started_data, folder_id, folder_name, _offset, _limit);
+    }
 }
 
-async function list_dir_loop(scan_log_id, folder_id, folder_name, offset, limit) {
+async function list_dir_loop(scan_started_data, folder_id, folder_name, offset, limit) {
     logger.info(`01-Getting sub folder ${folder_id}...`);
     list_dir(folder_id, offset, limit)
         .then(async data => {
@@ -102,7 +62,7 @@ async function list_dir_loop(scan_log_id, folder_id, folder_name, offset, limit)
                 if (data.data.list.length > 0) {
                     data.data.list.forEach(function (folder) {
                         logger.info(`02-Getting sub folder ${folder.id} of folder ${folder_id}...`);
-                        list_dir_loop(scan_log_id, folder.id, folder.name, offset, limit);
+                        list_dir_loop(scan_started_data, folder.id, folder.name, offset, limit);
                     });
                 } else {
                     logger.info(`Getting photos from ${folder_id}-${folder_name}...`);
@@ -111,7 +71,7 @@ async function list_dir_loop(scan_log_id, folder_id, folder_name, offset, limit)
                             if (photo_data) {
                                 photo_data.data.list.forEach(function (photo) {
                                     let one_record = {
-                                        "source_id": source_id,
+                                        "source_id": scan_started_data.source_id,
                                         "photo_id": photo.id,
                                         "filename": photo.filename,
                                         "folder_id": photo.folder_id,
@@ -133,10 +93,9 @@ async function list_dir_loop(scan_log_id, folder_id, folder_name, offset, limit)
                                     "folder_id": folder_id,
                                     "folder_name": folder_name,
                                     "info": "debug info, blah",
-                                    "scan_log_id": scan_log_id
+                                    "scan_log_id": scan_started_data.scan_log_id
                                 }
                                 save_scan_log_detail(scan_failed_data);
-                                //await wait(5000);
                             }
                         });
                 }
@@ -146,101 +105,37 @@ async function list_dir_loop(scan_log_id, folder_id, folder_name, offset, limit)
                     "folder_id": folder_id,
                     "folder_name": folder_name,
                     "info": "",
-                    "scan_log_id": scan_log_id
+                    "scan_log_id": scan_started_data.scan_log_id
                 }
                 save_scan_log_detail(scan_failed_data);
-                //await wait(5000);
             }
         });
 }
 
-
-function keep_checking_when_insert_stops() {
-    logger.info("Validating last scan...");
-    get_last_inserted_diff((err, rows) => {
-        if (err) {
-            logger.error(err);
-        } else {
-            if (rows) {
-                let timed_out = rows.diff > 0.0005;
-                logger.info(`Diff: ${rows.diff}, timed out: ${timed_out}`)
-                if (timed_out) {
-                    clearInterval(_interval_id);
-                    _interval_id = 0;
-                    end_scan();
-                }
-            }
-        }
-    });
-
-}
-
-
-function end_scan(timed_out) {
-
-    if (!_failed_folders_tried) {
-        logger.info("Started secondary scans (retrying failed folders)...");
-        scan_failed_folders();
-    } else {
-        if (!timed_out) {
-            logger.info("Scan completed successfully. Getting summary data...");
-            get_rows("select count(*) as cnt from photo", (err, rows) => {
-                let total_photos = 0;
-                if (err) {
-                    logger.error(err.message);
-                } else {
-                    if (rows.length == 1) {
-                        total_photos = rows[0]["cnt"];
-                    }
-                }
-
-                let scan_log_end_data = {
-                    "id": _scan_log_id,
-                    "info": `Scan completed successfully. Total photos: ${total_photos}`
-                }
-                stop_scan(scan_log_end_data);
-                clearTimeout(_timeout_id);
-                _timeout_id = 0;
-                logger.info("Scanning Finished.");
-            });
-        } else {
-            logger.info("Ending a timed out scan..");
-            let scan_log_end_data = {
-                "id": _scan_log_id,
-                "info": "Scan timed out!"
-            }
-            stop_scan(scan_log_end_data);
-            clearInterval(_interval_id);
-            _interval_id = 0;
-
-            clearTimeout(_timeout_id);
-            _timeout_id = 0;
-            logger.info("Scanning Finished(timed out).");
-        }
-    }
-}
-
-function scan_failed_folders() {
+function scan_failed_folders(scan_log_end_data) {
     _failed_folders_tried = true;
-    get_scan_log_detail(_scan_log_id, undefined, (err, rows) => {
+    get_scan_log_detail(scan_log_end_data.id, undefined, (err, rows) => {
         if (err) {
             logger.error(err);
         } else {
             if (rows && rows.length > 0) {
-                _failed_folders = rows.length;
                 rows.forEach(function (row) {
                     logger.info(`Retrying failed folders: ${row.folder_id}: ${row.folder_name}`);
-                    list_dir_loop(_scan_log_id, row.folder_id, row.folder_name, _offset, _limit);
-                    update_scan_log(_scan_log_id, row.folder_id, 1);
+                    list_dir_loop(scan_log_end_data, row.folder_id, row.folder_name, _offset, _limit);
+                    update_scan_log(scan_log_end_data, row.folder_id, 1);
                 });
-            } else {
-                end_scan();
             }
         }
     });
-
 }
 
-function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+
+function syno_scanning_ended(err, scan_log_end_data) {
+    if (!_failed_folders_tried) {
+        logger.info("Started secondary scans (retrying failed folders)...");
+        scan_failed_folders(scan_log_end_data);
+    } else {
+        _failed_folders_tried = true;
+        //another end is required, we need to update total count after failed folders
+    }
 }

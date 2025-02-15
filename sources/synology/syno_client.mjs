@@ -18,6 +18,7 @@ let api_client = null;
 //let nas_url = "https://192.168.86.218:5001/webapi";
 
 function init_syno(callback) {
+  
   meta_get_source("nas", (err, nas_config) => {
     if (err) {
       logger.error(err.message);
@@ -259,7 +260,7 @@ export async function create_eyedeea_tags() {
             if (err) {
                 logger.error(err.message);
             } else {
-                logger.info(`${eyedeea_tag} created successfully.`);
+                logger.info(`Tag ${eyedeea_tag} created successfully.`);
             }
         });
     });

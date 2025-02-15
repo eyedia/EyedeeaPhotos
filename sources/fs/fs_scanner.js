@@ -2,7 +2,7 @@
 import fs from 'fs';
 import path from 'path';
 import { meta_db } from '../../meta/meta_base.mjs';
-import { save_item as meta_save_item} from "../../meta/meta_scan.mjs"
+import { save_item as meta_save_item } from "../../meta/meta_scan.mjs"
 import config_log from "../../config_log.js";
 import { start_scanning, scanner_is_busy as base_scanner_is_busy } from '../scanner.js';
 const logger = config_log.logger;
@@ -13,21 +13,21 @@ export function scanner_is_busy() {
 
 export async function scan(source, dir, callback) {
   let scan_start_data = {
-    source: source, 
-    max_time_in_mins: 2, 
-    interval_in_secs: 10, 
+    source: source,
+    max_time_in_mins: 2,
+    interval_in_secs: 10,
     insert_data_threshold: 0.0002
   }
   start_scanning(scan_start_data, (err, scan_started_data) => {
-    if(err){
+    if (err) {
       logger.error(err);
       callback(err, null);
-    }else{
+    } else {
       callback(null, scan_started_data);
       internal_scan(source, dir);
     }
   },
-  fs_scanning_ended);
+    fs_scanning_ended);
 }
 
 async function internal_scan(source, dir) {
@@ -70,15 +70,14 @@ async function internal_scan(source, dir) {
   });
 }
 
-function fs_scanning_ended(err, scan_log_end_data){
-  if(scan_log_end_data){
+function fs_scanning_ended(err, scan_log_end_data) {
+  if (scan_log_end_data) {
     meta_db.run("update photo set photo_id = id where source_id = 2", (err) => {
       if (err) {
-          logger.error(err.message);
+        logger.error(err.message);
       } else {
-          logger.info('FS photo_ids updated successfully.');
+        logger.info('FS photo_ids updated successfully.');
       }
-  });
-}
-
+    });
+  }
 }

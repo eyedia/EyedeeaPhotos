@@ -6,7 +6,6 @@ import { meta_init } from "./meta/meta_base.mjs";
 import { set_random_photo, get_config } from "./meta/meta_view.mjs";
 import { scan as syno_scan } from "./sources/synology/syno_scanner.mjs";
 import { scan as fs_scan } from "./sources/fs/fs_scanner.js";
-import { authenticate, create_eyedeea_tags } from "./sources/synology/syno_client.mjs";
 import view_manage_router from './api/routers/view_manage_router.js';
 import view_router from './api/routers/view_router.js';
 import repo_router from './api/routers/repo_router.js';
@@ -55,17 +54,8 @@ get_config((err, config) => {
 const PORT = process.env.PORT || 8080;
 
 async function init() {
-  meta_init(fresh_db => {    
-  authenticate( auth_result =>{
-    if(fresh_db){      
-      create_eyedeea_tags();
-    }
-  });
-    
-  });
+  meta_init();
  
-
-
   app.get('/test', async (req, res) => {
     let result = await fs_scan("C:\\Users\\debjy\\SynoPhoto\\Family");
     res.json(result);    

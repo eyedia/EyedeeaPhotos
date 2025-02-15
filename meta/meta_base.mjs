@@ -20,26 +20,18 @@ export async function meta_init(callback) {
                 process.exit(1);
             }
             logger.info(`Connected to database: ${dbFile}`);
-            if (!dbExists)
-                create_tables();
-            callback(!dbExists);    //true = newly created
+            if (!dbExists){
+                create_tables(tables_created => {                    
+                    if(callback)
+                        callback(!dbExists);    //true = newly created
+                });
+                
+            }
         });
 }
 
-function close_database() {
-    logger.info('Closing database...');
-    meta_db.close((err) => {
-        if (err) {
-            console.error('Error closing database:', err.message);
-        } else {
-            logger.info('Database closed successfully.');
-        }
-        process.exit(0);
-    });
-}
-
-function create_tables() {
-    const createTableQueries = [
+function create_tables(callback) {
+    const create_table_queries = [
         `CREATE TABLE user (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
@@ -137,12 +129,17 @@ function create_tables() {
             );`
     ];
 
-    createTableQueries.forEach((query) => {
+    let table_to_be_created = create_table_queries.length;
+
+    create_table_queries.forEach((query) => {
         meta_db.run(query, (err) => {
             if (err) {
                 logger.error(err.message);
             } else {
+                table_to_be_created--;
                 logger.info('Table created successfully.');
+                if(table_to_be_created == 0)
+                    callback(create_table_queries.length);
             }
         });
     });
@@ -160,3 +157,15 @@ export function get_rows(query, callback) {
     });
 }
 
+
+function close_database() {
+    logger.info('Closing database...');
+    meta_db.close((err) => {
+        if (err) {
+            console.error('Error closing database:', err.message);
+        } else {
+            logger.info('Database closed successfully.');
+        }
+        process.exit(0);
+    });
+}

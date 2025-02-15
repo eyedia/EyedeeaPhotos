@@ -15,41 +15,6 @@ const httpsAgent = new https.Agent({ rejectUnauthorized: false })
 export let nas_auth_token = {}
 
 let api_client = null;
-//let nas_url = "https://192.168.86.218:5001/webapi";
-
-function init_syno(callback) {
-  
-  meta_get_source("nas", (err, nas_config) => {
-    if (err) {
-      logger.error(err.message);
-      callback(err, null);
-    } else {
-      if (!nas_config) {
-        logger.error("NAS was not configured!");
-        return;
-      }
-      api_client = axios.create({
-        baseURL: nas_config.url,
-        headers: {
-          //'Content-Type': 'application/json',
-          // Add any other headers you need
-        },
-      });
-
-      // Configure retry behavior
-      axiosRetry(api_client, {
-        retries: 3, // Number of retries
-        retryDelay: axiosRetry.exponentialDelay, // Exponential backoff
-        retryCondition: (error) => {
-          // Retry on ECONNRESET and network errors
-          return error.code === 'ECONNRESET' || axiosRetry.isNetworkError(error);
-        },
-      });
-      callback(null, nas_config);
-    }
-  });
-
-}
 
 export async function authenticate(callback) {
   try {
@@ -104,6 +69,41 @@ export async function authenticate(callback) {
     throw error;
   }
 }
+
+function init_syno(callback) {
+  
+  meta_get_source("nas", (err, nas_config) => {
+    if (err) {
+      logger.error(err.message);
+      callback(err, null);
+    } else {
+      if (!nas_config) {
+        logger.error("NAS was not configured!");
+        return;
+      }
+      api_client = axios.create({
+        baseURL: nas_config.url,
+        headers: {
+          //'Content-Type': 'application/json',
+          // Add any other headers you need
+        },
+      });
+
+      // Configure retry behavior
+      axiosRetry(api_client, {
+        retries: 3, // Number of retries
+        retryDelay: axiosRetry.exponentialDelay, // Exponential backoff
+        retryCondition: (error) => {
+          // Retry on ECONNRESET and network errors
+          return error.code === 'ECONNRESET' || axiosRetry.isNetworkError(error);
+        },
+      });
+      callback(null, nas_config);
+    }
+  });
+
+}
+
 
 export async function list_dir(folder_id = -1, offset = 0, limit = 1000) {
   try {

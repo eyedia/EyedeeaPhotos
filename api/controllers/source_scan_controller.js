@@ -30,9 +30,9 @@ const syno_scan = async (source, req, res) => {
 
   try {
     if (!scanner_is_busy()) {
-      await syno_scan_service(source, folder_id, folder_name);
-      logger.info("Scanning started...");
-      res.json({ "message": "Scanning started..." });
+      await syno_scan_service(source, folder_id, folder_name, (err, scan_log_details) => {
+        res.json(scan_log_details);
+      });
     } else {
       res.status(503).json({ error: "Scanning is already in progress." });
     }

@@ -66,6 +66,6 @@ function authenticate_source(updated_id){
     authenticate(result => {
       //for NAS we are going to create special tags.
       create_eyedeea_tags();
-    })
+    });
   }
 }

@@ -11,6 +11,7 @@ import view_router from './api/routers/view_router.js';
 import repo_router from './api/routers/repo_router.js';
 import source_router from './api/routers/source_router.js';
 import source_scan_router from './api/routers/source_scan_router.js';
+import { authenticate } from "./sources/synology/syno_client.mjs";
 
 const logger = config_log.logger;
 
@@ -55,7 +56,10 @@ const PORT = process.env.PORT || 8080;
 
 async function init() {
   meta_init();
- 
+  authenticate( result => {
+    
+  });
+
   app.get('/test', async (req, res) => {
     let result = await fs_scan("C:\\Users\\debjy\\SynoPhoto\\Family");
     res.json(result);    

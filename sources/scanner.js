@@ -48,7 +48,8 @@ export function start_scanning(scan_start_data, callback_started, callback_ended
             } else {
                 _scan_log_id = scan_log_id;
                 let scan_started_data = {
-                    "scan_log_id": scan_log_id
+                    "scan_log_id": scan_log_id,
+                    "source_id": scan_start_data.source.id
                 }
                 callback_started(null, scan_started_data)
             }

@@ -27,7 +27,7 @@ export async function scan(source, folder_id = -1, folder_name = "") {
     source_id = source.id;
     if (_timeout_id != 0) {
         //already a scan running, return bad
-        logger.error("Another scan was requested and the request was ignored as scanning is already in progress.");
+        logger.error("Synology scanning is already in progress.");
         return;
     }
 
@@ -49,12 +49,13 @@ export async function scan(source, folder_id = -1, folder_name = "") {
     
     //save scan log
     let scan_log_data = {
+        "source_id": source.id,
         "root_folder_id": folder_id,
         "root_folder_name": folder_name,
         "info": ""
     }
 
-    clear_scan(() => {
+    clear_scan(source.id, () => {
         start_scan(scan_log_data, (err, scan_log_id) => {
             if (err) {
                 logger.error(err.message);

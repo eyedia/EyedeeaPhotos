@@ -71,6 +71,7 @@ export const get_random_photo = async (req, res) => {
           }else if (photo_data.source_id == 2){
             fs_get_photo(photo_data, res);
           } else {
+            logger.error(`The source type ${photo_data.source_id} was not configured, returning default photo.`)
             //some issue, return default pic
             return get_default_photo(res);
           }

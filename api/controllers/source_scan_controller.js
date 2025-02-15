@@ -46,9 +46,10 @@ const fs_scan = async (source, req, res) => {
 
   try {
     if (!fs_scanner_is_busy()) {
-      await fs_scan_service(source, source.url);
-      logger.info("Scanning started...");
-      res.json({ "message": "Scanning started..." });
+      fs_scan_service(source, source.url, (err, scan_log_details) => {
+        res.json(scan_log_details);
+      });
+      
     } else {
       res.status(503).json({ error: "Scanning is already in progress." });
     }

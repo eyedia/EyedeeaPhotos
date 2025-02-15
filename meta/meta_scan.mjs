@@ -6,9 +6,9 @@ import { meta_db, get_rows } from "./meta_base.mjs";
 const logger = config_log.logger;
 
 
-export function clear_scan(callback) {
+export function clear_scan(source_id, callback) {
     const clean_queries = [
-        `DELETE FROM photo`]
+        `DELETE FROM photo WHERE source_id = ${source_id}`]
     clean_queries.forEach((query) => {
         meta_db.run(
             query,
@@ -41,10 +41,10 @@ export function save_item(json_data) {
 
 
 export function start_scan(json_data, callback) {
-    const insert_query = `INSERT INTO scan_log (root_folder_id, root_folder_name, info) VALUES (?, ?, ?)`;
+    const insert_query = `INSERT INTO scan_log (source_id, root_folder_id, root_folder_name, info) VALUES (?, ?, ?, ?)`;
     return meta_db.run(
         insert_query,
-        [json_data.root_folder_id, json_data.root_folder_name, json_data.info],
+        [json_data.source_id, json_data.root_folder_id, json_data.root_folder_name, json_data.info],
         function (err) {
             if (err) {
                 logger.error('Error inserting data:', err);

@@ -82,11 +82,13 @@ function create_tables() {
 
         `CREATE TABLE scan_log (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            source_id INT,
             root_folder_id INT,
             root_folder_name TEXT,
             info TEXT,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            updated_at TEXT
+            updated_at TEXT,
+            FOREIGN KEY(source_id) REFERENCES source(id)
             );`,
 
         `CREATE TABLE scan_log_detail (

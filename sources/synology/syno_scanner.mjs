@@ -16,13 +16,15 @@ let _failed_folders_tried = false;
 let _failed_folders = 0;
 let _offset = 0;
 let _limit = 1000;
+let source_id = 1;
 
 export function scanner_is_busy() {
     return _timeout_id == 0 ? false : true;
 }
 
-export async function scan(folder_id = -1, folder_name = "") {
+export async function scan(source, folder_id = -1, folder_name = "") {
 
+    source_id = source.id;
     if (_timeout_id != 0) {
         //already a scan running, return bad
         logger.error("Another scan was requested and the request was ignored as scanning is already in progress.");
@@ -108,6 +110,7 @@ async function list_dir_loop(scan_log_id, folder_id, folder_name, offset, limit)
                             if (photo_data) {
                                 photo_data.data.list.forEach(function (photo) {
                                     let one_record = {
+                                        "source_id": source_id,
                                         "photo_id": photo.id,
                                         "filename": photo.filename,
                                         "folder_id": photo.folder_id,

@@ -42,7 +42,7 @@ export const get_random_photo = async (req, res) => {
           let photo_data = rows[req.query.photo_index];
           photo_data["photo_index"] = parseInt(req.query.photo_index);
           //photo_data.address = JSON.parse(photo_data.address);
-          if (photo_data.cache_key && photo_data.cache_key != "") {
+          if (photo_data.source_id == 1) {
             get_photo_from_synology(photo_data, req, res);
           }else if (photo_data.source_id == 2){
             fs_get_photo(photo_data, res);
@@ -66,7 +66,7 @@ export const get_random_photo = async (req, res) => {
           let photo_data = rows[0];
           photo_data["photo_index"] = 0;
           photo_data.address = JSON.parse(photo_data.address);
-          if (photo_data.cache_key && photo_data.cache_key != "") {
+          if (photo_data.source_id == 1) {
             get_photo_from_synology(photo_data, req, res);
           }else if (photo_data.source_id == 2){
             fs_get_photo(photo_data, res);

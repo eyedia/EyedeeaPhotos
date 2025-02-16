@@ -1,4 +1,5 @@
 import fs from 'fs';
+import exifr from 'exifr/dist/full.esm.mjs'; 
 import { Client as google_client } from "@googlemaps/google-maps-services-js";
 import config_log from "../../config_log.js";
 import { get as meta_get_source} from "../../meta/meta_source.mjs";
@@ -23,6 +24,15 @@ export async function authenticate(callback) {
         }
     });
 }
+
+export function get_address(){    
+    try {
+        exifr.parse('C:\\\Work\\gallery\\2009\\Cincinnati Indian Butterfly Show\\DSC_0065.jpg')
+         .then(output => console.log('Camera:', output.Make, output.Model));
+      } catch (error) {
+        console.log('Error: ' + error.message);
+      }
+} 
 
 export function get_address_using_geo_reverse(lat, lng, callback) {
     get_geo_reverse(lat, lng, (err, address_data) => {

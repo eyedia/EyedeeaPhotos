@@ -47,7 +47,7 @@ async function internal_scan(source, dir) {
         if (stats.isFile() && path.extname(file).toLowerCase() === '.jpg') {
           let one_record = {
             "source_id": source.id,
-            "photo_id": Math.random(),
+            "photo_id": undefined,
             "filename": file_path,
             "folder_id": -1,
             "folder_name": undefined,

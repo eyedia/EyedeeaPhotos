@@ -24,13 +24,16 @@ document.addEventListener('DOMContentLoaded', function () {
     get_config()
         .then(config_from_server => {
             if (config_from_server && config_from_server.refresh_client) {
+                console.log(`got the server config: ${config_from_server.refresh_client}`);
                 refresh_client = config_from_server.refresh_client;
             }
+            console.log("setting timer...");
             setInterval(function () {
                 refresh_pic();
             }, refresh_client * 1000);
         })
         .catch(err => {
+            console.log("xxerror...");
             console.log(err);
         });
 
@@ -291,7 +294,7 @@ async function mt_dont_show() {
 
 async function mt_download() {
     get_photo(main.current).then(photo_url_etc => {
-        if (object_url_and_headers) {
+        if (photo_url_etc) {
             const a = document.createElement("a");
             a.href = photo_url_etc[0];
             const photo_data = JSON.parse(photo_url_etc[2].get("Photo-Data"));

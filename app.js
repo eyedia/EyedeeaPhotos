@@ -11,7 +11,9 @@ import view_router from './api/routers/view_router.js';
 import repo_router from './api/routers/repo_router.js';
 import source_router from './api/routers/source_router.js';
 import source_scan_router from './api/routers/source_scan_router.js';
-import { authenticate } from "./sources/synology/syno_client.mjs";
+import { authenticate as syno_authenticate } from "./sources/synology/syno_client.mjs";
+import { authenticate as fs_authenticate } from "./sources/fs/fs_client.js";
+import {get_geo_reverse, get_address_using_geo_reverse} from "./sources/fs/fs_client.js";
 
 const logger = config_log.logger;
 
@@ -56,13 +58,17 @@ const PORT = process.env.PORT || 8080;
 
 async function init() {
   meta_init();
-  authenticate( result => {
-    
-  });
+  syno_authenticate();
+  fs_authenticate();
 
   app.get('/test', async (req, res) => {
-    let result = await fs_scan("C:\\Users\\debjy\\SynoPhoto\\Family");
-    res.json(result);    
+    get_address_using_geo_reverse(35.08215160456117,-80.72279683813987, (err, data) => {
+      if(err){
+        res.status(503).json(err);
+      }else{
+      res.json(data);
+    }
+    });
   });
 
   app.get('/', (req, res) => {

@@ -90,6 +90,8 @@ export function get(id, callback) {
             callback(err, null);
         } else {
             let source = rows[0];
+            if (source.config != null || source.config != "")
+                source.config = JSON.parse(source.config);
             callback(null, source);
         }
     });

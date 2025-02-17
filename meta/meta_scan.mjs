@@ -8,7 +8,10 @@ const logger = config_log.logger;
 
 export function clear_scan(source_id, callback) {
     const clean_queries = [
-        `DELETE FROM photo WHERE source_id = ${source_id}`]
+        `DELETE FROM photo WHERE source_id = ${source_id}`,
+        `delete from view_log where photo_id not in (select photo_id from photo)`];
+    
+    let total_queries = clean_queries.length
     clean_queries.forEach((query) => {
         meta_db.run(
             query,
@@ -16,9 +19,11 @@ export function clear_scan(source_id, callback) {
                 if (err) {
                     logger.error('Error deleting data from photo:', err);
                 } else {
-                    if (callback) {
+                    total_queries = total_queries - 1;                    
+                }
+                if(total_queries <=0){                    
+                    if (callback)
                         callback();
-                    }
                 }
             });
     });
@@ -135,9 +140,9 @@ export function get_last_inserted_diff(callback) {
         if (err) {
             callback(err, null);
         } else {
-            if(rows && rows.length > 0){
+            if (rows && rows.length > 0) {
                 callback(null, rows[0]);
-            }else{
+            } else {
                 callback(null, 0);
             }
         }
@@ -160,15 +165,15 @@ export function save_geo_address(json_data) {
 }
 
 export function get_geo_address(latitude, longitude, callback) {
-    let query = `select address from geo_address where latitude = ${latitude} and longitude =${longitude}`;    
+    let query = `select address from geo_address where latitude = ${latitude} and longitude =${longitude}`;
     get_rows(query, (err, rows) => {
         if (err) {
             logger.error(err);
             callback(undefined);
-        } else {            
-            if(rows && rows.length > 0){
+        } else {
+            if (rows && rows.length > 0) {
                 callback(rows[0]);
-            }else{
+            } else {
                 callback(undefined);
             }
         }

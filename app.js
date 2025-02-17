@@ -12,8 +12,8 @@ import repo_router from './api/routers/repo_router.js';
 import source_router from './api/routers/source_router.js';
 import source_scan_router from './api/routers/source_scan_router.js';
 import { authenticate as syno_authenticate } from "./sources/synology/syno_client.mjs";
-import { authenticate as fs_authenticate, get_address_from_exif } from "./sources/fs/fs_client.js";
-import {get_geo_address} from "./meta/meta_scan.mjs";
+import { authenticate as fs_authenticate } from "./sources/fs/fs_client.js";
+import exifr from 'exifr/dist/full.esm.mjs';
 
 const logger = config_log.logger;
 
@@ -65,10 +65,15 @@ async function init() {
   });
   
   app.get('/test', async (req, res) => {
-    get_geo_address("17.53555", "-88.308031",address => {
-      console.log(address);
-      res.json(address);
-    })
+    const decoder = new TextDecoder();
+
+    exifr.parse("D:\\GPhotos\\belize\\Belize_Beach-46.jpg")
+            .then(exif_data => {    
+              console.log(exif_data);
+              const string = decoder.decode(exif_data.Padding)
+                console.log(string);
+            });
+        res.json("ok");
        
   });
 

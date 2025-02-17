@@ -6,7 +6,7 @@ import { meta_db } from '../../meta/meta_base.mjs';
 import { save_item as meta_save_item, stop_scan as meta_stop_scan } from "../../meta/meta_scan.mjs"
 import config_log from "../../config_log.js";
 import { start_scanning, scanner_is_busy as base_scanner_is_busy } from '../scanner.js';
-import { get_address_from_exif, google_map_api_called, reset_fs_client } from "./fs_client.js";
+import { get_exif_data, google_map_api_called, reset_fs_client } from "./fs_client.js";
 const logger = config_log.logger;
 
 
@@ -49,7 +49,7 @@ async function internal_scan(source, dir) {
           return;
         }
         if (stats.isFile() && path.extname(file).toLowerCase() === '.jpg') {
-          get_address_from_exif(photo_path, (err, address) => {
+          get_exif_data(photo_path, (err, exif_data) => {
             //console.log(address);
             let one_record = {
               "source_id": source.id,
@@ -57,14 +57,14 @@ async function internal_scan(source, dir) {
               "filename": photo_path,
               "folder_id": -1,
               "folder_name": undefined,
-              "time": undefined,
+              "time": exif_data.create_date,
               "type": "photo",
-              "orientation": undefined,
+              "orientation": 1,
               "cache_key": undefined,
               "unit_id": undefined,
               "geocoding_id": undefined,
-              "tags": undefined,
-              "address": JSON.stringify(address)
+              "tags": exif_data.tags,
+              "address": JSON.stringify(exif_data.address)
             }
             meta_save_item(one_record);
           });

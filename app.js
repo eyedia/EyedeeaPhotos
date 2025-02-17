@@ -56,10 +56,11 @@ get_config((err, config) => {
 const PORT = process.env.PORT || 8080;
 
 async function init() {
-  meta_init();
-  syno_authenticate();
-  fs_authenticate();
-
+  meta_init( result => {
+    syno_authenticate();
+    fs_authenticate();
+  });
+  
   app.get('/test', async (req, res) => {
     // get_address_using_geo_reverse(35.08215160456117,-80.72279683813987, (err, data) => {
     //   if(err){

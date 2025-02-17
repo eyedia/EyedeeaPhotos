@@ -9,11 +9,15 @@ import config_log from "../../config_log.js";
 const logger = config_log.logger;
 
 export const scan  = async (req, res) => {  
-  meta_get_source(req.params.id, (err, source) => {   
+  meta_get_source(req.params.id, (err, source) => {
+    if(source){
     if (req.params.id == 1)
       syno_scan(source, req, res);
     else
       fs_scan(source, req, res);
+    }else{
+      res.status(400).json({"message": `Source id ${req.params.id} does not exists!`});
+    }
   });
 }
 

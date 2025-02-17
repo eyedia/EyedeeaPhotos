@@ -51,7 +51,7 @@ async function internal_scan(source, dir) {
             //console.log(address);
             let one_record = {
               "source_id": source.id,
-              "photo_id": crypto.randomInt(100000) * -1,
+              "photo_id": crypto.randomUUID(),
               "filename": photo_path,
               "folder_id": -1,
               "folder_name": undefined,
@@ -77,13 +77,5 @@ async function internal_scan(source, dir) {
 }
 
 function fs_scanning_ended(err, scan_log_end_data) {
-  if (scan_log_end_data) {
-    meta_db.run("update photo set photo_id = id where source_id = 2", (err) => {
-      if (err) {
-        logger.error(err.message);
-      } else {
-        logger.info('FS photo_ids updated successfully.');
-      }
-    });
-  }
+  
 }

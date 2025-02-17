@@ -2,7 +2,8 @@ import { create_or_update as meta_create_or_update,
   get as meta_get,
   list as meta_list
  } from "../../meta/meta_source.mjs";
- import { authenticate, create_eyedeea_tags } from "../../sources/synology/syno_client.mjs";
+ import { authenticate as syno_authenticate, create_eyedeea_tags } from "../../sources/synology/syno_client.mjs";
+ import { authenticate as fs_authenticate } from "../../sources/fs/fs_client.js";
 import config_log from "../../config_log.js";
 
 const logger = config_log.logger;
@@ -61,11 +62,13 @@ export const get_item = async (req, res) => {
   }
 };
 
-function authenticate_source(updated_id){
-  if(updated_id == 1){
-    authenticate(result => {
+function authenticate_source(source_id){
+  if(source_id == 1){
+    syno_authenticate(result => {
       //for NAS we are going to create special tags.
       create_eyedeea_tags();
     });
+  }else if(source_id == 2){
+    fs_authenticate();
   }
 }

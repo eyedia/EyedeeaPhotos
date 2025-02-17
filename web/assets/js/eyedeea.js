@@ -70,8 +70,7 @@ function refresh_pic() {
         (function (foo) {
             get_photo(foo).then(photo_url_etc => {
 
-                const photo_data = JSON.parse(photo_url_etc[2].get("Photo-Data"));
-
+                const photo_data = JSON.parse(photo_url_etc[2].get("Photo-Data"));                
                 if (photo_data) {
                     let id_suffix = String(photo_data.photo_index).padStart(2, '0');
                     const e_article = document.getElementById('article-' + id_suffix);
@@ -178,6 +177,7 @@ function set_image_attributes(photo_data, e_title, e_sub_title, e_sub_title2) {
 function set_title(photo_data, e_title) {
     try {
         let title = photo_data.folder_name;
+        title = title.replaceAll("\\", "/");    //windows file system
         title = title.split("/").pop(); //removing slash and taking last folder name. i.e. album name
         title = title.replaceAll(" - ", " ");
         title = title.replaceAll("-", " ");

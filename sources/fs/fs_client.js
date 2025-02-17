@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 import exifr from 'exifr/dist/full.esm.mjs';
 import { Client as google_client } from "@googlemaps/google-maps-services-js";
 import config_log from "../../config_log.js";
@@ -194,7 +195,11 @@ export async function get_photo(photo_data, res) {
             res.end('Error reading image file.');
             return;
         }
-        res.writeHead(200, { 'Content-Type': 'image/jpeg' });
+        photo_data.filename = path.basename(photo_data.filename);
+        res.writeHead(200, { 
+            'Content-Type': 'image/jpeg',
+            'photo-data': JSON.stringify(photo_data)
+        });
         res.end(data);
     });
 }

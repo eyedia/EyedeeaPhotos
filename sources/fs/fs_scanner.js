@@ -56,7 +56,7 @@ async function internal_scan(source, dir) {
               "photo_id": crypto.randomUUID(),
               "filename": photo_path,
               "folder_id": -1,
-              "folder_name": undefined,
+              "folder_name": path.dirname(photo_path),
               "time": exif_data.create_date,
               "type": "photo",
               "orientation": 1,

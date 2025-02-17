@@ -115,9 +115,7 @@ export function clear_cache(id, callback) {
                         if (err) {
                             logger.error('Error updating data:', err);
                             callback(err, null, 500);
-                        } else {
-                            console.log(`Row(s) updated: ${this.changes}`);
-                            console.log("1");
+                        } else {                           
                             rows[0]["cache"] = undefined;
                             callback(null, rows[0], 200);
                         }

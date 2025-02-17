@@ -23,6 +23,7 @@
     "@googlemaps/google-maps-services-js": "^3.4.0",
     "axios": "^1.7.9",
     "axios-retry": "^4.5.0",
+    "crypto": "^1.0.1",
     "dotenv": "^16.4.7",
     "exifr": "^7.1.3",
     "express": "^4.21.2",

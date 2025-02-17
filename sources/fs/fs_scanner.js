@@ -1,10 +1,12 @@
 
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 import { meta_db } from '../../meta/meta_base.mjs';
 import { save_item as meta_save_item } from "../../meta/meta_scan.mjs"
 import config_log from "../../config_log.js";
 import { start_scanning, scanner_is_busy as base_scanner_is_busy } from '../scanner.js';
+import { get_address_from_exif } from "./fs_client.js";
 const logger = config_log.logger;
 
 export function scanner_is_busy() {
@@ -38,32 +40,36 @@ async function internal_scan(source, dir) {
     }
 
     files.forEach(file => {
-      const file_path = path.join(dir, file);
-      fs.stat(file_path, (err, stats) => {
+      const photo_path = path.join(dir, file);
+      fs.stat(photo_path, (err, stats) => {
         if (err) {
           console.error('Error getting file stats:', err);
           return;
         }
         if (stats.isFile() && path.extname(file).toLowerCase() === '.jpg') {
-          let one_record = {
-            "source_id": source.id,
-            "photo_id": undefined,
-            "filename": file_path,
-            "folder_id": -1,
-            "folder_name": undefined,
-            "time": undefined,
-            "type": undefined,
-            "orientation": undefined,
-            "cache_key": undefined,
-            "unit_id": undefined,
-            "geocoding_id": undefined,
-            "tags": undefined,
-            "address": undefined
-          }
-          meta_save_item(one_record);
+          get_address_from_exif(photo_path, (err, address) => {
+            //console.log(address);
+            let one_record = {
+              "source_id": source.id,
+              "photo_id": crypto.randomInt(100000) * -1,
+              "filename": photo_path,
+              "folder_id": -1,
+              "folder_name": undefined,
+              "time": undefined,
+              "type": undefined,
+              "orientation": undefined,
+              "cache_key": undefined,
+              "unit_id": undefined,
+              "geocoding_id": undefined,
+              "tags": undefined,
+              "address": JSON.stringify(address)
+            }
+            meta_save_item(one_record);
+          });
+
 
         } else if (stats.isDirectory()) {
-          internal_scan(source, file_path); // Recursive call for subdirectories
+          internal_scan(source, photo_path); // Recursive call for subdirectories
         }
       });
     });

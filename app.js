@@ -12,8 +12,7 @@ import repo_router from './api/routers/repo_router.js';
 import source_router from './api/routers/source_router.js';
 import source_scan_router from './api/routers/source_scan_router.js';
 import { authenticate as syno_authenticate } from "./sources/synology/syno_client.mjs";
-import { authenticate as fs_authenticate, get_address } from "./sources/fs/fs_client.js";
-import {get_geo_reverse, get_address_using_geo_reverse} from "./sources/fs/fs_client.js";
+import { authenticate as fs_authenticate, get_address_from_exif } from "./sources/fs/fs_client.js";
 
 const logger = config_log.logger;
 
@@ -69,7 +68,7 @@ async function init() {
     //   res.json(data);
     // }
     // });
-    get_address();
+    get_address_from_exif();
     res.json("ok");
   });
 

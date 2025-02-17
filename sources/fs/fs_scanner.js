@@ -3,30 +3,32 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import { meta_db } from '../../meta/meta_base.mjs';
-import { save_item as meta_save_item } from "../../meta/meta_scan.mjs"
+import { save_item as meta_save_item, stop_scan as meta_stop_scan } from "../../meta/meta_scan.mjs"
 import config_log from "../../config_log.js";
 import { start_scanning, scanner_is_busy as base_scanner_is_busy } from '../scanner.js';
-import { get_address_from_exif } from "./fs_client.js";
+import { get_address_from_exif, google_map_api_called, reset_fs_client } from "./fs_client.js";
 const logger = config_log.logger;
 
-export function scanner_is_busy() {
-  return base_scanner_is_busy();
-}
 
-export async function scan(source, dir, callback) {
+export async function scan(source, callback) {
+  if(!fs.existsSync(source.url)){
+    callback(`Source ${source.name} was not configuration correctly, ${source.url} does not exist!`, null);
+    return;
+  }
   let scan_start_data = {
     source: source,
     max_time_in_mins: 2,
     interval_in_secs: 10,
     insert_data_threshold: 0.0002
   }
+  reset_fs_client();
   start_scanning(scan_start_data, (err, scan_started_data) => {
     if (err) {
       logger.error(err);
       callback(err, null);
     } else {
       callback(null, scan_started_data);
-      internal_scan(source, dir);
+      internal_scan(source, source.url);
     }
   },
     fs_scanning_ended);
@@ -56,7 +58,7 @@ async function internal_scan(source, dir) {
               "folder_id": -1,
               "folder_name": undefined,
               "time": undefined,
-              "type": undefined,
+              "type": "photo",
               "orientation": undefined,
               "cache_key": undefined,
               "unit_id": undefined,
@@ -77,5 +79,7 @@ async function internal_scan(source, dir) {
 }
 
 function fs_scanning_ended(err, scan_log_end_data) {
-  
+  scan_log_end_data.info += `Google MAP API was called ${google_map_api_called} times.`;
+  logger.info(scan_log_end_data.info);
+  meta_stop_scan(scan_log_end_data);
 }

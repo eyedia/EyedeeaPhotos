@@ -61,7 +61,7 @@ function create_tables(callback) {
             folder_id INT,
             folder_name TEXT,
             time INT,
-            type TEXT DEFAULT "photo",
+            type TEXT NOT NULL,
             orientation INT, 
             cache_key TEXT,
             unit_id INT,
@@ -97,7 +97,7 @@ function create_tables(callback) {
 
         `CREATE TABLE view_log (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            photo_id INT NOT NULL UNIQUE,
+            photo_id TEXT NOT NULL UNIQUE,
             count INT NOT NULL DEFAULT 1,
             status INT DEFAULT 0 NOT NULL,
             current BOOL DEFAULT 0,
@@ -126,6 +126,15 @@ function create_tables(callback) {
             syno_id INTEGER UNIQUE NOT NULL,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP,
 			updated_at TEXT
+            );`,
+        
+        `CREATE TABLE geo_address (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            latitude DECIMAL,
+            longitude DECIMAL,
+            address TEXT
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+			UNIQUE(latitude, longitude) ON CONFLICT REPLACE
             );`
     ];
 

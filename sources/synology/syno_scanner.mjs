@@ -11,11 +11,6 @@ let _failed_folders_tried = false;
 let _offset = 0;
 let _limit = 1000;
 
-
-export function scanner_is_busy() {
-    return base_scanner_is_busy()
-}
-
 export async function scan(source, folder_id, folder_name, callback) {
   let scan_start_data = {
     source: source,

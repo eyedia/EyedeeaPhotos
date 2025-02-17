@@ -13,6 +13,7 @@ import source_router from './api/routers/source_router.js';
 import source_scan_router from './api/routers/source_scan_router.js';
 import { authenticate as syno_authenticate } from "./sources/synology/syno_client.mjs";
 import { authenticate as fs_authenticate, get_address_from_exif } from "./sources/fs/fs_client.js";
+import {get_geo_address} from "./meta/meta_scan.mjs";
 
 const logger = config_log.logger;
 
@@ -56,21 +57,19 @@ get_config((err, config) => {
 const PORT = process.env.PORT || 8080;
 
 async function init() {
-  meta_init( result => {
-    syno_authenticate();
-    fs_authenticate();
+  meta_init( is_fresh_db => {
+    if(!is_fresh_db){
+      syno_authenticate();
+      fs_authenticate();
+    }
   });
   
   app.get('/test', async (req, res) => {
-    // get_address_using_geo_reverse(35.08215160456117,-80.72279683813987, (err, data) => {
-    //   if(err){
-    //     res.status(503).json(err);
-    //   }else{
-    //   res.json(data);
-    // }
-    // });
-    get_address_from_exif();
-    res.json("ok");
+    get_geo_address("17.53555", "-88.308031",address => {
+      console.log(address);
+      res.json(address);
+    })
+       
   });
 
   app.get('/', (req, res) => {

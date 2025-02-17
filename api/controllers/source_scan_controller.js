@@ -1,5 +1,7 @@
-import { scan as syno_scan_service, scanner_is_busy } from "../../sources/synology/syno_scanner.mjs";
-import { scan as fs_scan_service, scanner_is_busy as fs_scanner_is_busy } from "../../sources/fs/fs_scanner.js";
+import { scanner_is_busy } from "../../sources/scanner.js";
+import { scan as syno_scan_service } from "../../sources/synology/syno_scanner.mjs";
+import { authenticate as fs_authenticate, fs_config } from "../../sources/fs/fs_client.js";
+import { scan as fs_scan_service } from "../../sources/fs/fs_scanner.js";
 import {
   get as meta_get_source
 } from "../../meta/meta_source.mjs"
@@ -8,15 +10,20 @@ import config_log from "../../config_log.js";
 
 const logger = config_log.logger;
 
-export const scan  = async (req, res) => {  
+export const scan = async (req, res) => {
   meta_get_source(req.params.id, (err, source) => {
-    if(source){
-    if (req.params.id == 1)
-      syno_scan(source, req, res);
-    else
-      fs_scan(source, req, res);
-    }else{
-      res.status(400).json({"message": `Source id ${req.params.id} does not exists!`});
+    if (source) {
+      if (!scanner_is_busy()) {
+        if (req.params.id == 1)
+          syno_scan(source, req, res);
+        else
+          fs_scan(source, req, res);
+      } else {
+        res.status(400).json({ "message": `Source id ${req.params.id} does not exist!` });
+      }
+
+    } else {
+      res.status(503).json({ error: "Scanning is already in progress." });
     }
   });
 }
@@ -33,13 +40,9 @@ const syno_scan = async (source, req, res) => {
   }
 
   try {
-    if (!scanner_is_busy()) {
-      await syno_scan_service(source, folder_id, folder_name, (err, scan_log_details) => {
-        res.json(scan_log_details);
-      });
-    } else {
-      res.status(503).json({ error: "Scanning is already in progress." });
-    }
+    await syno_scan_service(source, folder_id, folder_name, (err, scan_log_details) => {
+      res.json(scan_log_details);
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -49,18 +52,29 @@ const syno_scan = async (source, req, res) => {
 const fs_scan = async (source, req, res) => {
 
   try {
-    if (!fs_scanner_is_busy()) {
-      fs_scan_service(source, source.url, (err, scan_log_details) => {
-        res.json(scan_log_details);
+    if (fs_config == null) {
+      fs_authenticate(result => {
+        execute_fs_scan(source, res);
       });
-      
     } else {
-      res.status(503).json({ error: "Scanning is already in progress." });
+      execute_fs_scan(source, res);
     }
+
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
+function execute_fs_scan(source, res) {
+  fs_scan_service(source, (err, scan_log_details) => {
+    if (err) {
+      res.status(400).json({ "message": err });
+    } else {
+      res.json(scan_log_details);
+    }
+  });
+}
 
 export const logs = async (req, res) => {
   try {

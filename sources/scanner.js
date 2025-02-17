@@ -91,7 +91,7 @@ export function stop_scanning(scan_start_data, timed_out, callback_ended) {
                 }
                 let scan_log_end_data = {
                     "id": _scan_log_id,
-                    "info": `${scan_start_data.source.name} scanning finished. Total ${number_of_photos} photos found!`
+                    "info": `${scan_start_data.source.name} scanning finished. Total ${number_of_photos} photos found.`
                 }
                 meta_stop_scan(scan_log_end_data);
                 clearTimeout(_timeout_id);

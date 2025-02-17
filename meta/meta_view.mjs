@@ -102,18 +102,18 @@ export function set_random_photo() {
                         query = `SELECT * FROM photo WHERE id IN (SELECT id FROM photo WHERE type='photo' ORDER BY RANDOM() LIMIT 1000)`;
                     }
                 }
-
+                
                 get_rows(query, (err, random_photos) => {
                     if (err) {
                         logger.error(err.message);
                     } else {
                         random_photos.forEach((random_photo) => {
-                            query = `SELECT * FROM view_log WHERE photo_id = ${random_photo.photo_id}`
+                            query = `SELECT * FROM view_log WHERE photo_id = '${random_photo.photo_id}'`
                             get_rows(query, (err, rows) => {
                                 if (err) {
-                                    logger.error(err.message);
-                                } else {
-                                    if (rows.length == 0) {
+                                    logger.error(err);
+                                } else {                                   
+                                    if (rows.length == 0) {                                        
                                         meta_db.run(
                                             `INSERT INTO view_log (photo_id, view_filter_id) VALUES (?, ?)`,
                                             [random_photo.photo_id, view_filter_id],
@@ -122,7 +122,7 @@ export function set_random_photo() {
                                                     logger.error('Error inserting data:', err);
                                                 }
                                             });
-                                    } else {
+                                    } else {                                        
                                         random_photo["count"] = rows[0].count;
                                         meta_db.run(
                                             `UPDATE view_log set status = 0, count = ?, view_filter_id = ?, updated_at = ? where photo_id = ?`,

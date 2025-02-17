@@ -143,3 +143,34 @@ export function get_last_inserted_diff(callback) {
         }
     });
 }
+
+
+export function save_geo_address(json_data) {
+    const insert_query = `INSERT or IGNORE INTO geo_address (latitude, longitude, address) VALUES (?, ?, ?)`;
+
+    meta_db.run(
+        insert_query,
+        [json_data.latitude, json_data.longitude, json_data.address],
+        function (err) {
+            if (err) {
+                logger.error('Error inserting data:', err);
+                console.log(err);
+            }
+        });
+}
+
+export function get_geo_address(latitude, longitude, callback) {
+    let query = `select address from geo_address where latitude = ${latitude} and longitude =${longitude}`;    
+    get_rows(query, (err, rows) => {
+        if (err) {
+            logger.error(err);
+            callback(undefined);
+        } else {            
+            if(rows && rows.length > 0){
+                callback(rows[0]);
+            }else{
+                callback(undefined);
+            }
+        }
+    });
+}

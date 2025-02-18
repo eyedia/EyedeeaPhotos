@@ -95,7 +95,7 @@ function get_photo_from_synology(photo_data, req, res) {
       res.end(response.data);
 
     } else {
-      fs.readFile('public/eyedeea_photos.jpg', (err, data) => {
+      fs.readFile('web/eyedeea_photos.jpg', (err, data) => {
         if (err) {
           res.writeHead(500, { 'Content-Type': 'text/plain' });
           res.end('Error reading image file.');
@@ -113,7 +113,7 @@ function get_photo_from_synology(photo_data, req, res) {
 }
 
 function get_default_photo(res) {
-  fs.readFile('public/eyedeea_photos.jpg', (err, data) => {
+  fs.readFile('web/eyedeea_photos.jpg', (err, data) => {
     if (err) {
       res.writeHead(500, { 'Content-Type': 'text/plain' });
       res.end('Error reading image file.');

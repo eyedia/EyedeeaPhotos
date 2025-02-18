@@ -5,12 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon app.js",
-    "test": "jest"
-  },
-  "jest": {
-    "transform": {
-      "^.+\\.[t|j]sx?$": "babel-jest"
-    }
+    "test": "jest --config=jest.config.js --runInBand --detectOpenHandles"
   },
   "repository": {
     "type": "git",

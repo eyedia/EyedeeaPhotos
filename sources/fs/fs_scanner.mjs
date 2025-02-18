@@ -6,7 +6,7 @@ import { meta_db } from '../../meta/meta_base.mjs';
 import { save_item as meta_save_item, stop_scan as meta_stop_scan } from "../../meta/meta_scan.mjs"
 import config_log from "../../config_log.js";
 import { start_scanning, scanner_is_busy as base_scanner_is_busy } from '../scanner.js';
-import { get_exif_data, google_map_api_called, reset_fs_client } from "./fs_client.js";
+import { get_exif_data, google_map_api_called, reset_fs_client } from "./fs_client.mjs";
 const logger = config_log.logger;
 
 

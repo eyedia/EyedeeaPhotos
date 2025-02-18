@@ -5,15 +5,15 @@ import config_log from "./config_log.js";
 import { meta_init } from "./meta/meta_base.mjs";
 import { set_random_photo, get_config } from "./meta/meta_view.mjs";
 import { scan as syno_scan } from "./sources/synology/syno_scanner.mjs";
-import { scan as fs_scan } from "./sources/fs/fs_scanner.js";
+import { scan as fs_scan } from "./sources/fs/fs_scanner.mjs";
 import view_manage_router from './api/routers/view_manage_router.js';
 import view_router from './api/routers/view_router.js';
 import repo_router from './api/routers/repo_router.js';
 import source_router from './api/routers/source_router.js';
 import source_scan_router from './api/routers/source_scan_router.js';
 import { authenticate as syno_authenticate } from "./sources/synology/syno_client.mjs";
-import { authenticate as fs_authenticate } from "./sources/fs/fs_client.js";
-import exifr from 'exifr/dist/full.esm.mjs';
+import { authenticate as fs_authenticate } from "./sources/fs/fs_client.mjs";
+import exifr from 'exifr';
 
 const logger = config_log.logger;
 
@@ -65,15 +65,7 @@ async function init() {
   });
   
   app.get('/test', async (req, res) => {
-    const decoder = new TextDecoder();
-
-    exifr.parse("D:\\GPhotos\\belize\\Belize_Beach-46.jpg")
-            .then(exif_data => {    
-              console.log(exif_data);
-              const string = decoder.decode(exif_data.Padding)
-                console.log(string);
-            });
-        res.json("ok");
+    res.json({ message: 'Hello, world!' });
        
   });
 

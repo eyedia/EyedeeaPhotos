@@ -3,7 +3,7 @@ import { create_or_update as meta_create_or_update,
   list as meta_list
  } from "../../meta/meta_source.mjs";
  import { authenticate as syno_authenticate, create_eyedeea_tags } from "../../sources/synology/syno_client.mjs";
- import { authenticate as fs_authenticate } from "../../sources/fs/fs_client.js";
+ import { authenticate as fs_authenticate } from "../../sources/fs/fs_client.mjs";
 import config_log from "../../config_log.js";
 
 const logger = config_log.logger;

@@ -4,7 +4,7 @@ import { get_random_photo as meta_get_random_photo,
   get_photo_history, 
   get_config,
   get_tag as meta_get_tag } from "../../meta/meta_view.mjs";
-import { get_photo as fs_get_photo } from "../../sources/fs/fs_client.js";
+import { get_photo as fs_get_photo } from "../../sources/fs/fs_client.mjs";
 
 import { list_geo, 
     get_photo as syno_get_photo,

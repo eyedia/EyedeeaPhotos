@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import exifr from 'exifr/dist/full.esm.mjs';
+import exifr from 'exifr';
 import { Client as google_client } from "@googlemaps/google-maps-services-js";
 import config_log from "../../config_log.js";
 import { get as meta_get_source } from "../../meta/meta_source.mjs";

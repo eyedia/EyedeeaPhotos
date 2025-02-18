@@ -1,7 +1,7 @@
 import { scanner_is_busy } from "../../sources/scanner.js";
 import { scan as syno_scan_service } from "../../sources/synology/syno_scanner.mjs";
-import { authenticate as fs_authenticate, fs_config } from "../../sources/fs/fs_client.js";
-import { scan as fs_scan_service } from "../../sources/fs/fs_scanner.js";
+import { authenticate as fs_authenticate, fs_config } from "../../sources/fs/fs_client.mjs";
+import { scan as fs_scan_service } from "../../sources/fs/fs_scanner.mjs";
 import {
   get as meta_get_source
 } from "../../meta/meta_source.mjs"

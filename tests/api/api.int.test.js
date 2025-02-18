@@ -1,13 +1,21 @@
 import request from 'supertest';
 import app from '../../app';
 
-
-describe('API Endpoints', () => {
-  it('GET /items - should return all items', async () => {
-    const res = await request(app).get('/items');
-    expect(res.statusCode).toEqual(200);
-    expect(res.body).toEqual([{ id: 1, name: 'Item 1' }]);
+describe('GET /test', () => {
+  it('responds with JSON containing "Hello, world!"', async () => {
+    const response = await request(app).get('/test');
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ message: 'Hello, world!' });
   });
+});
+
+/*
+describe('API Endpoints', () => {
+  // it('GET /api/sources/1 - should return NAS source', async () => {
+  //   const res = await request(app).get('/api/sources/1');
+  //   expect(res.statusCode).toEqual(200);
+  //   expect(res.body).toEqual([{ id: 1 }]);
+  // });
 
   /*
   it('POST /items - should create a new item', async () => {
@@ -39,5 +47,6 @@ describe('API Endpoints', () => {
     const getRes = await request(app).get('/items/1');
     expect(getRes.statusCode).toEqual(404);
   });
-  */
+  
 });
+*/

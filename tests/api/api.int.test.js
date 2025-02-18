@@ -1,9 +1,14 @@
 import request from 'supertest';
-import app from '../../app';
+import server from '../../app.js';
 
-describe('GET /test', () => {
+
+afterAll((done) => {
+  server.close(done);
+});
+
+describe('GET /', () => {
   it('responds with JSON containing "Hello, world!"', async () => {
-    const response = await request(app).get('/test');
+    const response = await request(server).get('/test');
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ message: 'Hello, world!' });
   });

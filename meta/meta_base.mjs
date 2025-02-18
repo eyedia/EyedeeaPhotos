@@ -7,28 +7,22 @@ process.on('SIGTERM', close_database);
 
 const logger = config_log.logger;
 const dbFile = './meta/eyedeea_photos.db';
-export let meta_db = null;
 
+const dbExists = fs.existsSync(dbFile);
+export let meta_db = new sqlite3.Database(dbFile,
+    sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE,
+    (err) => {
+        if (err) {
+            logger.error('Error opening database:', err.message);
+            process.exit(1);
+        }
+        logger.info(`Connected to database: ${dbFile}`);
+        if (!dbExists) {
+            create_tables(tables_created => {
+            });
+        }
+    });
 
-export async function meta_init(callback) {
-    const dbExists = fs.existsSync(dbFile);
-    meta_db = new sqlite3.Database(dbFile,
-        sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE,
-        (err) => {
-            if (err) {
-                logger.error('Error opening database:', err.message);
-                process.exit(1);
-            }
-            logger.info(`Connected to database: ${dbFile}`);
-            if (!dbExists){
-                create_tables(tables_created => {                    
-                    if(callback)
-                        callback(!dbExists);    //true = newly created
-                });
-                
-            }
-        });
-}
 
 function create_tables(callback) {
     const create_table_queries = [
@@ -127,7 +121,7 @@ function create_tables(callback) {
             created_at TEXT DEFAULT CURRENT_TIMESTAMP,
 			updated_at TEXT
             );`,
-        
+
         `CREATE TABLE geo_address (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             latitude DECIMAL,
@@ -147,7 +141,7 @@ function create_tables(callback) {
             } else {
                 table_to_be_created--;
                 logger.info('Table created successfully.');
-                if(table_to_be_created == 0)
+                if (table_to_be_created == 0)
                     callback(create_table_queries.length);
             }
         });

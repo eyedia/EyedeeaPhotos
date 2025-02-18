@@ -4,4 +4,4 @@ const presets = [
     ]
   ];
   
-  export default { presets };
+export default { presets };

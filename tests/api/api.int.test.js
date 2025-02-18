@@ -8,9 +8,9 @@ afterAll((done) => {
 
 describe('GET /', () => {
   it('responds with JSON containing "Hello, world!"', async () => {
-    const response = await request(server).get('/test');
+    const response = await request(server).get('/status');
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ message: 'Hello, world!' });
+    expect(response.body).toEqual({ status: 'up' });
   });
 });
 

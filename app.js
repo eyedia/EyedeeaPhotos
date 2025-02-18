@@ -52,8 +52,8 @@ if (!is_jest_running) {
   });
 }
 
-app.get('/test', async (req, res) => {
-  res.json({ message: 'Hello, world!' });
+app.get('/status', async (req, res) => {
+  res.json({ status: 'up' });
 
 });
 

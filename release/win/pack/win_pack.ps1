@@ -6,7 +6,7 @@ $proc = Start-Process $command $arguments -NoNewWindow -PassThru
 $proc.WaitForExit()
 
 
-$files_to_delete = ".gitignore", "babel.config.js", "jest.config.js", "package-lock.json", "graphics", "tests", ".git", ".github", "ps_commands.txt", "release\win\pack"
+$files_to_delete = ".gitignore", "babel.config.js", "jest.config.js", "package-lock.json", "graphics", "tests", ".git", ".github", "ps_commands.txt", "release\win\pack", "release\win\install\EyedeeaPhotos.zip"
 foreach ($file in $files_to_delete) {
     Remove-Item -Path $PSScriptRoot\EyedeeaPhotos\$file -Recurse -ErrorAction SilentlyContinue -Force -Confirm:$false
 }

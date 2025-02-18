@@ -22,7 +22,7 @@ process.on('uncaughtException', (err) => {
   logger.error(err);
 });
 
-const app = express();
+export const app = express();
 //app.use(express.static('public'));
 app.use(express.static('web'));
 app.use(express.json());

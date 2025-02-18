@@ -31,23 +31,26 @@ app.use('/api/sources/:id', source_scan_router);
 
 const PORT = process.env.PORT || 8080;
 let random_photo_set_interval = "*/25 * * * * *";
+const is_jest_running = process.env.JEST_WORKER_ID !== undefined
 
-// get_config((err, config) => {
-//   if (err) {
-//     logger.error(err.message);
-//   } else {
-//     random_photo_set_interval = config.refresh_server;
-//   }
-//   logger.info(`Server side refresh is set to: ${random_photo_set_interval}`);
-//   cron.schedule(random_photo_set_interval, () => {
-//     set_random_photo();
-//   });
+if (!is_jest_running) {
+  get_config((err, config) => {
+    if (err) {
+      logger.error(err.message);
+    } else {
+      random_photo_set_interval = config.refresh_server;
+    }
+    logger.info(`Server side refresh is set to: ${random_photo_set_interval}`);
+    cron.schedule(random_photo_set_interval, () => {
+      set_random_photo();
+    });
 
-//   cron.schedule("0 1 * * *", () => {
-//     logger.info('Auto scanning...');
-//     syno_scan(undefined, undefined);
-//   });
-// });
+    cron.schedule("0 1 * * *", () => {
+      logger.info('Auto scanning...');
+      syno_scan(undefined, undefined);
+    });
+  });
+}
 
 app.get('/test', async (req, res) => {
   res.json({ message: 'Hello, world!' });

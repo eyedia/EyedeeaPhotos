@@ -1,8 +1,8 @@
 {
   "name": "eyedeeaphotos",
   "version": "1.0.0",
-  "description": "A photo slide show app for Synology NAS",
-  "main": "index.js",
+  "description": "Eyedeea Photos is an app designed to bring forgotten memories back to life. It integrates with Synology Photos & any USB, HDD, SDD to display random photos from the collection",
+  "main": "app.js",
   "scripts": {
     "start": "nodemon app.js",
     "test": "jest --config=jest.config.js --detectOpenHandles"

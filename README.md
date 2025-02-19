@@ -1,4 +1,5 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=eyedia_EyedeeaPhotos&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=eyedia_EyedeeaPhotos) ![CodeQL](https://github.com/eyedia/eyedeeaphotos/actions/workflows/codeql.yml/badge.svg) ![Build](https://github.com/eyedia/EyedeeaPhotos/actions/workflows/build.yml/badge.svg)
+[![Node.js Package](https://github.com/eyedia/EyedeeaPhotos/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/eyedia/EyedeeaPhotos/actions/workflows/npm-publish.yml)
 
 # Rediscover Your Photos
 

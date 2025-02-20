@@ -110,6 +110,11 @@ function init_syno(source_id, callback) {
 
 
 export async function list_dir(source_id, folder_id = -1, offset = 0, limit = 1000) {
+  console.log(source_id);
+  console.log(nas_auth_token[source_id]);
+  if(!nas_auth_token[source_id]){
+    authenticate(source_id);
+  }
   try {
     let m_param = {
       api: "SYNO.FotoTeam.Browse.Folder",

@@ -30,7 +30,7 @@ export async function scan(source, folder_id, folder_name, callback) {
     syno_scanning_ended);
 }
 
-async function internal_scan(scan_started_data, folder_id = -1, folder_name = "") {
+async function internal_scan(scan_started_data, folder_id = -1, folder_name = "") {   
     if ((folder_id === -1) && (folder_name === "")) {        
         //scan starts from root
         list_dir(scan_started_data.source_id, undefined, _offset, _limit)

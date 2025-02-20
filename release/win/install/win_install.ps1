@@ -1,7 +1,9 @@
 $node_url = "https://nodejs.org/dist/v22.11.0/node-v22.11.0-x64.msi" 
 $node_file = "node.msi"
 $node_ver = ""
+$current_dir = Get-Item $PSScriptRoot
 $appdataRoaming = [Environment]::GetFolderPath("ApplicationData")
+
 Function Execute-Command ($cmd, $arg, $working_dir) {
     $pinfo = New-Object System.Diagnostics.ProcessStartInfo
     $pinfo.FileName = $cmd
@@ -44,37 +46,17 @@ if (!(Test-Path -Path $appdataRoaming\npm\pm2.cmd)) {
 }
 
 Write-Host -NoNewline "Installing Eyedeea Photos..."
-#$output = Execute-Command -cmd "C:\Program Files\nodejs\npm.cmd" -arg " install eyedeeaphotos"
+$output = Execute-Command -cmd "C:\Program Files\nodejs\npm.cmd" -arg " install eyedeeaphotos"
 Write-Host "done!"
 
 Write-Host -NoNewline "Starting Eyedeea Photos..."
-$current_dir = Get-Item $PSScriptRoot
 $eyedeea_dir = "$current_dir\node_modules\eyedeeaphotos"
-Set-Location $eyedeea_dir
-$output = Execute-Command -cmd "$appdataRoaming\npm\pm2.cmd" -arg "start app.js --name ""Eyedeea Photos"""
-Write-Host $output
-Set-Location $current_dir
-
-
-
-# $cur_dir = Get-Item $PSScriptRoot
-# $app_root_dir = $cur_dir.Parent.Parent.Parent.FullName
-
-# Set-Location $app_root_dir
-# Write-Host $app_root_dir $cur_dir
-
-# $command = "C:\Program Files\nodejs\npm.cmd"
-# $arguments = "install"
-# $proc = Start-Process $command $arguments -NoNewWindow -PassThru
-# $proc.WaitForExit()
-
-# $appdataRoaming = [Environment]::GetFolderPath("ApplicationData")
-
-# $command = "$appdataRoaming\npm\pm2.cmd"
-# $arguments = "start app.js --name ""Eyedeea Photos"""
-# $proc = Start-Process $command $arguments -NoNewWindow -PassThru
-# $proc.WaitForExit()
-
-# Set-Location $cur_dir
-# Write-Host "Done"
+$output = Execute-Command -cmd "$appdataRoaming\npm\pm2.cmd" -arg "start app.js --name ""Eyedeea Photos""" -working_dir $eyedeea_dir
+$pm2_result = $output.stdout.ToString().Trim()
+if (($pm2_result -like "*Done*") -or ($pm2_result -eq "")) {    #if the app is already listed, PM2 returns empty string (when someone re-runs the installer)
+    Write-Host "done!"
+    #Start-Process "http://127.0.0.1:8080"
+} else {
+    Write-Host "Something went wrong! Re-running the installer may solve the problem."
+}
 # .\win_setup.ps1

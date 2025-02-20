@@ -38,6 +38,7 @@ function create_tables(callback) {
         `CREATE TABLE source (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT UNIQUE NOT NULL,
+            type TEXT NOT NULL,
 			url TEXT NOT NULL,
 			user TEXT,
 			password TEXT,

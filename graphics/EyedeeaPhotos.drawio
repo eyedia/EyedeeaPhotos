@@ -180,7 +180,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="6Oqa3io_cChHl1LhcDuH" name="Page-3">
-    <mxGraphModel dx="1985" dy="1995" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+    <mxGraphModel dx="1764" dy="1868" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -227,10 +227,10 @@
         <mxCell id="yzILMmOiqSpJhNuJZvi2-11" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.644;entryDx=0;entryDy=0;entryPerimeter=0;strokeWidth=4;strokeColor=#999999;" edge="1" parent="1" source="yzILMmOiqSpJhNuJZvi2-4" target="yzILMmOiqSpJhNuJZvi2-5">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="yzILMmOiqSpJhNuJZvi2-14" value="Photos" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+        <mxCell id="yzILMmOiqSpJhNuJZvi2-14" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;Photos&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
           <mxGeometry x="370" y="-500" width="60" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="yzILMmOiqSpJhNuJZvi2-15" value="Show" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+        <mxCell id="yzILMmOiqSpJhNuJZvi2-15" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;Show&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
           <mxGeometry x="700" y="-500" width="60" height="30" as="geometry" />
         </mxCell>
         <mxCell id="yzILMmOiqSpJhNuJZvi2-16" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;Laptop&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=1" vertex="1" parent="1">

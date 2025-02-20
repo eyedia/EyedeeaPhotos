@@ -12,7 +12,7 @@ const logger = config_log.logger;
 export const create_or_update = async (req, res) => {
   try {
     if (req.body.hasOwnProperty("type")) {
-      if ((req.body["type"] != constants.SOURCE_TYPE_NAS) || (req.body["type"] != constants.SOURCE_TYPE_FS)){
+      if ((req.body["type"] != constants.SOURCE_TYPE_NAS) && (req.body["type"] != constants.SOURCE_TYPE_FS)){
         res.status(400).send("Invalid type!");
         return;
       }
@@ -25,9 +25,12 @@ export const create_or_update = async (req, res) => {
         logger.error(err.message);
       } else {        
         if (saved_source) {
-          res.status(status_code);
-          res.json(saved_source);
-          authenticate_source(saved_source);
+          
+          authenticate_source(saved_source, auth_result => {
+            saved_source["authenticate"] = auth_result;
+            res.status(status_code);
+            res.json(saved_source);
+          });
         }
       }
     });
@@ -69,13 +72,16 @@ export const get_item = async (req, res) => {
   }
 };
 
-function authenticate_source(source_id){
-  if(source_id.type == constants.SOURCE_TYPE_NAS){
-    syno_authenticate(result => {
+function authenticate_source(source, callback){  
+  if(source.type == constants.SOURCE_TYPE_NAS){
+    syno_authenticate(source.id, auth_result => {
       //for NAS we are going to create special tags.
-      create_eyedeea_tags();
+      if(auth_result.auth_status)
+        create_eyedeea_tags(source.id);
+      callback(auth_result);
     });
   }else if(source_id.type == constants.SOURCE_TYPE_NAS){
     fs_authenticate();
+    callback({"auth_status": true, "error": {} });
   }
 }

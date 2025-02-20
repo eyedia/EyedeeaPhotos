@@ -16,19 +16,19 @@ export let nas_auth_token = {}
 
 let api_client = null;
 
-export async function authenticate(callback) {
+export async function authenticate(source_id, callback) {
   try {
-    return init_syno((err, nas_config) => {
+    return init_syno(source_id, (err, nas_config) => {      
       if (nas_config) {
         if (nas_config.cache && Object.keys(nas_config.cache).length != 0) {          
-          nas_auth_token = JSON.parse(nas_config.cache);
+          nas_auth_token[source_id] = JSON.parse(nas_config.cache);
           logger.info("NAS Auth initiated from cache!");
           if(callback)
-            callback(true);
+            callback({"auth_status": true, "error": {} });
           return;
         }
         //not in cache, lets authenticate
-        logger.info("Authenticating NAS...");
+        logger.info(`Authenticating NAS...${source_id}`);
         return api_client.get('/auth.cgi', {
           params: {
             api: "SYNO.API.Auth",
@@ -42,25 +42,29 @@ export async function authenticate(callback) {
         })
           .then(function (response) {
             nas_config.cache = response.data.data;
-            nas_auth_token = nas_config.cache;
-            return meta_update_cache(nas_config, (update_err, updated_nas_config, status_code) => {
-              if(callback)
-                callback(true);
-            });
+            nas_auth_token[source_id] = nas_config.cache;            
+            if(response.data.error){
+              callback({"auth_status": false, "error": response.data.error });
+            }else{
+              return meta_update_cache(nas_config, (update_err, updated_nas_config, status_code) => {
+                if(callback)
+                  callback({"auth_status": true, "error": {} });
+              });
+          }
            
           })
-          .catch(function (error) {
+          .catch(function (error) {           
             if (error.code === 'ECONNRESET') {
               logger.error('Connection reset by peer.');
             } else {
               logger.info(error.message);
             }
             if(callback)
-              callback(false);
+              callback({"auth_status": false, "error": {"message": error }});
           });
       }else{
         if(callback)
-          callback(false);
+          callback({"auth_status": false, "error": {"message": "unknown"} });
       }
     });
 
@@ -70,9 +74,9 @@ export async function authenticate(callback) {
   }
 }
 
-function init_syno(callback) {
+function init_syno(source_id, callback) {
   
-  meta_get_source("nas", (err, nas_config) => {
+  meta_get_source(source_id, (err, nas_config) => {
     if (err) {
       logger.error(err.message);
       callback(err, null);
@@ -105,11 +109,11 @@ function init_syno(callback) {
 }
 
 
-export async function list_dir(folder_id = -1, offset = 0, limit = 1000) {
+export async function list_dir(source_id, folder_id = -1, offset = 0, limit = 1000) {
   try {
     let m_param = {
       api: "SYNO.FotoTeam.Browse.Folder",
-      SynoToken: nas_auth_token.synotoken,
+      SynoToken: nas_auth_token[source_id].synotoken,
       version: 2,
       method: "list",
       offset: offset,
@@ -141,11 +145,11 @@ export async function list_dir(folder_id = -1, offset = 0, limit = 1000) {
   }
 }
 
-export async function list_dir_items(folder_id, offset = 0, limit = 1000) {
+export async function list_dir_items(source_id, folder_id, offset = 0, limit = 1000) {
   try {
     let m_param = {
       api: "SYNO.FotoTeam.Browse.Item",
-      SynoToken: nas_auth_token.synotoken,
+      SynoToken: nas_auth_token[source_id].synotoken,
       version: 2,
       method: "list",
       "folder_id": folder_id,
@@ -177,11 +181,11 @@ export async function list_dir_items(folder_id, offset = 0, limit = 1000) {
   }
 }
 
-export async function list_geo(offset = 0, limit = 1000) {
+export async function list_geo(source_id, offset = 0, limit = 1000) {
   try {
     let m_param = {
       api: "SYNO.FotoTeam.Browse.Geocoding",
-      SynoToken: nas_auth_token.synotoken,
+      SynoToken: nas_auth_token[source_id].synotoken,
       version: 1,
       method: "list",
       offset: offset,
@@ -214,14 +218,12 @@ export async function list_geo(offset = 0, limit = 1000) {
   }
 }
 
-export async function get_photo(id, cache_key, size = "sm") { 
-  if (!nas_auth_token.synotoken) {
-    throw new Error('Synology client is not active! Most likely authentication was failed. Please check the server configuration and logs and try again.');
-  }
+export async function get_photo(source_id, id, cache_key, size = "sm") { 
+  
   try {    
     let m_param = {
       api: "SYNO.FotoTeam.Thumbnail",
-      SynoToken: nas_auth_token.synotoken,
+      SynoToken: nas_auth_token[source_id].synotoken,
       version: 2,
       method: "get",
       id: id,
@@ -251,10 +253,10 @@ export async function get_photo(id, cache_key, size = "sm") {
   }
 }
 
-export async function create_eyedeea_tags() {
+export async function create_eyedeea_tags(source_id) {
   let eyedeea_tags = ["eyedeea_dns", "eyedeea_mark"];
   eyedeea_tags.forEach(eyedeea_tag => {
-    create_tag(eyedeea_tag).then(result => {
+    create_tag(source_id, eyedeea_tag).then(result => {
       const query = `insert or ignore into tag(name, syno_id) values ('${eyedeea_tag}', ${result.data.tag.id})`;
         meta_db.run(query, (err) => {
             if (err) {
@@ -267,16 +269,12 @@ export async function create_eyedeea_tags() {
   });
 }
 
-export async function create_tag(name) {
-
-  if (!nas_auth_token.synotoken) {
-    throw new Error('Synology client is not active! Most likely authentication was failed. Please check the server configuration and logs and try again.');
-  }
+export async function create_tag(source_id, name) {
   try {
     let m_param = {
       api: "SYNO.FotoTeam.Browse.GeneralTag",
-      SynoToken: nas_auth_token.synotoken,
-      _sid: nas_auth_token.sid,
+      SynoToken: nas_auth_token[source_id].synotoken,
+      _sid: nas_auth_token[source_id].sid,
       version: 1,
       method: "create",
       name: name
@@ -301,15 +299,12 @@ export async function create_tag(name) {
   }
 }
 
-export async function add_tag(photo_id, tag_id) {
+export async function add_tag(source_id, photo_id, tag_id) {
 
-  if (!nas_auth_token.synotoken) {
-    throw new Error('Synology client is not active! Most likely authentication was failed. Please check the server configuration and logs and try again.');
-  }
   try {
     let m_param = {
       api: "SYNO.FotoTeam.Browse.Item",
-      SynoToken: nas_auth_token.synotoken,
+      SynoToken: nas_auth_token[source_id].synotoken,
       version: 2,
       method: "add_tag",
       id: photo_id,

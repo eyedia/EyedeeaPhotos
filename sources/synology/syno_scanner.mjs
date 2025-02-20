@@ -33,7 +33,7 @@ export async function scan(source, folder_id, folder_name, callback) {
 async function internal_scan(scan_started_data, folder_id = -1, folder_name = "") {
     if ((folder_id === -1) && (folder_name === "")) {        
         //scan starts from root
-        list_dir(undefined, _offset, _limit)
+        list_dir(scan_started_data.source_id, undefined, _offset, _limit)
             .then(data => {
                 if (data && data.data.list.length > 0) {
                     data.data.list.forEach(function (root_folder) {
@@ -51,7 +51,7 @@ async function internal_scan(scan_started_data, folder_id = -1, folder_name = ""
 
 async function list_dir_loop(scan_started_data, folder_id, folder_name, offset, limit) {
     logger.info(`01-Getting sub folder ${folder_id}...`);
-    list_dir(folder_id, offset, limit)
+    list_dir(scan_started_data.source_id, folder_id, offset, limit)
         .then(async data => {
             if (data) {
                 if (data.data.list.length > 0) {
@@ -61,7 +61,7 @@ async function list_dir_loop(scan_started_data, folder_id, folder_name, offset, 
                     });
                 } else {
                     logger.info(`Getting photos from ${folder_id}-${folder_name}...`);
-                    list_dir_items(folder_id, offset, limit)
+                    list_dir_items(scan_started_data.source_id, folder_id, offset, limit)
                         .then(async photo_data => {
                             if (photo_data) {
                                 photo_data.data.list.forEach(function (photo) {

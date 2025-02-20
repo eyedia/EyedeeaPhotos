@@ -5,22 +5,29 @@ import { create_or_update as meta_create_or_update,
  import { authenticate as syno_authenticate, create_eyedeea_tags } from "../../sources/synology/syno_client.mjs";
  import { authenticate as fs_authenticate } from "../../sources/fs/fs_client.mjs";
 import config_log from "../../config_log.js";
+import constants from "../../constants.js";
 
 const logger = config_log.logger;
 
 export const create_or_update = async (req, res) => {
   try {
+    if (req.body.hasOwnProperty("type")) {
+      if ((req.body["type"] != constants.SOURCE_TYPE_NAS) || (req.body["type"] != constants.SOURCE_TYPE_FS)){
+        res.status(400).send("Invalid type!");
+        return;
+      }
+    }
     if (!req.body.hasOwnProperty("config")) {
       req.body["config"] = null;
     }
-    meta_create_or_update(req.body, (err, updated_id, status_code) => {      
+    meta_create_or_update(req.body, (err, saved_source, status_code) => {      
       if (err) {
         logger.error(err.message);
       } else {        
-        if (updated_id) {
+        if (saved_source) {
           res.status(status_code);
-          res.json({"id": updated_id});
-          authenticate_source(updated_id);
+          res.json(saved_source);
+          authenticate_source(saved_source);
         }
       }
     });
@@ -63,12 +70,12 @@ export const get_item = async (req, res) => {
 };
 
 function authenticate_source(source_id){
-  if(source_id == 1){
+  if(source_id.type == constants.SOURCE_TYPE_NAS){
     syno_authenticate(result => {
       //for NAS we are going to create special tags.
       create_eyedeea_tags();
     });
-  }else if(source_id == 2){
+  }else if(source_id.type == constants.SOURCE_TYPE_NAS){
     fs_authenticate();
   }
 }

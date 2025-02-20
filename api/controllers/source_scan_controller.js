@@ -5,7 +5,7 @@ import { scan as fs_scan_service } from "../../sources/fs/fs_scanner.mjs";
 import {
   get as meta_get_source
 } from "../../meta/meta_source.mjs"
-
+import constants from "../../constants.js";
 import config_log from "../../config_log.js";
 
 const logger = config_log.logger;
@@ -14,7 +14,7 @@ export const scan = async (req, res) => {
   meta_get_source(req.params.id, (err, source) => {
     if (source) {
       if (!scanner_is_busy()) {
-        if (req.params.id == 1)
+        if (source.type == constants.SOURCE_TYPE_NAS)
           syno_scan(source, req, res);
         else
           fs_scan(source, req, res);

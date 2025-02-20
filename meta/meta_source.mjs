@@ -11,14 +11,15 @@ export function create_or_update(source, callback) {
         } else {
             if (rows.length == 0) {
                 meta_db.run(
-                    `INSERT INTO source (name, url, user, password, config) VALUES (?, ?, ?, ?, ?)`,
-                    [source.name, source.url, source.user, source.password, JSON.stringify(source.config)],
+                    `INSERT INTO source (name, type, url, user, password, config) VALUES (?, ?, ?, ?, ?, ?)`,
+                    [source.name, source.type, source.url, source.user, source.password, JSON.stringify(source.config)],
                     function (err) {
                         if (err) {
                             logger.error('Error inserting data:', err);
                             callback(err, null, 500);
                         } else {
-                            callback(null, this.lastID, 201);
+                            source["id"] = this.lastID;
+                            callback(null, source, 201);
                         }
                     });
             } else {
@@ -30,7 +31,7 @@ export function create_or_update(source, callback) {
                             logger.error('Error updating data:', err);
                             callback(err, null, 500);
                         } else {
-                            callback(null, rows[0]["id"], 200);
+                            callback(null, rows[0], 200);
                         }
                     });
             }

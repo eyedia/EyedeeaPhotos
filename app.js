@@ -1,4 +1,5 @@
 import express from "express";
+import helmet from "helmet";
 import cron from "node-cron";
 import config_log from "./config_log.js";
 import { set_random_photo, get_config } from "./meta/meta_view.mjs";
@@ -20,7 +21,9 @@ process.on('uncaughtException', (err) => {
   logger.error(err);
 });
 
-const app = express();
+const app = express(helmet());
+app.disable('x-powered-by')
+
 app.use(express.static('web'));
 app.use(express.json());
 
@@ -62,5 +65,5 @@ const server = app.listen(PORT, () => {
   logger.info(`Server listening on port ${PORT}`);
 });
 
-//module.exports = server; 
+module.exports = server; 
 //export default { server };

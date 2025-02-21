@@ -80,7 +80,7 @@ function authenticate_source(source, callback){
         create_eyedeea_tags(source.id);
       callback(auth_result);
     });
-  }else if(source_id.type == constants.SOURCE_TYPE_NAS){
+  }else if(source.type == constants.SOURCE_TYPE_FS){
     fs_authenticate();
     callback({"auth_status": true, "error": {} });
   }

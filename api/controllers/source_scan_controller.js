@@ -19,11 +19,11 @@ export const scan = async (req, res) => {
         else
           fs_scan(source, req, res);
       } else {
-        res.status(400).json({ "message": `Source id ${req.params.id} does not exist!` });
+        res.status(503).json({ error: "Scanning is already in progress." });
       }
 
-    } else {
-      res.status(503).json({ error: "Scanning is already in progress." });
+    } else {      
+      res.status(400).json({ "message": `Source id ${req.params.id} does not exist!` });
     }
   });
 }

@@ -18,13 +18,13 @@ let api_client = null;
 
 export async function authenticate(source_id, callback) {
   try {
-    return init_syno(source_id, (err, nas_config) => {      
+    return init_syno(source_id, (err, nas_config) => {
       if (nas_config) {
-        if (nas_config.cache && Object.keys(nas_config.cache).length != 0) {          
+        if (nas_config.cache && Object.keys(nas_config.cache).length != 0) {
           nas_auth_token[source_id] = JSON.parse(nas_config.cache);
           logger.info("NAS Auth initiated from cache!");
-          if(callback)
-            callback({"auth_status": true, "error": {} });
+          if (callback)
+            callback({ "auth_status": true, "error": {} });
           return;
         }
         //not in cache, lets authenticate
@@ -42,29 +42,29 @@ export async function authenticate(source_id, callback) {
         })
           .then(function (response) {
             nas_config.cache = response.data.data;
-            nas_auth_token[source_id] = nas_config.cache;            
-            if(response.data.error){
-              callback({"auth_status": false, "error": response.data.error });
-            }else{
+            nas_auth_token[source_id] = nas_config.cache;
+            if (response.data.error) {
+              callback({ "auth_status": false, "error": response.data.error });
+            } else {
               return meta_update_cache(nas_config, (update_err, updated_nas_config, status_code) => {
-                if(callback)
-                  callback({"auth_status": true, "error": {} });
+                if (callback)
+                  callback({ "auth_status": true, "error": {} });
               });
-          }
-           
+            }
+
           })
-          .catch(function (error) {           
+          .catch(function (error) {
             if (error.code === 'ECONNRESET') {
               logger.error('Connection reset by peer.');
             } else {
               logger.info(error.message);
             }
-            if(callback)
-              callback({"auth_status": false, "error": {"message": error }});
+            if (callback)
+              callback({ "auth_status": false, "error": { "message": error } });
           });
-      }else{
-        if(callback)
-          callback({"auth_status": false, "error": {"message": "unknown"} });
+      } else {
+        if (callback)
+          callback({ "auth_status": false, "error": { "message": "unknown" } });
       }
     });
 
@@ -75,14 +75,14 @@ export async function authenticate(source_id, callback) {
 }
 
 function init_syno(source_id, callback) {
-  
+
   meta_get_source(source_id, (err, nas_config) => {
     if (err) {
       logger.error(err.message);
       callback(err, null);
     } else {
       if (!nas_config) {
-        logger.error("NAS was not configured!");
+        logger.error(`NAS was not configured for ${source_id}!`);
         return;
       }
       api_client = axios.create({
@@ -108,86 +108,86 @@ function init_syno(source_id, callback) {
 
 }
 
-
-export async function list_dir(source_id, folder_id = -1, offset = 0, limit = 1000) {
-  console.log(source_id);
-  console.log(nas_auth_token[source_id]);
-  if(!nas_auth_token[source_id]){
-    authenticate(source_id);
+async function authenticate_if_required(source_id, callback) {
+  if (!nas_auth_token[source_id]) {
+    authenticate(source_id, auth_result => {
+      callback(auth_result);
+    });
+  }else{
+    callback({ "auth_status": true, "error": {} });
   }
-  try {
+}
+
+export async function list_dir(args, callback) {
+  authenticate_if_required(args.source_id, auth_result => {
     let m_param = {
       api: "SYNO.FotoTeam.Browse.Folder",
-      SynoToken: nas_auth_token[source_id].synotoken,
+      SynoToken: nas_auth_token[args.source_id].synotoken,
       version: 2,
       method: "list",
-      offset: offset,
-      limit: limit
+      offset: args.offset,
+      limit: args.limit
     };
-    if (folder_id > -1) {
-      m_param.id = folder_id;
+    if (args.folder_id > -1) {
+      m_param.id = args.folder_id;
     }
     //if id == -1, it will fetch root folder
 
-    return api_client.get('/entry.cgi', {
+    api_client.get('/entry.cgi', {
       params: m_param,
       httpsAgent: httpsAgent
     })
       .then(function (response) {
-        return response.data;
+        callback(null, response.data);
       })
       .catch(function (error) {
         if (error.code === 'ECONNRESET') {
           logger.error('Connection reset by peer.');
+          callback('Connection reset by peer.', null);
         } else {
           logger.info(error.message);
+          callback(error, null);
         }
       });
+  });
 
-  } catch (error) {
-    logger.error('Authentication failed:', error.response?.data || error.message);
-    throw error;
-  }
 }
 
-export async function list_dir_items(source_id, folder_id, offset = 0, limit = 1000) {
-  try {
+export async function list_dir_items(args, callback) {
+  authenticate_if_required(args.source_id, auth_result => {
     let m_param = {
       api: "SYNO.FotoTeam.Browse.Item",
-      SynoToken: nas_auth_token[source_id].synotoken,
+      SynoToken: nas_auth_token[args.source_id].synotoken,
       version: 2,
       method: "list",
-      "folder_id": folder_id,
-      offset: offset,
-      limit: limit,
+      "folder_id": args.folder_id,
+      offset: args.offset,
+      limit: args.limit,
       additional: "[\"thumbnail\", \"resolution\",\"orientation\",\"provider_user_id\", \"tag\", \"geocoding_id\", \"address\"]"
 
     };
 
-    return api_client.get('/entry.cgi', {
+    api_client.get('/entry.cgi', {
       params: m_param,
       httpsAgent: httpsAgent
     })
       .then(function (response) {
-        return response.data;
+        callback(null, response.data);
       })
       .catch(function (error) {
         if (error.code === 'ECONNRESET') {
           logger.error('Connection reset by peer.');
+          callback('Connection reset by peer.', null);
         } else {
           logger.info(error.message);
+          callback(error, null);
         }
-
       });
-
-  } catch (error) {
-    logger.error('Authentication failed:', error.response?.data || error.message);
-    throw error;
-  }
+  });
 }
 
 export async function list_geo(source_id, offset = 0, limit = 1000) {
-  try {
+  return authenticate_if_required(source_id, auth_result => {
     let m_param = {
       api: "SYNO.FotoTeam.Browse.Geocoding",
       SynoToken: nas_auth_token[source_id].synotoken,
@@ -217,15 +217,11 @@ export async function list_geo(source_id, offset = 0, limit = 1000) {
         }
       });
 
-  } catch (error) {
-    logger.error('Authentication failed:', error.response?.data || error.message);
-    throw error;
-  }
+  });
 }
 
-export async function get_photo(source_id, id, cache_key, size = "sm") { 
-  
-  try {    
+export async function get_photo(source_id, id, cache_key, size = "sm") {
+  return authenticate_if_required(source_id, auth_result => {
     let m_param = {
       api: "SYNO.FotoTeam.Thumbnail",
       SynoToken: nas_auth_token[source_id].synotoken,
@@ -252,10 +248,7 @@ export async function get_photo(source_id, id, cache_key, size = "sm") {
         logger.error(err_info);
       });
 
-  } catch (error) {
-    logger.error('Authentication failed:', error.response?.data || error.message);
-    throw error;
-  }
+  });
 }
 
 export async function create_eyedeea_tags(source_id) {
@@ -263,19 +256,19 @@ export async function create_eyedeea_tags(source_id) {
   eyedeea_tags.forEach(eyedeea_tag => {
     create_tag(source_id, eyedeea_tag).then(result => {
       const query = `insert or ignore into tag(name, syno_id) values ('${eyedeea_tag}', ${result.data.tag.id})`;
-        meta_db.run(query, (err) => {
-            if (err) {
-                logger.error(err.message);
-            } else {
-                logger.info(`Tag ${eyedeea_tag} created successfully.`);
-            }
-        });
+      meta_db.run(query, (err) => {
+        if (err) {
+          logger.error(err.message);
+        } else {
+          logger.info(`Tag ${eyedeea_tag} created successfully.`);
+        }
+      });
     });
   });
 }
 
 export async function create_tag(source_id, name) {
-  try {
+  return authenticate_if_required(source_id, auth_result => {
     let m_param = {
       api: "SYNO.FotoTeam.Browse.GeneralTag",
       SynoToken: nas_auth_token[source_id].synotoken,
@@ -298,15 +291,11 @@ export async function create_tag(source_id, name) {
         logger.error(err_info);
       });
 
-  } catch (error) {
-    logger.error('Could not create tag:', error.response?.data || error.message);
-    throw error;
-  }
+  });
 }
 
 export async function add_tag(source_id, photo_id, tag_id) {
-
-  try {
+  return authenticate_if_required(source_id, auth_result => {
     let m_param = {
       api: "SYNO.FotoTeam.Browse.Item",
       SynoToken: nas_auth_token[source_id].synotoken,
@@ -329,10 +318,7 @@ export async function add_tag(source_id, photo_id, tag_id) {
         logger.error(err_info);
       });
 
-  } catch (error) {
-    logger.error('Could not create tag:', error.response?.data || error.message);
-    throw error;
-  }
+  });
 }
 
 function check_valid_data(data, callback) {
@@ -361,9 +347,9 @@ function check_valid_data(data, callback) {
         }
       });
     }
-    return callback({"retry": false, "data": data});;
+    return callback({ "retry": false, "data": data });;
   } else {
-    return callback({"retry": false, "data": data});;
+    return callback({ "retry": false, "data": data });;
   }
 
 }

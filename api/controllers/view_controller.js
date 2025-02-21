@@ -10,6 +10,7 @@ import { list_geo,
     get_photo as syno_get_photo,
     add_tag as syno_add_tag } from "../../sources/synology/syno_client.mjs";
 import config_log from "../../config_log.js";
+import constants from "../../constants.js";
 const logger = config_log.logger;
 
 
@@ -42,9 +43,9 @@ export const get_random_photo = async (req, res) => {
           let photo_data = rows[req.query.photo_index];
           photo_data["photo_index"] = parseInt(req.query.photo_index);
           //photo_data.address = JSON.parse(photo_data.address);
-          if (photo_data.source_id == 1) {
+          if (photo_data.source_type == constants.SOURCE_TYPE_NAS) {
             get_photo_from_synology(photo_data, req, res);
-          }else if (photo_data.source_id == 2){
+          }else if (photo_data.source_type == constants.SOURCE_TYPE_FS){
             fs_get_photo(photo_data, res);
           } else {
             //some issue, return default pic
@@ -66,9 +67,10 @@ export const get_random_photo = async (req, res) => {
           let photo_data = rows[0];
           photo_data["photo_index"] = 0;
           photo_data.address = JSON.parse(photo_data.address);
-          if (photo_data.source_id == 1) {
+          console.log(photo_data.source_type);
+          if (photo_data.source_type == constants.SOURCE_TYPE_NAS) {
             get_photo_from_synology(photo_data, req, res);
-          }else if (photo_data.source_id == 2){
+          }else if (photo_data.source_type == constants.SOURCE_TYPE_FS){
             fs_get_photo(photo_data, res);
           } else {
             logger.error(`The source type ${photo_data.source_id} was not configured, returning default photo.`)
@@ -85,7 +87,7 @@ export const get_random_photo = async (req, res) => {
 
 function get_photo_from_synology(photo_data, req, res) {
   //syno get photo
-  syno_get_photo(photo_data.photo_id, photo_data.cache_key, "xl").then(response => {
+  syno_get_photo(photo_data.source_id, photo_data.photo_id, photo_data.cache_key, "xl").then(response => {
     if (response && response.headers) {
       res.writeHead(200, {
         'Content-Type': response.headers.get('content-type'),

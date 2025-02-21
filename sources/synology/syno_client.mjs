@@ -16,7 +16,7 @@ export let nas_auth_token = {}
 
 let api_client = null;
 
-export async function authenticate(source_id, callback) {
+export async function authenticate(source_id, callback) {  
   try {
     return init_syno(source_id, (err, nas_config) => {
       if (nas_config) {
@@ -221,6 +221,7 @@ export async function list_geo(source_id, offset = 0, limit = 1000) {
 }
 
 export async function get_photo(source_id, id, cache_key, size = "sm") {
+  logger.info(`Authenticating ....pppp ${source_id}!`);
   return authenticate_if_required(source_id, auth_result => {
     let m_param = {
       api: "SYNO.FotoTeam.Thumbnail",

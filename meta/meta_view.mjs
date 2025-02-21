@@ -7,8 +7,11 @@ import { search } from "./meta_search.mjs";
 const logger = config_log.logger;
 
 export function get_random_photo(callback) {
-    let query = `select * from photo where photo_id in (SELECT photo_id FROM view_log WHERE current = 1)`;
-    //let query = "SELECT * FROM photo WHERE id IN(35001,38543,40368)";
+    let query = `select p.id, p.source_id, p.photo_id, p.filename, p.folder_id, p.folder_name, 
+                p.time, p.type, p.orientation, p.cache_key, p.tags, p.address, s.type as 'source_type'
+                from photo p
+                inner join source s on p.source_id = s.id
+                where p.photo_id in (SELECT photo_id FROM view_log WHERE current = 1)`;
     meta_db.all(query, (err, rows) => {
         if (err) {
             callback(err, null);
@@ -60,9 +63,12 @@ export function get_random_photo(callback) {
 }
 
 export function get_photo_history(callback) {
-    let query = `select * from photo 
-                    inner join view_log on view_log.photo_id = photo.photo_id 
-                    order by update_sequence desc limit 12`;
+    let query = `select p.id, p.source_id, p.photo_id, p.filename, p.folder_id, p.folder_name, 
+                p.time, p.type, p.orientation, p.cache_key, p.tags, p.address, s.type as 'source_type'
+                from photo p
+                inner join source s on p.source_id = s.id
+                inner join view_log vl on vl.photo_id = p.photo_id 
+                order by update_sequence desc limit 12`;
     meta_db.all(query, (err, rows) => {
         if (err) {
             callback(err, null);

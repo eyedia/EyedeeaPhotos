@@ -157,7 +157,7 @@ function get_address_using_geo_reverse(lat, lng, callback) {
 }
 
 async function get_geo_reverse(lat, lng, callback) {
-    if (!fs_config || !fs_config.config.GOOGLE_MAPS_API_KEY) {
+    if (!fs_config || !fs_config.config || !fs_config.config.GOOGLE_MAPS_API_KEY) {
         callback("FS source was not configured or GOOGLE_MAPS_API_KEY was not set! Cannot use Google map API.", null);
         return;
     }

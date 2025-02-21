@@ -115,7 +115,7 @@ export function set_random_photo() {
                     } else {
                         random_photos.forEach((random_photo) => {
                             query = `SELECT * FROM view_log WHERE photo_id = '${random_photo.photo_id}'`
-                            meta_db(query, [], (err, rows) => {
+                            meta_db.all(query, [], (err, rows) => {
                                 if (err) {
                                     logger.error(err);
                                 } else {                                   

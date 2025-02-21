@@ -6,7 +6,7 @@ import {
     get_last_inserted_diff
 } from "../meta/meta_scan.mjs"
 
-import { get_rows as meta_get_rows } from "../meta/meta_base.mjs";
+import { meta_db } from "../meta/meta_base.mjs";
 import config_log from "../config_log.js";
 
 const logger = config_log.logger;
@@ -80,13 +80,13 @@ function keep_checking_when_insert_stops(scan_start_data, callback_ended) {
 export function stop_scanning(scan_start_data, timed_out, callback_ended) {
     if (!timed_out) {
         let number_of_photos = 0;
-        meta_get_rows(`select count(*) as cnt from photo where source_id = ${scan_start_data.source.id}`,
-            (err, rows) => {
+        meta_db.get(`select count(*) as cnt from photo where source_id = ?`, [scan_start_data.source.id],
+            (err, count_data) => {
                 if (err) {
                     logger.error(err.message);
                 } else {
-                    if (rows.length == 1) {
-                        number_of_photos = rows[0]["cnt"];
+                    if (count_data) {
+                        number_of_photos = count_data["cnt"];
                     }
                 }
                 let scan_log_end_data = {

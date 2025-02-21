@@ -1,15 +1,16 @@
 import config_log from "../config_log.js";
-import { meta_db, get_rows } from "./meta_base.mjs";
+import { meta_db } from "./meta_base.mjs";
 
 const logger = config_log.logger;
 
 export function create_or_update(source, callback) {
-    let query = `select * from source where name = '${source.name}' COLLATE NOCASE`;
-    get_rows(query, (err, rows) => {
+    let query = `select * from source where name = ? COLLATE NOCASE`;
+    meta_db.get(query, [source.name],
+        (err, meta_source) => {            
         if (err) {
             logger.error(err.message);
         } else {
-            if (rows.length == 0) {
+            if (!meta_source) {
                 meta_db.run(
                     `INSERT INTO source (name, type, url, user, password, config) VALUES (?, ?, ?, ?, ?, ?)`,
                     [source.name, source.type, source.url, source.user, source.password, JSON.stringify(source.config)],
@@ -31,7 +32,7 @@ export function create_or_update(source, callback) {
                             logger.error('Error updating data:', err);
                             callback(err, null, 500);
                         } else {
-                            callback(null, rows[0], 200);
+                            callback(null, source, 200);
                         }
                     });
             }
@@ -41,13 +42,13 @@ export function create_or_update(source, callback) {
 
 
 export function update_cache(source, callback) {
-    let query = `select * from source where name = '${source.name}' COLLATE NOCASE`;
-    get_rows(query, (err, rows) => {
+    let query = `select * from source where name = ? COLLATE NOCASE`;
+    meta_db.get(query, [source.name],
+        (err, meta_source) => {
         if (err) {
             logger.error(err.message);
         } else {
-            if (rows.length == 1) {
-
+            if (meta_source) {
                 meta_db.run(
                     `UPDATE source set [cache] = ?, updated_at = ? where name = ?`,
                     [JSON.stringify(source.cache), Date.now(), source.name],
@@ -56,8 +57,8 @@ export function update_cache(source, callback) {
                             logger.error('Error updating data:', err);
                             callback(err, null, 500);
                         } else {
-                            rows[0]["cache"] = source.cache;
-                            callback(null, rows[0], 200);
+                            meta_source["cache"] = source.cache;
+                            callback(null, meta_source, 200);
                         }
                     });
             } else {
@@ -70,7 +71,7 @@ export function update_cache(source, callback) {
 
 export function list(callback) {
     let query = `select * from source`;
-    get_rows(query, (err, rows) => {
+    meta_db.all(query, (err, rows) => {
         if (err) {
             logger.error(err.message);
             callback(err, null);
@@ -82,15 +83,15 @@ export function list(callback) {
 
 export function get(id, callback) {
     const try_id = parseInt(id);
-    let query = `select * from source where id = ${id}`;
+    let query = `select * from source where id = ?`;
     if (isNaN(try_id))
-        query = `select * from source where name = '${id}' COLLATE NOCASE`;
-    get_rows(query, (err, rows) => {
+        query = `select * from source where name = ? COLLATE NOCASE`;    
+    meta_db.get(query, [id],
+        (err, source) => {            
         if (err) {
             logger.error(err.message);
             callback(err, null);
         } else {
-            let source = rows[0];
             if (source && (source.config != null || source.config != ""))
                 source.config = JSON.parse(source.config);
             callback(null, source);
@@ -100,25 +101,26 @@ export function get(id, callback) {
 
 export function clear_cache(id, callback) {
     const try_id = parseInt(id);
-    let query = `select * from source where id = ${id}`;
+    let query = `select * from source where id = ?`;
     if (isNaN(try_id))
-        query = `select * from source where name = '${id}' COLLATE NOCASE`;
-    get_rows(query, (err, rows) => {
+        query = `select * from source where name = ? COLLATE NOCASE`;
+    meta_db.get(query, [id],
+        (err, source) => {
         if (err) {
             logger.error(err.message);
             callback(err, null);
         } else {
-            if (rows.length == 1) {                
+            if (source) {                
                 meta_db.run(
                     `UPDATE source set [cache] = null, updated_at = ? where id = ?`,
-                    [Date.now(), rows[0]["id"]],
+                    [Date.now(), source["id"]],
                     function (err) {
                         if (err) {
                             logger.error('Error updating data:', err);
                             callback(err, null, 500);
                         } else {                           
-                            rows[0]["cache"] = undefined;
-                            callback(null, rows[0], 200);
+                            source["cache"] = undefined;
+                            callback(null, source, 200);
                         }
                     });
             } else {

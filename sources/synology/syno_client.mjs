@@ -16,7 +16,7 @@ export let nas_auth_token = {}
 
 let api_client = null;
 
-export async function authenticate(source_id, callback) {  
+export async function authenticate(source_id, callback) {
   try {
     return init_syno(source_id, (err, nas_config) => {
       if (nas_config) {
@@ -113,7 +113,7 @@ async function authenticate_if_required(source_id, callback) {
     authenticate(source_id, auth_result => {
       callback(auth_result);
     });
-  }else{
+  } else {
     callback({ "auth_status": true, "error": {} });
   }
 }
@@ -123,7 +123,7 @@ export async function list_dir(args, callback) {
     args.offset = 0
   if (!args.limit)
     args.limit = 1000
-  
+
   authenticate_if_required(args.source_id, auth_result => {
     let m_param = {
       api: "SYNO.FotoTeam.Browse.Folder",
@@ -260,20 +260,22 @@ export async function get_photo(photo_data, size = "sm", callback) {
 export async function create_eyedeea_tags(source_id) {
   let eyedeea_tags = ["eyedeea_dns", "eyedeea_mark"];
   eyedeea_tags.forEach(eyedeea_tag => {
-    create_tag(source_id, eyedeea_tag).then(result => {
-      const query = `insert or ignore into tag(name, syno_id) values ('${eyedeea_tag}', ${result.data.tag.id})`;
-      meta_db.run(query, (err) => {
-        if (err) {
-          logger.error(err.message);
-        } else {
-          logger.info(`Tag ${eyedeea_tag} created successfully.`);
-        }
-      });
+    create_tag(source_id, eyedeea_tag, (err, result) => {      
+      if (!err) {
+        const query = `insert or ignore into tag(name, syno_id) values (?, ?)`;
+        meta_db.run(query, [eyedeea_tag, result.data.tag.id], (err) => {
+          if (err) {
+            logger.error(err.message);
+          } else {
+            logger.info(`Tag ${eyedeea_tag} created successfully.`);
+          }
+        });
+      }
     });
   });
 }
 
-export async function create_tag(source_id, name) {
+export async function create_tag(source_id, name, callback) {
   return authenticate_if_required(source_id, auth_result => {
     let m_param = {
       api: "SYNO.FotoTeam.Browse.GeneralTag",
@@ -289,12 +291,13 @@ export async function create_tag(source_id, name) {
       httpsAgent: httpsAgent
     })
       .then(function (response) {
-        return response.data;
+        callback(null, response.data);
       })
       .catch(function (error) {
         let err_info = `Could not create tag '${name}' in Synology. The server returned `;
         err_info += error + ". ";
         logger.error(err_info);
+        callback(err_info, null);
       });
 
   });

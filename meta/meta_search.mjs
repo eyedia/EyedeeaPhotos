@@ -1,7 +1,7 @@
 import sqlite3 from "sqlite3";
 import fs from "fs";
 import config_log from "../config_log.js";
-import { meta_db, get_rows } from "./meta_base.mjs";
+import { meta_db } from "./meta_base.mjs";
 
 const logger = config_log.logger;
 
@@ -31,7 +31,7 @@ export function search_init() {
 export function search(callback) {
     let query = `SELECT * FROM view_filter where current = 1 LIMIT 1`;
 
-    get_rows(query, (err, rows) => {
+    meta_db.all(query, (err, rows) => {
         if (err) {
             logger.error(err.message);
         } else {
@@ -40,8 +40,9 @@ export function search(callback) {
                 //let filter_data = {"filter_must": "belize"}
                 query = `SELECT photo_id 
                         FROM fts 
-                        WHERE fts MATCH '${filter_data.filter_must}'`
-                get_rows(query, (err, rows) => {
+                        WHERE fts MATCH ?`;
+                meta_db.all(query, [filter_data.filter_must],
+                    (err, rows) => {
                     if (err) {
                         callback(err, null, null);
                     } else {
@@ -59,7 +60,7 @@ export function search(callback) {
 export function get_tokens_2(callback) {
 
     let tokens = []
-    get_rows("SELECT distinct address FROM photo", (err, rows) => {
+    meta_db.all("SELECT distinct address FROM photo", (err, rows) => {
         if (err) {
             logger.error(err.message);
         } else {
@@ -82,7 +83,7 @@ export function get_tokens_2(callback) {
 export function get_tokens(callback) {
 
     let tokens = []
-    get_rows("SELECT distinct folder_name FROM photo", (err, rows) => {
+    meta_db.all("SELECT distinct folder_name FROM photo", (err, rows) => {
         if (err) {
             logger.error(err.message);
         } else {

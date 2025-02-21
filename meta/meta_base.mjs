@@ -149,19 +149,6 @@ function create_tables(callback) {
     });
 }
 
-
-export function get_rows(query, callback) {
-
-    meta_db.all(query, (err, rows) => {
-        if (err) {
-            callback(err, null);
-        } else {
-            callback(null, rows);
-        }
-    });
-}
-
-
 function close_database() {
     logger.info('Closing database...');
     meta_db.close((err) => {

@@ -1,16 +1,17 @@
 import config_log from "../config_log.js";
-import { meta_db, get_rows } from "./meta_base.mjs";
+import { meta_db } from "./meta_base.mjs";
 import {set_random_photo} from "./meta_view.mjs";
 
 const logger = config_log.logger;
 
 export function create_or_update(view_filter, callback) {
-    let query = `select * from view_filter where name = '${view_filter.name}' COLLATE NOCASE`;
-    get_rows(query, (err, rows) => {
+    let query = `select * from view_filter where name = ? COLLATE NOCASE`;
+    meta_db.get(query, [view_filter.name],
+        (err, meta_view_filter) => {
         if (err) {
             logger.error(err.message);
         } else {
-            if (rows.length == 0) {
+            if (!meta_view_filter) {
                 meta_db.run(
                     `INSERT INTO view_filter (name, filter_must, filter_option, current) VALUES (?, ?, ?, ?)`,
                     [view_filter.name, view_filter.filter_must, view_filter.filter_option, view_filter.current],
@@ -31,7 +32,7 @@ export function create_or_update(view_filter, callback) {
                             logger.error('Error updating data:', err);
                             callback(err, null, 500);
                         } else {
-                            callback(null, rows[0]["id"], 200);
+                            callback(null, source["id"], 200);
                         }
                     });
             }
@@ -42,11 +43,11 @@ export function create_or_update(view_filter, callback) {
 
 export function set_current(name, callback) {
     let query = `select * from view_filter where name = '${name}' COLLATE NOCASE`;
-    get_rows(query, (err, rows) => {
+    meta_db.get(query, (err, view_filter) => {
         if (err) {
             logger.error(err.message);
         } else {
-            if (rows.length == 1) {
+            if (view_filter) {
 
                 meta_db.run(
                     `UPDATE view_filter set current = 1, updated_at = ? where name = ?`,
@@ -64,7 +65,7 @@ export function set_current(name, callback) {
                                         logger.error('Error updating data:', err);
                                         callback(err, null, 500);
                                     } else {
-                                        callback(null, rows[0], 200);
+                                        callback(null, view_filter, 200);
                                     }
                                 });
                         }
@@ -79,7 +80,7 @@ export function set_current(name, callback) {
 
 export function list(callback) {
     let query = `select * from view_filter`;
-    get_rows(query, (err, rows) => {
+    meta_db.all(query, (err, rows) => {
         if (err) {
             logger.error(err.message);
             callback(err, null);
@@ -92,15 +93,16 @@ export function list(callback) {
 
 export function get(id, callback) {
     const try_id = parseInt(id);
-    let query = `select * from view_filter where id = ${id}`;
+    let query = `select * from view_filter where id = ?`;
     if (isNaN(try_id))
-        query = `select * from view_filter where name = '${id}' COLLATE NOCASE`;
-    get_rows(query, (err, rows) => {
+        query = `select * from view_filter where name = ? COLLATE NOCASE`;
+    meta_db.get(query, [id],
+        (err, meta_view_filter) => {
         if (err) {
             logger.error(err.message);
             callback(err, null);
         } else {
-            callback(null, rows[0]);
+            callback(null, meta_view_filter);
         }
     });
 }
@@ -108,10 +110,11 @@ export function get(id, callback) {
 
 export function make_active(id, callback) {
     const try_id = parseInt(id);
-    let query = `select * from view_filter where id = ${id}`;
+    let query = `select * from view_filter where id =?`;
     if (isNaN(try_id))
-        query = `select * from view_filter where name = '${id}' COLLATE NOCASE`;
-    get_rows(query, (err, rows) => {
+        query = `select * from view_filter where name = ? COLLATE NOCASE`;
+    meta_db.all(query, [id],
+        (err, rows) => {
         if (err) {
             logger.error(err.message);
             callback(err, null);

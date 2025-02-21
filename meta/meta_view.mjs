@@ -1,7 +1,7 @@
 import sqlite3 from "sqlite3";
 import fs from "fs";
 import config_log from "../config_log.js";
-import { meta_db, get_rows } from "./meta_base.mjs";
+import { meta_db } from "./meta_base.mjs";
 import { search } from "./meta_search.mjs";
 
 const logger = config_log.logger;
@@ -86,12 +86,12 @@ export function get_photo_history(callback) {
 export function set_random_photo() {
     
     let number_of_already_set_photos = 0;
-    get_rows("select count(*) as cnt from view_log where status = 0", (err, rows) => {
+    meta_db.get("select count(*) as cnt from view_log where status = 0", (err, count_data) => {
         if (err) {
             logger.error(err.message);
         } else {
-            if (rows.length == 1) {
-                number_of_already_set_photos = rows[0]["cnt"];
+            if (count_data) {
+                number_of_already_set_photos = count_data["cnt"];
             }
         }        
         if (number_of_already_set_photos < 25) {
@@ -109,13 +109,13 @@ export function set_random_photo() {
                     }
                 }
                 
-                get_rows(query, (err, random_photos) => {
+                meta_db.all(query, [], (err, random_photos) => {
                     if (err) {
                         logger.error(err.message);
                     } else {
                         random_photos.forEach((random_photo) => {
                             query = `SELECT * FROM view_log WHERE photo_id = '${random_photo.photo_id}'`
-                            get_rows(query, (err, rows) => {
+                            meta_db(query, [], (err, rows) => {
                                 if (err) {
                                     logger.error(err);
                                 } else {                                   

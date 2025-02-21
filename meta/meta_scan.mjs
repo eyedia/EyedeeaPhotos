@@ -1,7 +1,7 @@
 import sqlite3 from "sqlite3";
 import fs from "fs";
 import config_log from "../config_log.js";
-import { meta_db, get_rows } from "./meta_base.mjs";
+import { meta_db } from "./meta_base.mjs";
 
 const logger = config_log.logger;
 
@@ -111,8 +111,9 @@ export function save_scan_log_detail(json_data, callback) {
 }
 
 export function get_scan_log_detail(scan_log_id, scan_status = 0, callback) {
-    let query = `SELECT * FROM scan_log_detail WHERE scan_log_id = ${scan_log_id} and re_scanned = ${scan_status}`
-    get_rows(query, (err, rows) => {
+    let query = `SELECT * FROM scan_log_detail WHERE scan_log_id = ? and re_scanned = ?`
+    meta_db.all(query, [scan_log_id, scan_status],
+        (err, rows) => {
         if (err) {
             callback(err, null);
         } else {
@@ -135,7 +136,7 @@ export function update_scan_log(scan_log_id, folder_id, re_scanned) {
 
 export function get_last_inserted_diff(callback) {
     let query = `select julianday(CURRENT_TIMESTAMP) - julianday(created_at) diff from photo order by created_at desc limit 1`
-    get_rows(query, (err, rows) => {
+    meta_db.all(query, (err, rows) => {
         if (err) {
             callback(err, null);
         } else {
@@ -163,8 +164,9 @@ export function save_geo_address(json_data) {
 }
 
 export function get_geo_address(latitude, longitude, callback) {
-    let query = `select address from geo_address where latitude = ${latitude} and longitude =${longitude}`;
-    get_rows(query, (err, rows) => {
+    let query = `select address from geo_address where latitude = ? and longitude =?`;
+    meta_db.all(query, [latitude, longitude],
+        (err, rows) => {
         if (err) {
             logger.error(err);
             callback(undefined);

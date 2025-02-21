@@ -50,7 +50,6 @@ async function internal_scan(source, dir) {
         }
         if (stats.isFile() && path.extname(file).toLowerCase() === '.jpg') {
           get_exif_data(photo_path, (err, exif_data) => {
-            //console.log(address);
             let one_record = {
               "source_id": source.id,
               "photo_id": crypto.randomUUID(),

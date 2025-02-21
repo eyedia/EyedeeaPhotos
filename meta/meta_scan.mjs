@@ -39,7 +39,6 @@ export function save_item(json_data) {
         function (err) {
             if (err) {
                 logger.error('Error inserting data:', err);
-                console.log(err);
             }
         });
 }
@@ -159,7 +158,6 @@ export function save_geo_address(json_data) {
         function (err) {
             if (err) {
                 logger.error('Error inserting data:', err);
-                console.log(err);
             }
         });
 }

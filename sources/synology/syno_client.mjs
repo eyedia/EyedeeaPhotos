@@ -220,16 +220,15 @@ export async function list_geo(source_id, offset = 0, limit = 1000) {
   });
 }
 
-export async function get_photo(source_id, id, cache_key, size = "sm") {
-  logger.info(`Authenticating ....pppp ${source_id}!`);
-  return authenticate_if_required(source_id, auth_result => {
+export async function get_photo(photo_data, size = "sm", callback) {
+  return authenticate_if_required(photo_data.source_id, auth_result => {
     let m_param = {
       api: "SYNO.FotoTeam.Thumbnail",
-      SynoToken: nas_auth_token[source_id].synotoken,
+      SynoToken: nas_auth_token[photo_data.source_id].synotoken,
       version: 2,
       method: "get",
-      id: id,
-      cache_key: cache_key,
+      id: photo_data.photo_id,
+      cache_key: photo_data.cache_key,
       type: "unit",
       size: size
     };
@@ -240,13 +239,14 @@ export async function get_photo(source_id, id, cache_key, size = "sm") {
       httpsAgent: httpsAgent
     })
       .then(function (response) {
-        return response;
+        callback(null, response);
       })
       .catch(function (error) {
         let err_info = "Error getting photo from Synology. The server returned ";
         err_info += error + ". ";
-        err_info += `The request was for ${id}, ${cache_key}`;
+        err_info += `The request was for ${photo_data.id}, ${photo_data.cache_key}`;
         logger.error(err_info);
+        callback(err_info, null);
       });
 
   });

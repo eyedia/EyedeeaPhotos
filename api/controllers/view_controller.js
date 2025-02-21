@@ -67,7 +67,6 @@ export const get_random_photo = async (req, res) => {
           let photo_data = rows[0];
           photo_data["photo_index"] = 0;
           photo_data.address = JSON.parse(photo_data.address);
-          console.log(photo_data.source_type);
           if (photo_data.source_type == constants.SOURCE_TYPE_NAS) {
             get_photo_from_synology(photo_data, req, res);
           }else if (photo_data.source_type == constants.SOURCE_TYPE_FS){
@@ -87,7 +86,7 @@ export const get_random_photo = async (req, res) => {
 
 function get_photo_from_synology(photo_data, req, res) {
   //syno get photo
-  syno_get_photo(photo_data.source_id, photo_data.photo_id, photo_data.cache_key, "xl").then(response => {
+  syno_get_photo(photo_data, "xl", (err, response) => {
     if (response && response.headers) {
       res.writeHead(200, {
         'Content-Type': response.headers.get('content-type'),
@@ -133,7 +132,6 @@ export const add_tag_dns = async (req, res) => {
     } else {
       if(e_tag){
         syno_add_tag(req.params.photo_id, e_tag.syno_id).then(response_data => {
-          console.log(response_data);
           res.json(response_data);
         });
       }else{
@@ -150,7 +148,6 @@ export const add_tag_mark = async (req, res) => {
     } else {
       if(e_tag){
         syno_add_tag(req.params.photo_id, e_tag.syno_id).then(response_data => {
-          console.log(response_data);
           res.json(response_data);
         });
       }else{

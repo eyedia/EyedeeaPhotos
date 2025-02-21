@@ -181,7 +181,7 @@ async function get_geo_reverse(lat, lng, callback) {
             if (response.data)
                 callback(null, response.data.results);
             else
-                console.log(null, { "lat": lat, "lng": lng });
+                logger.error(null, { "lat": lat, "lng": lng });
         })
         .catch((err) => {
             logger.error(err);

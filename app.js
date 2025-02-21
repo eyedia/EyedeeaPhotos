@@ -6,9 +6,10 @@ import { scan as syno_scan } from "./sources/synology/syno_scanner.mjs";
 import { scan as fs_scan } from "./sources/fs/fs_scanner.mjs";
 import view_manage_router from './api/routers/view_manage_router.js';
 import view_router from './api/routers/view_router.js';
-import repo_router from './api/routers/repo_router.js';
 import source_router from './api/routers/source_router.js';
 import source_scan_router from './api/routers/source_scan_router.js';
+import source_browser_router from './api/routers/source_browser_router.js';
+
 // import { authenticate as syno_authenticate } from "./sources/synology/syno_client.mjs";
 // import { authenticate as fs_authenticate } from "./sources/fs/fs_client.mjs";
 
@@ -25,9 +26,9 @@ app.use(express.json());
 
 app.use('/api/view', view_router);
 app.use('/api/view/manage', view_manage_router);
-app.use('/api/repo', repo_router);
 app.use('/api/sources', source_router);
 app.use('/api/sources/:id', source_scan_router);
+app.use('/api/sources/:id/browse', source_browser_router);
 
 const PORT = process.env.PORT || 8080;
 let random_photo_set_interval = "*/25 * * * * *";

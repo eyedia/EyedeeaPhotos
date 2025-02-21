@@ -119,6 +119,11 @@ async function authenticate_if_required(source_id, callback) {
 }
 
 export async function list_dir(args, callback) {
+  if (!args.offset)
+    args.offset = 0
+  if (!args.limit)
+    args.limit = 1000
+  
   authenticate_if_required(args.source_id, auth_result => {
     let m_param = {
       api: "SYNO.FotoTeam.Browse.Folder",

@@ -1,4 +1,4 @@
-import {list_dir, list_dir_items, list_geo, get_photo } from "../../sources/synology/syno_client.mjs";
+import { list_dir, list_dir_items, list_geo, get_photo } from "../../sources/synology/syno_client.mjs";
 import config_log from "../../config_log.js";
 
 const logger = config_log.logger;
@@ -16,8 +16,20 @@ export const get_root_folders = async (req, res) => {
       limit = req.query.limit;
     }
 
-    const data = await list_dir(undefined, offset, limit);
-    res.json(data);
+    let args = {
+      "source_id": req.params.id,
+      "folder_id": undefined,
+      "offset": offset,
+      "limit": limit
+    }    
+    list_dir(args, (err, data) => {
+      if (data) {
+        res.json(data);
+      }else{
+        res.status(400).json({"message": "Not found"});
+      }
+    });
+
   } catch (error) {
     logger.error(error);
     res.status(500).send('Internal Server Error');
@@ -38,8 +50,20 @@ export const get_folders = async (req, res) => {
       limit = req.query.limit;
     }
 
-    const data = await list_dir(folder_id, offset, limit);
-    res.json(data);
+    let args = {
+      "source_id": req.params.id,
+      "folder_id": folder_id,
+      "offset": offset,
+      "limit": limit
+    }    
+    list_dir(args, (err, data) => {
+      if (data) {
+        res.json(data);
+      }else{
+        res.status(400).json({"message": "Not found"});
+      }
+    });
+
   } catch (error) {
     res.status(500).send('Internal Server Error');
   }
@@ -59,8 +83,20 @@ export const get_items = async (req, res) => {
       limit = req.query.limit;
     }
 
-    const data = await list_dir_items(folder_id, offset, limit);
-    res.json(data);
+    let args = {
+      "source_id":  req.params.id,
+      "folder_id": folder_id,
+      "offset": offset,
+      "limit": limit
+  }
+  list_dir_items(args, (err, data) => {
+      if (data) {
+        res.json(data);
+      }else{
+        res.status(400).json({"message": "Not found"});
+      }
+    });
+
   } catch (error) {
     res.status(500).send('Internal Server Error');
   }

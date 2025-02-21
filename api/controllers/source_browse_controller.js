@@ -4,8 +4,6 @@ import config_log from "../../config_log.js";
 const logger = config_log.logger;
 
 export const get_root_folders = async (req, res) => {
-  try {
-
     let offset = undefined;
     if (req.query.offset) {
       offset = req.query.offset;
@@ -28,16 +26,13 @@ export const get_root_folders = async (req, res) => {
       }else{
         res.status(400).json({"message": "Not found"});
       }
-    });
-
-  } catch (error) {
-    logger.error(error);
-    res.status(500).send('Internal Server Error');
-  }
+    }).catch((err) => {
+      res.status(500).send(err);
+  });
+  
 };
 
-export const get_folders = async (req, res) => {
-  try {
+export const get_folders = async (req, res) => {  
     const folder_id = req.params.folder_id;
 
     let offset = undefined;
@@ -62,15 +57,12 @@ export const get_folders = async (req, res) => {
       }else{
         res.status(400).json({"message": "Not found"});
       }
-    });
-
-  } catch (error) {
-    res.status(500).send('Internal Server Error');
-  }
+    }).catch((err) => {
+      res.status(500).send(err);
+  });
 };
 
-export const get_items = async (req, res) => {
-  try {
+export const get_items = async (req, res) => { 
     const folder_id = req.params.folder_id;
 
     let offset = undefined;
@@ -95,11 +87,9 @@ export const get_items = async (req, res) => {
       }else{
         res.status(400).json({"message": "Not found"});
       }
-    });
-
-  } catch (error) {
-    res.status(500).send('Internal Server Error');
-  }
+    }).catch((err) => {
+      res.status(500).send(err);
+  });
 };
 
 export const get_stats = async (req, res) => {
@@ -111,15 +101,3 @@ export const get_stats = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
-
-/*
-export const createUser = async (req, res) => {
-  try {
-    const newUser = new User(req.body);
-    const savedUser = await newUser.save();
-    res.status(201).json(savedUser);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
-  }
-};
-*/

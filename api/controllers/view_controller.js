@@ -32,7 +32,6 @@ export const get_viewer_config = async (req, res) => {
 
 export const get_random_photo = async (req, res) => {
   if (req.query.photo_index && !isNaN(parseInt(req.query.photo_index))) {
-    
     //UI requesting specific photos (max up to 12)
     get_photo_history((err, rows) => {      
       if (err) {
@@ -41,16 +40,20 @@ export const get_random_photo = async (req, res) => {
       } else {
         if (rows && rows.length > 0) {
           let photo_data = rows[req.query.photo_index];
-          photo_data["photo_index"] = parseInt(req.query.photo_index);
-          //photo_data.address = JSON.parse(photo_data.address);
-          if (photo_data.source_type == constants.SOURCE_TYPE_NAS) {
-            get_photo_from_synology(photo_data, req, res);
-          }else if (photo_data.source_type == constants.SOURCE_TYPE_FS){
-            fs_get_photo(photo_data, res);
-          } else {
-            //some issue, return default pic
-            return get_default_photo(res);
-          }
+            if(photo_data){
+            photo_data["photo_index"] = parseInt(req.query.photo_index);
+            //photo_data.address = JSON.parse(photo_data.address);
+            if (photo_data.source_type == constants.SOURCE_TYPE_NAS) {
+              get_photo_from_synology(photo_data, req, res);
+            }else if (photo_data.source_type == constants.SOURCE_TYPE_FS){
+              fs_get_photo(photo_data, res);
+            } else {
+              //some issue, return default pic
+              return get_default_photo(res);
+            }
+        }else{
+          return get_default_photo(res);
+        }
         }else{
           return get_default_photo(res);
         }

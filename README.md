@@ -17,6 +17,9 @@ Currently, Eyedeea Photos runs on a **Raspberry Pi** within my home network, mak
 
 With this setup, my photos are **secure, organized, and easily viewable**—giving me peace of mind and a better way to enjoy my memories. No hefty cloud fees, no privacy concerns—just my photos, my way.
 
+## Eyedeea Photos Diagram:
+![Eyedeea Photos Demo](graphics/eyedeea_photos_demo_720p.gif)
+
 ## Technical Details:
 - **Written in Node.js** with a **Synology Photo API wrapper** that scans the photo repository and extracts metadata into a flattened structure.
 - **Metadata stored in SQLite DB**, allowing easy updates to album names, date taken, and marking photos for future edits.
@@ -46,6 +49,9 @@ With this setup, my photos are **secure, organized, and easily viewable**—givi
   - Enjoy random memories resurfacing.
   - Easily spot incorrect albums and duplicates.
   - Discover surprising, long-forgotten moments.
+
+## Eyedeea Photos Diagram:
+![Eyedeea Photos Demo](graphics/eyedeea_photos_demo_720p.gif)
 
 ## Eyedeea Photos Diagram:
 ![Eyedeea Photos Diagram](graphics/EyedeeaPhotos_Diagram.gif)

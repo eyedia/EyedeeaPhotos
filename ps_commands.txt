@@ -6,5 +6,5 @@ Get-ChildItem | ForEach-Object {$i = 1} {Rename-Item $_ -NewName ("Belize-{0}{1}
 
 , 
 --update geolocation
-, 
-C:\Work\Tools\exiftool\exiftool -GPSLatitude="-38.62533243544058" -GPSLongitude="-90.1867608726698" -r "C:\Work\gallery\2009\St Louis"
+16.5949808911065, -88.35953159095097
+C:\Work\Tools\exiftool\exiftool -GPSLatitude="16.5949808911065" -GPSLongitude="-88.35953159095097" -r "C:\Work\gallery\2025\demo\Belize 2025"

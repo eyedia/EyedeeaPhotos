@@ -46,7 +46,13 @@ if (!(Test-Path -Path $appdataRoaming\npm\pm2.cmd)) {
 }
 
 Write-Host -NoNewline "Installing Eyedeea Photos..."
-$output = Execute-Command -cmd "C:\Program Files\nodejs\npm.cmd" -arg " install eyedeeaphotos"
+$output = Execute-Command -cmd "C:\Program Files\nodejs\npm.cmd" -arg " install eyedeeaphotos" -working_dir $current_dir
+$install_error = $output.stderr.ToString().Trim()
+$exit_code = $output.ExitCode.ToString().Trim()
+if ($exit_code -ne "0"){
+    Write-Host $install_error
+    exit 100
+}
 Write-Host "done!"
 
 Write-Host -NoNewline "Starting Eyedeea Photos..."
@@ -59,4 +65,5 @@ if (($pm2_result -like "*Done*") -or ($pm2_result -eq "")) {    #if the app is a
 } else {
     Write-Host "Something went wrong! Re-running the installer may solve the problem."
 }
-# .\win_setup.ps1
+Write-Host "All good! Let's configure Eyedeea Photos..."
+.\win_setup.ps1

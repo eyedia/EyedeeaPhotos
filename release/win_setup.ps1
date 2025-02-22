@@ -1,4 +1,3 @@
-
 $eyedeea_url = "http://127.0.0.1:8080"
 
 $source_type = Read-Host -Prompt "Enter source type(nas/fs)"
@@ -36,7 +35,6 @@ try {
 
     $yes_no = Read-Host -Prompt "Do you want to start scan (y/n)?"
     $uri = $eyedeea_url + "/api/sources/" + $source_id + "/scan"
-    Write-Host $uri
     if($yes_no -eq "y"){
         $response = Invoke-RestMethod -Uri $uri -Method Post
         Write-Host $response

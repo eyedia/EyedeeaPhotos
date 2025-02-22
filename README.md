@@ -51,7 +51,7 @@ With this setup, my photos are **secure, organized, and easily viewable**—givi
   - Discover surprising, long-forgotten moments.
 
 ## Eyedeea Photos Diagram:
-![Eyedeea Photos Demo](graphics/eyedeea_photos_demo_720p.gif)
+![Eyedeea Photos Demo](graphics/EyedeeaPhotos_Diagram.gif)
 
 ## Folder Structure
 My folder structure looks as follows, but the code should traverse through any folder structure.

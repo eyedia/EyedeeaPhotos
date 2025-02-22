@@ -53,9 +53,6 @@ With this setup, my photos are **secure, organized, and easily viewable**—givi
 ## Eyedeea Photos Diagram:
 ![Eyedeea Photos Demo](graphics/eyedeea_photos_demo_720p.gif)
 
-## Eyedeea Photos Diagram:
-![Eyedeea Photos Diagram](graphics/EyedeeaPhotos_Diagram.gif)
-
 ## Folder Structure
 My folder structure looks as follows, but the code should traverse through any folder structure.
 - It takes about **10 mins** to parse my folders with **30K photos**. I started with **42K photos**, but **Eyedeea Photos** helped me identify **12K duplicates**.

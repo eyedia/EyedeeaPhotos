@@ -65,5 +65,5 @@ const server = app.listen(PORT, () => {
   logger.info(`Server listening on port ${PORT}`);
 });
 
-module.exports = server; 
-//export default { server };
+//module.exports = server; 
+export default { server };

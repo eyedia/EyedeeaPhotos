@@ -1,14 +1,13 @@
 import request from 'supertest';
 import server from '../../app.js';
 
-
 afterAll((done) => {
-  server.close(done);
+  server.server.close(done);
 });
 
-describe('GET /', () => {
+describe('Server Status', () => {
   it('Check server status', async () => {
-    const response = await request(server).get('/status');
+    const response = await request(server.server).get('/status');
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ status: 'up' });
   });

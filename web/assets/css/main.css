@@ -174,7 +174,7 @@ input, select, textarea {
 
 	p {
 		margin: 0 0 1.25em 0;
-		font-size: 0.5vw;
+		font-size: 1.00vw;
 	}
 
 	h1, h2, h3, h4, h5, h6 {
@@ -191,12 +191,12 @@ input, select, textarea {
 
 	h2 {
 		/*font-size: 1.25em;*/
-		font-size: 1.25vw;
+		font-size: 2.00vw;
 	}
 
 	h3 {
 		/*font-size: 1em;*/
-		font-size: 0.75vw;
+		font-size: 1.25vw;
 	}
 
 	h4 {

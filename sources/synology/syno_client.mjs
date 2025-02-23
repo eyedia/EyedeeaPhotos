@@ -328,36 +328,3 @@ export async function add_tag(source_id, photo_id, tag_id) {
 
   });
 }
-
-function check_valid_data(data, callback) {
-
-  if (data.error) {
-    if (data.error.code && data.error.code == 119) {
-      logger.info("Server returned error code 119. Preparing to re-authenticate. Clearing cache...");
-      meta_clear_cache("nas", (err, nas) => {
-        if (err) {
-          logger.error(err.message);
-          //callback(err, null);
-        } else {
-          if (!nas) {
-            logger.error("Could not clear cache of NAS!");
-            //callback(err, null);
-          } else {
-            logger.info("cache cleared...")
-            // authenticate(result => {
-            //   if(result)
-            //     callback({"retry": true, "data": data});
-            //   else{
-            //     logger.error("Fatal error while clear cache and re-authentication!");
-            //   }
-            // });
-          }
-        }
-      });
-    }
-    return callback({ "retry": false, "data": data });;
-  } else {
-    return callback({ "retry": false, "data": data });;
-  }
-
-}

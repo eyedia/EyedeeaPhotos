@@ -4,20 +4,23 @@
 # Rediscover Your Photos
 
 ## The Problem: Viewing and Sharing My Photos
-Storing photos efficiently is great, but what's the use if I can't easily view and share them? I don’t want to just send folders of images via email—I want a seamless way to rediscover and showcase my memories.
+Storing photos efficiently is great, but what's the use if we can't easily view and share them? I don’t want to just send folders of images via email—I want a seamless way to rediscover and showcase my memories.
 
 ## The Solution: Eyedeea Photos
 ![Eyedeea Photos](graphics/eyedeea_two_logos.png)
 
 **Eyedeea Photos** is an app designed to bring forgotten memories back to life. It integrates with **Synology Photos** & any USB, HDD, SDD to display random photos from the collection. Here’s how it works:
-- **Scan:** Interacts with **Synology Photos API** to extract metadata (filename, path, date taken, geolocation, album name, etc.).
+- **Scan:** Interacts with **Synology Photos API** or **file system** to extract metadata (filename, path, date taken, geolocation, album name, etc.).
 - **Show:** Displays random photos across devices.
 
-Currently, Eyedeea Photos runs on a **Raspberry Pi** within my home network, making photos easily accessible on TVs, laptops, and mobile devices. However, it's a tiny website (~125MB) that can be deployed on any laptop or desktop.
+Ideally you run it on **Raspberry Pi** within your home network, making photos easily accessible on TVs, laptops, and mobile devices. However, it's a tiny website (~125MB) that can be deployed on any laptop or desktop.
 
-With this setup, my photos are **secure, organized, and easily viewable**—giving me peace of mind and a better way to enjoy my memories. No hefty cloud fees, no privacy concerns—just my photos, my way.
+## Eyedeea Photos:
+Photos will be shown with below details:
+- **Title:** Smartly formatted directory name.
+- **Sub Title:** Taken date and geo location as [Place, Country], as available.
+- **Sub Sub Title:** Name of the file.
 
-## Eyedeea Photos Diagram:
 ![Eyedeea Photos Demo](graphics/eyedeea_photos_demo_720p.gif)
 
 ## Technical Details:
@@ -25,7 +28,7 @@ With this setup, my photos are **secure, organized, and easily viewable**—givi
 - **Metadata stored in SQLite DB**, allowing easy updates to album names, date taken, and marking photos for future edits.
 - **Storage agnostic:** Can be extended to read from external sources like USB, HDD, or other service providers through plugins. I am planning to write a **File System plugin** to support USB and external SSDs/HDDs very soon.
 
-## Feature Breakdown:
+## Feature Summary:
 | Feature | Details | Technology | Status |
 |---------|---------|------------|--------|
 | **Basic Photo Player** | Scans photos, random playback, filtered playback, search, configurable scan times, display duration, and logs | Node.js, SQLite, PM2, Apache | Development |
@@ -59,9 +62,11 @@ My folder structure looks as follows, but the code should traverse through any f
 
 ![Synology Photos Folder Structure](graphics/EyedeeaPhotos_Folder_Structure.png)
 
+## KYP - Know Your Photos:  
+Many of us have multiple accounts for various reasons, and many of our memories are scattered across these accounts. You can download all those pics from various places, clean them, crop them, edit them where required, and move them to appropriate folders. Then, use Eyedeea Photos these to view your photos. This will also helpy to identify duplicates, correct your album (directory) names, ultimately a better photo repository.
 
 ## Why NAS?
-If you find these questions intriguing, keep reading:
+I migrated all photos to Synology NAS. If you find these questions intriguing, keep reading:
 - Where do you store your photos?
 - Do you know how many photos you have?
 - How often do you revisit your entire collection?
@@ -93,8 +98,26 @@ I also declutter my collection by removing duplicates and keeping only meaningfu
 
 
 ## Conclusion
-With this setup, my photos are **secure, organized, and easily viewable**—giving me peace of mind and a better way to enjoy my memories. No hefty cloud fees, no privacy concerns—just **my photos, my way**.
+You can also simply migrate your photos to external SDD or HDD. But keep at least one replica and if possible have a geo-redundancy too. With this setup, our photos are **secure, organized, and easily viewable**—giving us peace of mind and a better way to enjoy our memories. No hefty cloud fees, no privacy concerns—just **our photos, our way**.
 
+## Download Eyedeea Photos
+
+### Simple
+| Windows | Linux | Mac |
+| ------- | ----- | --- |
+|Download [Win Install](release/win_install.ps1) & [Win Setup](release/win_setup.ps1) and execute win_install.ps1 on Windows Powershell | _Use Expert_ | _Use Expert_
+
+### Experts
+For my techie friends
+- Install Node
+- Install npm pm2 global
+- Install npm eyedeeaphotos
+
+## Detailed Features:
+| Source Type | Extract Address | Cost | Description |
+| ----------- | --------------- | ---- | ----------- |
+|Synology NAS(DS923+) | Available |Free|
+|File System | Available |About $5 per 1000 addresses. [Details at Google](https://mapsplatform.google.com/pricing/?#pricing-grid)|If configured, Eyedeea Photos will call Google Geolocation API only when (1) your photo meta data has geo location and (2) call only once per photo, even if you rescan multiple times.
 
 ## Credits:
 - **Website Template:** https://html5up.net

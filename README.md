@@ -91,9 +91,9 @@ Privacy is a major concern—I don’t want my photos stored with someone else.
 I built my own **Network Attached Storage (NAS)** using a **Synology DS923+**, ensuring data redundancy and high availability. My photos are accessible within my home network and remotely—without recurring fees or third-party dependencies.
 
 ### 2. Geo-Redundancy for Backup
-To mitigate risks, I use two backup strategies:
+To mitigate risks, we can use two backup strategies:
 - **Cloud Backup:** I back up my NAS to affordable cloud storage like **AWS S3 Deep Glacier** ($0.0036 per GB/month).
-- **Physical Backup:** I periodically copy encrypted backups onto **external SSDs/HDDs** and store them in a separate location.
+- **Physical Backup:** Periodically copy encrypted backups onto **external SSDs/HDDs** and store them in a separate location.
 
 I also declutter my collection by removing duplicates and keeping only meaningful photos. With **32,000 photos (~100GB)**, I expect to stay under **1TB** for years, making cloud backup affordable (~$50 per TB per year).
 
@@ -111,6 +111,12 @@ You can simply migrate your photos to an external SSD or HDD. But keep at least 
 - Install Node.js
 - Install npm pm2 globally
 - Install npm eyedeeaphotos
+
+## Detailed Features:
+| Source Type | Extract Address | Cost | Description |
+| ----------- | --------------- | ---- | ----------- |
+|Synology NAS(DS923+) | Available |Free|
+|File System | Optional |About $5 per 1000 addresses. [Details at Google](https://mapsplatform.google.com/pricing/?#pricing-grid)|If configured, Eyedeea Photos will call Google Geolocation API only when (1) your photo meta data has geo location and (2) call only once per photo, even if you rescan multiple times. You will be paying to Google.
 
 ## Credits:
 - **Website Template:** https://html5up.net

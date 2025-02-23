@@ -11,7 +11,7 @@ import config_log from "../../config_log.js";
 const logger = config_log.logger;
 
 export const scan = async (req, res) => {
-  meta_get_source(req.params.id, undefined, (err, source) => {
+  meta_get_source(req.params.id, true, (err, source) => {
     if (source) {
       if (!scanner_is_busy()) {
         if (source.type == constants.SOURCE_TYPE_NAS)

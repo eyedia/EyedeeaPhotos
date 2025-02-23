@@ -109,9 +109,9 @@ export function get(id, decrypt_or_not, callback) {
                         if (source.password)
                             source.password = decrypt(source.password);
                         if (source.config)
-                            source.config = decrypt(JSON.stringify(source.config));
+                            source.config = decrypt(source.config);
                         if (source.cache)
-                            source.cache = decrypt(JSON.stringify(source.cache));
+                            source.cache = decrypt(source.cache);
                     }
                     source.config = JSON.parse(source.config);
                 }

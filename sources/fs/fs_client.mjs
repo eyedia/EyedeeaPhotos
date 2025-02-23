@@ -18,7 +18,7 @@ export function reset_fs_client() {
 }
 
 export async function authenticate(callback) {
-    meta_get_source("fs", (err, fs_config_from_db) => {
+    meta_get_source("fs", true, (err, fs_config_from_db) => {
         if (err) {
             logger.error(err.message);
             if (callback)

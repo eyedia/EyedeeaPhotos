@@ -20,16 +20,21 @@ export const create_or_update = async (req, res) => {
     if (!req.body.hasOwnProperty("config")) {
       req.body["config"] = null;
     }
+    let plain_password = req.body.password;
     meta_create_or_update(req.body, (err, saved_source, status_code) => {      
       if (err) {
         logger.error(err.message);
       } else {        
         if (saved_source) {
-          
+          if (saved_source.password == 201)
+            saved_source.password = plain_password;
           authenticate_source(saved_source, auth_result => {
             saved_source["authenticate"] = auth_result;
             res.status(status_code);
-            res.json(saved_source);
+            delete saved_source.password;
+            if(saved_source.hasOwnProperty("config"))
+              delete saved_source.config;
+            res.json(saved_source); //we will return the encrypted object
           });
         }
       }
@@ -59,7 +64,7 @@ export const list_items = async (req, res) => {
 
 export const get_item = async (req, res) => {
   try {
-    meta_get(req.params.id, (err, item) => {      
+    meta_get(req.params.id, undefined, (err, item) => {      
       if (err) {
         logger.error(err.message);
       } else {
@@ -72,7 +77,7 @@ export const get_item = async (req, res) => {
   }
 };
 
-function authenticate_source(source, callback){  
+function authenticate_source(source, callback){
   if(source.type == constants.SOURCE_TYPE_NAS){
     syno_authenticate(source.id, auth_result => {
       //for NAS we are going to create special tags.

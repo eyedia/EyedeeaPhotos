@@ -75,8 +75,7 @@ export async function authenticate(source_id, callback) {
 }
 
 function init_syno(source_id, callback) {
-
-  meta_get_source(source_id, (err, nas_config) => {
+  meta_get_source(source_id, true, (err, nas_config) => {
     if (err) {
       logger.error(err.message);
       callback(err, null);

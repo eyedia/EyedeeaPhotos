@@ -199,11 +199,11 @@ function set_sub_title(photo_data, e_sub_title) {
         let address = "";
         try {
             let city_or_town = "";
-            if (photo_data.address.city != "") { //city priority = low
+            if ((photo_data.address.city) && (photo_data.address.city != "")) { //city priority = low
                 city_or_town = photo_data.address.city;
             }
 
-            if (photo_data.address.town != "") { //town priority = high
+            if ((photo_data.address.town) && (photo_data.address.town != "")) { //town priority = high
                 city_or_town = photo_data.address.town;
             }
 
@@ -215,12 +215,16 @@ function set_sub_title(photo_data, e_sub_title) {
                 city_or_town = photo_data.address.state;
             }
 
-            if (city_or_town != "")
-                address = `${city_or_town}, ${photo_data.address.country}`;
-            else
-                address = photo_data.address.country;
+            let country = ""
+            if((photo_data.address.country) && (photo_data.address.country != ""))
+                country = photo_data.address.country;
 
-            e_sub_title.textContent = html_sub_title.textContent + " | " + address;
+            if (city_or_town != "")
+                address = `${city_or_town}, ${country}`;
+            else
+                address = country;
+
+            e_sub_title.textContent = e_sub_title.textContent + " | " + address;
         } catch {
 
         }

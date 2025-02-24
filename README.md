@@ -31,10 +31,10 @@ Photos are displayed with the following details:
 ## Feature Summary:
 | Feature | Details | Technology | Status |
 |---------|---------|------------|--------|
-| **Basic Photo Player** | Scans photos, random playback, filtered playback, search, configurable scan times, display duration, and logs | Node.js, SQLite, PM2, Apache | Development |
-| **MetaFix** | Updates metadata (tags, taken-on date, EXIF, album movement) | Python, ExifTool | Incubation |
-| **Duplicate Identification** | Detects and marks duplicate photos | Python | Requested |
-| **Out-of-Focus Detection** | Identifies and marks blurry photos | Python | Requested |
+| **Eyedeea Photos Player** | Scan photos, random playback, filtered playback, search, configurable scan times, display duration, and logs. Read metadata (tags, taken-on date, geolocation) | Node.js, SQLite, PM2, Apache | Development |
+| **MetaFix** | Update metadata (tags, taken-on date, geolocation) | Node JS, Python, ExifTool | Incubation |
+| **Duplicate Identification** | Detect and mark duplicate photos | Python | Requested |
+| **Out-of-Focus Detection** | Identify and mark blurry photos | Python | Requested |
 
 ## Scope and Considerations:
 - **Not a photo management app:** Users must handle organization, metadata updates, and deletions themselves.
@@ -91,11 +91,11 @@ Privacy is a major concern—I don’t want my photos stored with someone else.
 I built my own **Network Attached Storage (NAS)** using a **Synology DS923+**, ensuring data redundancy and high availability. My photos are accessible within my home network and remotely—without recurring fees or third-party dependencies.
 
 ### 2. Geo-Redundancy for Backup
-To mitigate risks, we can use two backup strategies:
-- **Cloud Backup:** I back up my NAS to affordable cloud storage like **AWS S3 Deep Glacier** ($0.0036 per GB/month).
+To mitigate risks, we can use following two backup strategies:
+- **Cloud Backup:** Back up my NAS to affordable cloud storage like **AWS S3 Deep Glacier** ($0.0036 per GB/month). *I am using this*.
 - **Physical Backup:** Periodically copy encrypted backups onto **external SSDs/HDDs** and store them in a separate location.
 
-I also declutter my collection by removing duplicates and keeping only meaningful photos. With **32,000 photos (~100GB)**, I expect to stay under **1TB** for years, making cloud backup affordable (~$50 per TB per year).
+I also declutter my collection by removing duplicates and keeping only meaningful photos. With **32,000 photos**, I expect to stay under **1TB** for years, making cloud backup affordable (~$50 per TB per year).
 
 ## Conclusion
 You can simply migrate your photos to an external SSD or HDD. But keep at least one replica and, if possible, a geo-redundant backup. With this setup, your photos are **secure, organized, and easily viewable**—providing peace of mind and a better way to enjoy memories. **No hefty cloud fees, no privacy concerns—just our photos, our way.**
@@ -105,12 +105,14 @@ You can simply migrate your photos to an external SSD or HDD. But keep at least 
 ### Simple Installation
 | Windows | Linux | Mac |
 | ------- | ----- | --- |
-|Download [Win Install](release/win_install.ps1) & [Win Setup](release/win_setup.ps1) and execute win_install.ps1 on Windows Powershell | _Use Expert_ | _Use Expert_ |
+|Download [Install Scripts](release/install_scripts.zip) and execute win_install.ps1 on Windows Powershell | _Use Expert_ | _Use Expert_ |
+![Eyedeea Photos Installation](graphics/eyedeea_photos_installation.gif)
 
 ### Expert Installation
 - Install Node.js
 - Install npm pm2 globally
 - Install npm eyedeeaphotos
+- Configure pm2, optionally configure Apache HTTP server
 
 ## Detailed Features:
 | Source Type | Extract Address | Cost | Description |

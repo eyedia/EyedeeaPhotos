@@ -13,7 +13,7 @@ Storing photos efficiently is great, but what's the use if we can't easily view 
 - **Scan:** Interacts with **Synology Photos API** or the **file system** to extract metadata (filename, path, date taken, geolocation, album name, etc.).
 - **Show:** Displays random photos across devices.
 
-Ideally, you run it on a **Raspberry Pi** within your home network, making photos easily accessible on TVs, laptops, and mobile devices. However, it's a lightweight website (~125MB) that can be deployed on any laptop or desktop.
+I recommend to run it on a **Raspberry Pi** within your home network, making photos easily accessible on TVs, laptops, and mobile devices. However, it's a lightweight website (~125MB) that can be deployed on any laptop or desktop.
 
 ## Eyedeea Photos:
 Photos are displayed with the following details:
@@ -21,18 +21,25 @@ Photos are displayed with the following details:
 - **Subtitle:** Date taken and geolocation formatted as [Place, Country], if available.
 - **Sub-subtitle:** Name of the file.
 
+
+## The Player
+- You can trigger the scan manually by calling the API - POST /api/sources/<id>/scan. *UI will be available soon!*
+- Eyedeea Photos will re-scan every night at 1AM. You should turn this off if you do not modify your photo repository very frequently.
+- The server will serve 1 photo every minute.
+- You can download & perform other operations using the hidden toolbar.
+
 ![Eyedeea Photos Demo](graphics/eyedeea_photos_demo_720p.gif)
 
 ## Technical Details:
 - **Written in Node.js**, with a **Synology Photo API wrapper** that scans the photo repository and extracts metadata into a flattened structure.
-- **Metadata stored in SQLite DB**, allowing easy updates to album names, dates, and marking photos for future edits.
-- **Storage-agnostic:** Can be extended to read from external sources like USB, HDD, or other service providers through plugins. A **File System plugin** is planned to support USB and external SSDs/HDDs soon.
+- **Storage-agnostic:** Currently it supports two sources: (1) Synology Photos and (2) File System like USB, HDD. But it can easily extended to support other cloud providers like Google and Amazon Photos.
 
 ## Feature Summary:
 | Feature | Details | Technology | Status |
 |---------|---------|------------|--------|
-| **Eyedeea Photos Player** | Scan photos, random playback, filtered playback, search, configurable scan times, display duration, and logs. Read metadata (tags, taken-on date, geolocation) | Node.js, SQLite, PM2, Apache | Development |
-| **MetaFix** | Update metadata (tags, taken-on date, geolocation) | Node JS, Python, ExifTool | Incubation |
+| **Eyedeea Photos Player** | Scan photos, random playback, filtered playback, search, configurable scan times, display duration, and logs. Read metadata (tags, taken-on date, geolocation) | Node.js, SQLite, PM2, Apache | Beta Testing |
+| **Eyedeea Photos Management** | An user interface to set up sources, configure filtered playback, search, configure scan time, statistics, view logs. Read metadata (tags, taken-on date, geolocation).<br> Targeting for 2025 summer. Experts can use Postman and call Eyedeea Photos API to perform all these operations | Node.js, HTML, CSS | Incubation |
+| **MetaFix** | Update metadata (tags, taken-on date, geolocation) | Node JS, Python, ExifTool | Requested |
 | **Duplicate Identification** | Detect and mark duplicate photos | Python | Requested |
 | **Out-of-Focus Detection** | Identify and mark blurry photos | Python | Requested |
 
@@ -47,7 +54,7 @@ Photos are displayed with the following details:
 - **Personal Results:**
   - **42,000 photos identified**, **12,000 duplicates removed**
   - Corrected multiple album names (**inferred from folder names, with formatting improvements**)
-  - **Scanning 30,000 photos takes ~10 minutes**
+  - **Scanning 30,000 photos from Synology takes ~6 minutes**. The same number from file system takes about ~3 minutes.
 - **Family Impact:**
   - Enjoy random memories resurfacing.
   - Easily spot incorrect albums and duplicates.
@@ -58,16 +65,13 @@ Photos are displayed with the following details:
 
 ## Folder Structure
 My folder structure looks as follows, but the code should traverse through any folder structure.
-- Parsing **30K photos** takes about **10 minutes**.
-- Initially had **42K photos**, but **Eyedeea Photos** helped identify and remove **12K duplicates**.
-
 ![Synology Photos Folder Structure](graphics/EyedeeaPhotos_Folder_Structure.png)
 
 ## KYP - Know Your Photos:  
 Many of us have multiple accounts across platforms, leading to scattered memories. You can download all your photos, clean and organize them, and then use **Eyedeea Photos** to view them. This also helps identify duplicates and correct album (directory) names, creating a better photo repository.
 
-## Why NAS?
-I migrated all photos to **Synology NAS**. If these questions intrigue you, keep reading:
+## I migrated to NAS. But Why?
+I migrated all my photos to **Synology NAS**. If these questions intrigue you, keep reading:
 - Where do you store your photos?
 - Do you know how many photos you have?
 - How often do you revisit your entire collection?
@@ -87,18 +91,18 @@ Privacy is a major concern—I don’t want my photos stored with someone else.
 - **Multiple Providers:** Due to varying features and costs, a single provider isn’t reliable.
 
 ## The Solution: Take Control of Your Photos
-### 1. NAS Storage
+### Local (or Network) Based Storage (NAS or external SDD, HDD, USB)
 I built my own **Network Attached Storage (NAS)** using a **Synology DS923+**, ensuring data redundancy and high availability. My photos are accessible within my home network and remotely—without recurring fees or third-party dependencies.
 
-### 2. Geo-Redundancy for Backup
+### Geo-Redundancy for Backup
 To mitigate risks, we can use following two backup strategies:
 - **Cloud Backup:** Back up my NAS to affordable cloud storage like **AWS S3 Deep Glacier** ($0.0036 per GB/month). *I am using this*.
 - **Physical Backup:** Periodically copy encrypted backups onto **external SSDs/HDDs** and store them in a separate location.
 
-I also declutter my collection by removing duplicates and keeping only meaningful photos. With **32,000 photos**, I expect to stay under **1TB** for years, making cloud backup affordable (~$50 per TB per year).
+I also declutter my collection by removing duplicates and keeping only meaningful photos. With **30,000 photos**, I expect to stay under **1TB** for years, making cloud backup affordable (~$50 per TB per year).
 
 ## Conclusion
-You can simply migrate your photos to an external SSD or HDD. But keep at least one replica and, if possible, a geo-redundant backup. With this setup, your photos are **secure, organized, and easily viewable**—providing peace of mind and a better way to enjoy memories. **No hefty cloud fees, no privacy concerns—just our photos, our way.**
+I end up setting up NAS. But, you can simply migrate your photos to an external SSD or HDD. But keep at least one replica and, if possible, a geo-redundant backup. With this setup, your photos are **secure, organized, and easily viewable**—providing peace of mind and a better way to enjoy memories. **No hefty cloud fees, no privacy concerns—just our photos, our way.**
 
 ## Download Eyedeea Photos
 
@@ -114,11 +118,22 @@ You can simply migrate your photos to an external SSD or HDD. But keep at least 
 - Install npm eyedeeaphotos
 - Configure pm2, optionally configure Apache HTTP server
 
+> **_NOTE:_**  *Remember he IP address of the server. Henceforth we will call this device as **Eyedeea Photos** server.*
+
+## Access Eyedeea Photos
+After installing, make sure that you triggered scan mannually. And once scanning is completed, you can access it.
+
+- On the server, access it using http://127.0.0.1:8080
+- On other devices, access it using server intranet IP Address e.g. http://192.168.1.112:8080
+- We can configure Apache server to access it without the port like http://192.168.1.112
+- We can also configure it to access it using hostname like http://eyedeea **recommended**
+
+
 ## Detailed Features:
-| Source Type | Extract Address | Cost | Description |
+| Source Type | Extract Address | Cost | Explanation |
 | ----------- | --------------- | ---- | ----------- |
-|Synology NAS(DS923+) | Available |Free|
-|File System | Optional |About $5 per 1000 addresses. [Details at Google](https://mapsplatform.google.com/pricing/?#pricing-grid)|If configured, Eyedeea Photos will call Google Geolocation API only when (1) your photo meta data has geo location and (2) call only once per photo, even if you rescan multiple times. You will be paying to Google.
+|Synology NAS(DS923+) | Available |Free| Thanks to Synology, it comes with built in scanner to convert geo-location to address.
+|File System | Optional |About $5 per 1000 addresses. [Details at Google](https://mapsplatform.google.com/pricing/?#pricing-grid)|If configured, Eyedeea Photos will call Google Geolocation API only when (1) your photo meta data has geo location and (2) call only once per photo, even if you rescan multiple times.<br><br> You will be directly paying to Google.
 
 ## Credits:
 - **Website Template:** https://html5up.net

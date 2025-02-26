@@ -1,36 +1,73 @@
 import crypto from "crypto";
-var key = Buffer.from('MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=', 'base64');
 
-/**
- * Encrypt a string
- * @param {string} text - The plaintext string to encrypt
- * @returns {string} The encrypted string
- */
-export function encrypt(text) {
-    const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipheriv(
-        'aes-256-cbc',
-        key,
-        iv
-    );
-    let encrypted = Buffer.concat([iv, cipher.update(text, 'utf8'), cipher.final()]);
-    return encrypted.toString('base64url');
+var password = "secret password";
+
+// var ciphertextBase64 = aesCbcPbkdf2EncryptToBase64(password, plaintext);
+// console.log('ciphertext (Base64): ' + ciphertextBase64);
+// console.log('output is (Base64) salt : (Base64) iv : (Base64) ciphertext');
+
+// console.log('\n* * * Decryption * * *');
+// var ciphertextDecryptionBase64 = ciphertextBase64;
+// console.log('ciphertext (Base64): ', ciphertextDecryptionBase64);
+// console.log('input is (Base64) salt : (Base64) iv : (Base64) ciphertext');
+// var decryptedtext = aesCbcPbkdf2DecryptFromBase64(password, ciphertextBase64);
+// console.log('plaintext: ', decryptedtext);
+
+export function encrypt(data) {
+  var PBKDF2_ITERATIONS = 15000;
+  var salt = generateSalt32Byte();
+  var key = crypto.pbkdf2Sync(password, salt, PBKDF2_ITERATIONS, 32, 'sha256');
+  var iv = generateRandomInitvector();
+  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+  let encryptedBase64 = '';
+  cipher.setEncoding('base64');
+  cipher.on('data', (chunk) => encryptedBase64 += chunk);
+  cipher.on('end', () => {
+  // do nothing console.log(encryptedBase64);
+  // Prints: some clear text data
+  });
+  cipher.write(data);
+  cipher.end();
+  var saltBase64 = base64Encoding(salt);
+  var ivBase64 = base64Encoding(iv);
+  return saltBase64 + ':' + ivBase64 + ':' + encryptedBase64;
 }
 
-/**
- * Decrypt a string
- * @param {string} encrypted - The encrypted string
- * @returns {string} The decrypted string
- */
-export function decrypt(encrypted) {
-    const ivCiphertext = Buffer.from(encrypted, 'base64url');
-    const iv = ivCiphertext.subarray(0, 16);
-    const ciphertext = ivCiphertext.subarray(16);
-    const cipher = crypto.createDecipheriv(
-        'aes-256-cbc',
-        key,
-        iv
-    );
-    let decrypted = Buffer.concat([cipher.update(ciphertext), cipher.final()]);
-    return decrypted.toString('utf-8');
+export function decrypt(data) {
+  var PBKDF2_ITERATIONS = 15000;
+  var dataSplit = data.split(":");
+  var salt = base64Decoding(dataSplit[0]);
+  var key = crypto.pbkdf2Sync(password, salt, PBKDF2_ITERATIONS, 32, 'sha256');
+  var iv = base64Decoding(dataSplit[1]);
+  var ciphertext = dataSplit[2];
+  const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+  let decrypted = '';
+  decipher.on('readable', () => {
+    let chunk;
+    while (null !== (chunk = decipher.read())) {
+      decrypted += chunk.toString('utf8');
+    }
+  });
+  decipher.on('end', () => {
+  // do nothing console.log(decrypted);
+  });
+  decipher.write(ciphertext, 'base64');
+  decipher.end();
+  return decrypted;
+}
+
+function generateSalt32Byte() {
+  return crypto.randomBytes(32);
+}
+
+function generateRandomInitvector() {
+  return crypto.randomBytes(16);
+}
+
+function base64Encoding(input) {
+  return input.toString('base64');
+}
+
+function base64Decoding(input) {
+  return Buffer.from(input, 'base64')
 }

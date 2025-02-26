@@ -58,6 +58,9 @@ if (!is_jest_running) {
 }
 
 app.get('/status', async (req, res) => {
+  //const e = encrypt("Mogambo#66")
+  const e = decrypt("kdvNv5TL/k3n1ktO1kBSULNc7t96ktPPbSQZI12jM9M=:l9e7HrE+V9Vs83uEZW6+jA==:fTcMOqZycFE4lqztXFgCJg==")
+  console.log(e);
   res.json({ status: 'up' });
 
 });

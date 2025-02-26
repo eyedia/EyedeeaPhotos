@@ -3,8 +3,9 @@ import {
     save_item, save_scan_log_detail,
     get_scan_log_detail, update_scan_log
 } from "../../meta/meta_scan.mjs";
-import { start_scanning, scanner_is_busy as base_scanner_is_busy } from '../scanner.js';
+import { start_scanning } from '../scanner.js';
 import config_log from "../../config_log.js";
+import { search_init } from '../../meta/meta_search.mjs';
 
 const logger = config_log.logger;
 let _failed_folders_tried = false;

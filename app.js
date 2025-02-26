@@ -10,6 +10,7 @@ import view_router from './api/routers/view_router.js';
 import source_router from './api/routers/source_router.js';
 import source_scan_router from './api/routers/source_scan_router.js';
 import source_browser_router from './api/routers/source_browser_router.js';
+import { encrypt, decrypt } from "./meta/encrypt.js";
 
 // import { authenticate as syno_authenticate } from "./sources/synology/syno_client.mjs";
 // import { authenticate as fs_authenticate } from "./sources/fs/fs_client.mjs";

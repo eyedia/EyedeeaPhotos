@@ -21,7 +21,7 @@ export function scanner_is_busy() {
 export function start_scanning(scan_start_data, callback_started, callback_ended) {
     if (_timeout_id != 0) {
         //already a scan running, return bad
-        logger.error("FS scanning is already in progress!");
+        logger.error("Scanning is already in progress!");
         return;
     }
     let scan_log_data = {

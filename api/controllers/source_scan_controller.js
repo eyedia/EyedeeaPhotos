@@ -53,7 +53,7 @@ const fs_scan = async (source, req, res) => {
 
   try {
     if (fs_config == null) {
-      fs_authenticate(result => {
+      fs_authenticate(source.id, result => {
         execute_fs_scan(source, res);
       });
     } else {

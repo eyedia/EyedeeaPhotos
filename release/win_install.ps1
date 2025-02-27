@@ -4,6 +4,14 @@ $node_ver = ""
 $current_dir = Get-Item $PSScriptRoot
 $appdataRoaming = [Environment]::GetFolderPath("ApplicationData")
 
+Function Set-key () {
+    $key = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+    $bytes = New-Object byte[] 32
+    $key.GetBytes($bytes)
+    $keyHex = ([BitConverter]::ToString($bytes)) -replace '-', ''
+    [System.Environment]::SetEnvironmentVariable("EYEDEEA_KEY", $keyHex, [System.EnvironmentVariableTarget]::User)
+}
+Set-key
 Function Execute-Command ($cmd, $arg, $working_dir) {
     $pinfo = New-Object System.Diagnostics.ProcessStartInfo
     $pinfo.FileName = $cmd
@@ -55,13 +63,12 @@ if ($exit_code -ne "0"){
 }
 Write-Host "done!"
 
-Write-Host -NoNewline "Starting Eyedeea Photos..."
+Write-Host -NoNewline "Setting up the server..."
 $eyedeea_dir = "$current_dir\node_modules\eyedeeaphotos"
 $output = Execute-Command -cmd "$appdataRoaming\npm\pm2.cmd" -arg "start app.js --name ""Eyedeea Photos""" -working_dir $eyedeea_dir
 $pm2_result = $output.stdout.ToString().Trim()
 if (($pm2_result -like "*Done*") -or ($pm2_result -eq "")) {    #if the app is already listed, PM2 returns empty string (when someone re-runs the installer)
-    Write-Host "done!"
-    #Start-Process "http://127.0.0.1:8080"
+    Write-Host "done!"    
 } else {
     Write-Host "Something went wrong! Re-running the installer may solve the problem."
 }

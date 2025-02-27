@@ -86,7 +86,7 @@ function authenticate_source(source, callback){
       callback(auth_result);
     });
   }else if(source.type == constants.SOURCE_TYPE_FS){
-    fs_authenticate();
+    fs_authenticate(source.id);
     callback({"auth_status": true, "error": {} });
   }
 }

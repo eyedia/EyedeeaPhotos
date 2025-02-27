@@ -10,15 +10,15 @@ import {
 } from "../../meta//meta_scan.mjs"
 
 const logger = config_log.logger;
-export let fs_config = null;
+export let fs_config = {};
 export let google_map_api_called = 0;
 
 export function reset_fs_client() {
     google_map_api_called = 0;
 }
 
-export async function authenticate(callback) {
-    meta_get_source("fs", true, (err, fs_config_from_db) => {
+export async function authenticate(source_id, callback) {
+    meta_get_source(source_id, true, (err, fs_config_from_db) => {
         if (err) {
             logger.error(err.message);
             if (callback)
@@ -28,14 +28,14 @@ export async function authenticate(callback) {
                 logger.error("FS was not configured!");
                 return;
             }
-            fs_config = fs_config_from_db;
+            fs_config[source_id] = fs_config_from_db;
             if (callback)
                 callback(null, fs_config_from_db);
         }
     });
 }
 
-export function get_exif_data(photo_path, callback) {
+export function get_exif_data(source_id, photo_path, callback) {
 
     let extracted_exif_data = {
         "create_date": undefined,
@@ -71,7 +71,7 @@ export function get_exif_data(photo_path, callback) {
                         extracted_exif_data.address = meta_address_data.address;
                         callback(null, extracted_exif_data);
                     } else {
-                        get_address_using_geo_reverse(exif_data.latitude, exif_data.longitude, (err, address) => {
+                        get_address_using_geo_reverse(source_id, exif_data.latitude, exif_data.longitude, (err, address) => {
                             if (err) {
                                 logger.error(err);
                                 callback(err, extracted_exif_data);
@@ -100,8 +100,8 @@ function save_geo_address(latitude, longitude, address) {
     meta_save_geo_address(json_data);
 }
 
-function get_address_using_geo_reverse(lat, lng, callback) {
-    get_geo_reverse(lat, lng, (err, address_data) => {
+function get_address_using_geo_reverse(source_id, lat, lng, callback) {
+    get_geo_reverse(source_id, lat, lng, (err, address_data) => {
         if (err) {
             callback(err, null);
             return;
@@ -156,8 +156,9 @@ function get_address_using_geo_reverse(lat, lng, callback) {
     });
 }
 
-async function get_geo_reverse(lat, lng, callback) {
-    if (!fs_config || !fs_config.config || !fs_config.config.GOOGLE_MAPS_API_KEY) {
+async function get_geo_reverse(source_id, lat, lng, callback) {
+    authenticate_if_required(source_id, auth_result => {
+    if (!fs_config || !fs_config[source_id].config || !fs_config[source_id].config.GOOGLE_MAPS_API_KEY) {
         callback("FS source was not configured or GOOGLE_MAPS_API_KEY was not set! Cannot use Google map API.", null);
         return;
     }
@@ -173,7 +174,7 @@ async function get_geo_reverse(lat, lng, callback) {
             params:
             {
                 latlng: { lat, lng },
-                key: fs_config.config.GOOGLE_MAPS_API_KEY,
+                key: fs_config[source_id].config.GOOGLE_MAPS_API_KEY,
             },
 
         })
@@ -186,6 +187,7 @@ async function get_geo_reverse(lat, lng, callback) {
         .catch((err) => {
             logger.error(err);
         });
+    });
 }
 
 export async function get_photo(photo_data, res) {
@@ -204,3 +206,12 @@ export async function get_photo(photo_data, res) {
     });
 }
 
+async function authenticate_if_required(source_id, callback) {
+  if (!fs_config[source_id]) {
+    authenticate(source_id, auth_result => {
+      callback(auth_result);
+    });
+  } else {
+    callback({ "auth_status": true, "error": {} });
+  }
+}

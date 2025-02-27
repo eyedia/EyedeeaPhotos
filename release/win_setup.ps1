@@ -1,4 +1,12 @@
 $eyedeea_url = "http://127.0.0.1:8080"
+Function Set-key () {
+    $key = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+    $bytes = New-Object byte[] 32
+    $key.GetBytes($bytes)
+    $keyHex = ([BitConverter]::ToString($bytes)) -replace '-', ''
+    [System.Environment]::SetEnvironmentVariable("EYEDEEA_KEY", $keyHex, [System.EnvironmentVariableTarget]::User)
+}
+Set-key
 
 $source_type = Read-Host -Prompt "Enter source type(nas/fs)"
 if(($source_type -ne "nas") -or ($source_type -ne "nas")){

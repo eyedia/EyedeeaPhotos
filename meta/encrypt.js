@@ -1,73 +1,50 @@
 import crypto from "crypto";
+const algorithm = 'aes-256-gcm';
+import config_log from "../config_log.js";
+const logger = config_log.logger;
 
-var password = "secret password";
-
-// var ciphertextBase64 = aesCbcPbkdf2EncryptToBase64(password, plaintext);
-// console.log('ciphertext (Base64): ' + ciphertextBase64);
-// console.log('output is (Base64) salt : (Base64) iv : (Base64) ciphertext');
-
-// console.log('\n* * * Decryption * * *');
-// var ciphertextDecryptionBase64 = ciphertextBase64;
-// console.log('ciphertext (Base64): ', ciphertextDecryptionBase64);
-// console.log('input is (Base64) salt : (Base64) iv : (Base64) ciphertext');
-// var decryptedtext = aesCbcPbkdf2DecryptFromBase64(password, ciphertextBase64);
-// console.log('plaintext: ', decryptedtext);
-
-export function encrypt(data) {
-  var PBKDF2_ITERATIONS = 15000;
-  var salt = generateSalt32Byte();
-  var key = crypto.pbkdf2Sync(password, salt, PBKDF2_ITERATIONS, 32, 'sha256');
-  var iv = generateRandomInitvector();
-  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
-  let encryptedBase64 = '';
-  cipher.setEncoding('base64');
-  cipher.on('data', (chunk) => encryptedBase64 += chunk);
-  cipher.on('end', () => {
-  // do nothing console.log(encryptedBase64);
-  // Prints: some clear text data
-  });
-  cipher.write(data);
-  cipher.end();
-  var saltBase64 = base64Encoding(salt);
-  var ivBase64 = base64Encoding(iv);
-  return saltBase64 + ':' + ivBase64 + ':' + encryptedBase64;
+export function encrypt(text) {
+  const iv = crypto.randomBytes(12); // 96-bit IV
+  const key = get_key();
+  if(!key)
+    return;
+  const cipher = crypto.createCipheriv(algorithm, key, iv);
+  let encrypted = cipher.update(text, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  const authTag = cipher.getAuthTag().toString('hex');
+  return en_to_string(iv.toString('hex'), authTag, encrypted);
+  //return { encrypted, authTag, iv: iv.toString('hex') };
 }
-
-export function decrypt(data) {
-  var PBKDF2_ITERATIONS = 15000;
-  var dataSplit = data.split(":");
-  var salt = base64Decoding(dataSplit[0]);
-  var key = crypto.pbkdf2Sync(password, salt, PBKDF2_ITERATIONS, 32, 'sha256');
-  var iv = base64Decoding(dataSplit[1]);
-  var ciphertext = dataSplit[2];
-  const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
-  let decrypted = '';
-  decipher.on('readable', () => {
-    let chunk;
-    while (null !== (chunk = decipher.read())) {
-      decrypted += chunk.toString('utf8');
-    }
-  });
-  decipher.on('end', () => {
-  // do nothing console.log(decrypted);
-  });
-  decipher.write(ciphertext, 'base64');
-  decipher.end();
+export function decrypt(encrypted) {
+  const en_data = string_to_en(encrypted);
+  const key = get_key();
+  if(!key)
+    return;
+  const decipher = crypto.createDecipheriv(algorithm, key, Buffer.from(en_data.iv, 'hex'));
+  decipher.setAuthTag(Buffer.from(en_data.auth_tag, 'hex'));
+  let decrypted = decipher.update(en_data.e_text, 'hex', 'utf8');
+  decrypted += decipher.final('utf8');
   return decrypted;
 }
 
-function generateSalt32Byte() {
-  return crypto.randomBytes(32);
+function string_to_en(encrypted){
+  const iv = encrypted.substring(0,24)
+  const auth_tag = encrypted.substring(24,24+32)
+  const e_text = encrypted.substring(24+32, encrypted.length)
+  return {iv, auth_tag, e_text}
 }
 
-function generateRandomInitvector() {
-  return crypto.randomBytes(16);
+function en_to_string(iv, auth_tag, encrypted){
+  return iv + auth_tag + encrypted;
 }
 
-function base64Encoding(input) {
-  return input.toString('base64');
-}
-
-function base64Decoding(input) {
-  return Buffer.from(input, 'base64')
+function get_key(){
+  let keyHex = process.env.EYEDEEA_KEY;
+  console.log(keyHex);
+  if (!keyHex) {
+      logger.error("'EYEDEEA_KEY' environment variable was not found! Please resinstall or contact support.");
+      return;
+  }
+  const key = Buffer.from(process.env.EYEDEEA_KEY, 'hex');
+  return key;
 }

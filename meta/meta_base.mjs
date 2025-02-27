@@ -9,7 +9,7 @@ const logger = config_log.logger;
 const dbFile = './meta/eyedeea_photos.db';
 
 const dbExists = fs.existsSync(dbFile);
-export let meta_db = new sqlite3.Database(dbFile,
+export const meta_db = new sqlite3.Database(dbFile,
     sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE,
     (err) => {
         if (err) {

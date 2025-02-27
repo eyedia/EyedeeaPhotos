@@ -12,7 +12,7 @@ export function create_or_update(source, callback) {
         source.config = encrypt(JSON.stringify(source.config));
     if (source.cache)
         source.cache = encrypt(JSON.stringify(source.cache));
-    
+
     meta_db.get(query, [source.name],
         (err, meta_source) => {
             if (err) {
@@ -93,7 +93,7 @@ export function list(callback) {
     });
 }
 
-export function get(id, decrypt_or_not, callback) {
+export function get(id, decrypt_value, callback) {
     const try_id = parseInt(id);
     let query = `select * from source where id = ?`;
     if (isNaN(try_id))
@@ -103,17 +103,11 @@ export function get(id, decrypt_or_not, callback) {
             if (err) {
                 logger.error(err.message);
                 callback(err, null);
-            } else {
-                if (source && (source.config != null || source.config != "")){
-                    if (decrypt_or_not) {
-                        if (source.password)
-                            source.password = decrypt(source.password);
-                        if (source.config)
-                            source.config = decrypt(source.config);
-                        if (source.cache)
-                            source.cache = decrypt(source.cache);
-                    }
-                    source.config = JSON.parse(source.config);
+            } else if (source && (source.config != null || source.config != "")) {
+                if (decrypt_value) {
+                    source.password = source.password ? decrypt(source.password) : source.password;
+                    source.cache = source.cache ? decrypt(source.cache) : source.cache;
+                    source.config = source.config ? JSON.parse(decrypt(source.config)) : source.config;
                 }
                 callback(null, source);
             }

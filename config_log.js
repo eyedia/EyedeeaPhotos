@@ -1,5 +1,19 @@
 import winston from 'winston';
 import moment from 'moment-timezone';
+import getAppDataPath from 'appdata-path';
+import path from 'path';
+import fs from 'fs';
+
+const org = 'EyediaTech';
+const app_name = 'EyedeeaPhotos';
+const log_path = path.join(getAppDataPath(org), app_name, 'logs');
+
+console.log('Logs folder path:', log_path);
+
+if (!fs.existsSync(log_path)){
+    fs.mkdirSync(log_path, { recursive: true });
+}
+
 
 const logger = winston.createLogger({
   level: 'info', // Log level (e.g., error, warn, info, debug)
@@ -15,9 +29,9 @@ const logger = winston.createLogger({
     })
   ),
   transports: [
-    new winston.transports.File({ filename: './logs/logs.log' }),
+    new winston.transports.File({ filename: path.join(log_path, 'logs.log')}),
     //new winston.transports.Console(),
-    new winston.transports.File({ filename: './logs/errors.log', level: 'error' })
+    new winston.transports.File({ filename: path.join(log_path, 'errors.log'), level: 'error' })
   ]
 });
 

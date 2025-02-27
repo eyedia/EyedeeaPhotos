@@ -205,7 +205,7 @@ function set_current_photo(callback) {
                     }
                 });
             }else{
-                logger.info("Already one photo was set to current, the operation was ignored.");
+                logger.warn("Already one photo was set to current, the operation was ignored.");
             }
         }
     });

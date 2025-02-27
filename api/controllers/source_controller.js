@@ -24,6 +24,7 @@ export const create_or_update = async (req, res) => {
     meta_create_or_update(req.body, (err, saved_source, status_code) => {      
       if (err) {
         logger.error(err.message);
+        res.status(500).send('Internal Server Error');
       } else {        
         if (saved_source) {
           if (saved_source.password == 201)
@@ -34,8 +35,10 @@ export const create_or_update = async (req, res) => {
             delete saved_source.password;
             if(saved_source.hasOwnProperty("config"))
               delete saved_source.config;
-            res.json(saved_source); //we will return the encrypted object
+            res.json(saved_source);
           });
+        }else{
+          res.status(500).send('Internal Server Error');
         }
       }
     });

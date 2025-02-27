@@ -8,6 +8,7 @@ import {
 
 import { meta_db } from "../meta/meta_base.mjs";
 import config_log from "../config_log.js";
+import { search_init } from '../meta/meta_search.mjs';
 
 const logger = config_log.logger;
 let _interval_id = 0;
@@ -97,7 +98,8 @@ export function stop_scanning(scan_start_data, timed_out, callback_ended) {
                 clearTimeout(_timeout_id);
                 _timeout_id = 0;
                 _interval_id = 0;
-                logger.info(scan_log_end_data.info);
+                logger.info(scan_log_end_data.info);                
+                search_init();
                 callback_ended(null, scan_log_end_data);
             });
     } else {

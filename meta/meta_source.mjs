@@ -33,8 +33,8 @@ export function create_or_update(source, callback) {
                         });
                 } else {
                     meta_db.run(
-                        `UPDATE source set url = ?, user = ?, password = ?, config = ?, cache = ?, updated_at = ? where name = ?`,
-                        [source.url, source.user, source.password, source.config, undefined, Date.now(), source.name],
+                        `UPDATE source set url = ?, user = ?, password = ?, config = ?, cache = ?, updated_at = strftime('%Y-%m-%d %H:%M:%S', 'now') where name = ?`,
+                        [source.url, source.user, source.password, source.config, undefined, source.name],
                         function (err) {
                             if (err) {
                                 logger.error('Error updating data:', err);
@@ -62,8 +62,8 @@ export function update_cache(source, callback) {
             } else {
                 if (meta_source) {
                     meta_db.run(
-                        `UPDATE source set [cache] = ?, updated_at = ? where name = ?`,
-                        [source.cache, Date.now(), source.name],
+                        `UPDATE source set [cache] = ?, updated_at = strftime('%Y-%m-%d %H:%M:%S', 'now') where name = ?`,
+                        [source.cache, source.name],
                         function (err) {
                             if (err) {
                                 logger.error('Error updating data:', err);
@@ -127,8 +127,8 @@ export function clear_cache(id, callback) {
             } else {
                 if (source) {
                     meta_db.run(
-                        `UPDATE source set [cache] = null, updated_at = ? where id = ?`,
-                        [Date.now(), source["id"]],
+                        `UPDATE source set [cache] = null, updated_at = strftime('%Y-%m-%d %H:%M:%S', 'now') where id = ?`,
+                        [source["id"]],
                         function (err) {
                             if (err) {
                                 logger.error('Error updating data:', err);

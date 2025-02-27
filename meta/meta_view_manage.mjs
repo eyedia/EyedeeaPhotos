@@ -25,8 +25,8 @@ export function create_or_update(view_filter, callback) {
                     });
             } else {
                 meta_db.run(
-                    `UPDATE view_filter set filter_must = ?, filter_option = ?, current = ?, updated_at = ? where name = ?`,
-                    [view_filter.filter_must, view_filter.filter_option, view_filter.current, Date.now(), source.name],
+                    `UPDATE view_filter set filter_must = ?, filter_option = ?, current = ?, updated_at = strftime('%Y-%m-%d %H:%M:%S', 'now') where name = ?`,
+                    [view_filter.filter_must, view_filter.filter_option, view_filter.current, source.name],
                     function (err) {
                         if (err) {
                             logger.error('Error updating data:', err);
@@ -50,8 +50,8 @@ export function set_current(name, callback) {
             if (view_filter) {
 
                 meta_db.run(
-                    `UPDATE view_filter set current = 1, updated_at = ? where name = ?`,
-                    [Date.now(), name],
+                    `UPDATE view_filter set current = 1, updated_at = strftime('%Y-%m-%d %H:%M:%S', 'now') where name = ?`,
+                    [name],
                     function (err) {
                         if (err) {
                             logger.error('Error updating data:', err);

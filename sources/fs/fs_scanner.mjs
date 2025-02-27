@@ -7,7 +7,6 @@ import { save_item as meta_save_item, stop_scan as meta_stop_scan } from "../../
 import config_log from "../../config_log.js";
 import { start_scanning} from '../scanner.js';
 import { get_exif_data, google_map_api_called, reset_fs_client } from "./fs_client.mjs";
-import { search_init } from '../../meta/meta_search.mjs';
 const logger = config_log.logger;
 
 
@@ -82,5 +81,4 @@ function fs_scanning_ended(err, scan_log_end_data) {
   scan_log_end_data.info += `Google MAP API was called ${google_map_api_called} times.`;
   logger.info(scan_log_end_data.info);
   meta_stop_scan(scan_log_end_data);
-  search_init();
 }

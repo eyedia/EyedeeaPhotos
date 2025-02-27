@@ -64,10 +64,10 @@ export function start_scan(json_data, callback) {
 }
 
 export function stop_scan(json_data, callback) {
-    const insert_query = `UPDATE scan_log set updated_at =?, info =? WHERE id =?`;
+    const insert_query = `UPDATE scan_log set updated_at =strftime('%Y-%m-%d %H:%M:%S', 'now'), info =? WHERE id =?`;
     return meta_db.run(
         insert_query,
-        [Date.now(), json_data.info, json_data.id],
+        [json_data.info, json_data.id],
         function (err) {
             if (err) {
                 logger.error('Error updating data:', err);
@@ -124,8 +124,8 @@ export function get_scan_log_detail(scan_log_id, scan_status = 0, callback) {
 
 export function update_scan_log(scan_log_id, folder_id, re_scanned) {
     meta_db.run(
-        `UPDATE scan_log_detail set re_scanned = ?, updated_at = ? where scan_log_id = ? and folder_id = ?`,
-        [re_scanned, Date.now(), scan_log_id, folder_id],
+        `UPDATE scan_log_detail set re_scanned = ?, updated_at = strftime('%Y-%m-%d %H:%M:%S', 'now') where scan_log_id = ? and folder_id = ?`,
+        [re_scanned, scan_log_id, folder_id],
         function (err) {
             if (err) {
                 logger.error('Error updating data:', err);

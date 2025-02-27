@@ -131,8 +131,8 @@ export function set_random_photo() {
                                     } else {                                        
                                         random_photo["count"] = rows[0].count;
                                         meta_db.run(
-                                            `UPDATE view_log set status = 0, count = ?, view_filter_id = ?, updated_at = ? where photo_id = ?`,
-                                            [random_photo.count + 1, view_filter_id, Date.now(), random_photo.photo_id],
+                                            `UPDATE view_log set status = 0, count = ?, view_filter_id = ?, updated_at = strftime('%Y-%m-%d %H:%M:%S', 'now') where photo_id = ?`,
+                                            [random_photo.count + 1, view_filter_id, random_photo.photo_id],
                                             function (err) {
                                                 if (err) {
                                                     logger.error('Error updating data:', err);
@@ -179,9 +179,9 @@ function set_current_photo(callback) {
                             meta_db.run(
                                 `UPDATE view_log set current = 1, 
                                     update_sequence = (select max(update_sequence) + 1 from view_log),
-                                    updated_at = ? 
+                                    updated_at = strftime('%Y-%m-%d %H:%M:%S', 'now') 
                                     where photo_id = ?`,
-                                [Date.now(), rows[0]["photo_id"]],
+                                [rows[0]["photo_id"]],
                                 function (err) {
                                     if (err) {
                                         logger.error('Error updating data:', err);

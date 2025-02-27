@@ -38,7 +38,7 @@ export async function scan(source, callback) {
 async function internal_scan(source, dir) {
   fs.readdir(dir, (err, files) => {
     if (err) {
-      console.error('Error reading folder:', err);
+      logger.error('Error reading folder:', err);
       return;
     }
 
@@ -46,11 +46,11 @@ async function internal_scan(source, dir) {
       const photo_path = path.join(dir, file);
       fs.stat(photo_path, (err, stats) => {
         if (err) {
-          console.error('Error getting file stats:', err);
+          logger.error('Error getting file stats:', err);
           return;
         }
         if (stats.isFile() && path.extname(file).toLowerCase() === '.jpg') {
-          get_exif_data(photo_path, (err, exif_data) => {
+          get_exif_data(source.id, photo_path, (err, exif_data) => {
             let one_record = {
               "source_id": source.id,
               "photo_id": crypto.randomUUID(),

@@ -36,7 +36,6 @@ export async function authenticate(source_id, callback) {
 }
 
 export function get_exif_data(source_id, photo_path, callback) {
-
     let extracted_exif_data = {
         "create_date": undefined,
         "tags": undefined,
@@ -60,7 +59,7 @@ export function get_exif_data(source_id, photo_path, callback) {
 
                 if (exif_data.hasOwnProperty("XPKeywords"))
                     extracted_exif_data.tags = exif_data.XPKeywords;
-
+                
                 //geo reverse coding starts
                 if (!exif_data.latitude || !exif_data.longitude) {
                     callback(null, extracted_exif_data);

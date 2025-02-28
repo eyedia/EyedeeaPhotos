@@ -73,4 +73,4 @@ if (($pm2_result -like "*Done*") -or ($pm2_result -eq "")) {    #if the app is a
     Write-Host "Something went wrong! Re-running the installer may solve the problem."
 }
 Write-Host "All good! Let's configure Eyedeea Photos..."
-.\win_setup.ps1
+.\setup.ps1

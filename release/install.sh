@@ -41,26 +41,44 @@ fi
 # Define the Apache web directory
 WWW_DIR="/var/www/html"
 
+JSON_FILE="input.json"
+APP_DIR="EyedeeaPhotos"
+
 # Check if the directory exists
-if [ -d "$WWW_DIR" ]; then    
-    echo "Installing Eyedeea Photos $WWW_DIR as $BACKUP_FILE..."
-    cd $WWW_DIR
+if [ -d "$WWW_DIR" ]; then
+    mkdir $WWW_DIR/$APP_DIR
+    cp $JSON_FILE $WWW_DIR/$APP_DIR
+    echo "Installing Eyedeea Photos on $WWW_DIR ..."
+    cd $WWW_DIR/$APP_DIR
 else
     echo "Directory $WWW_DIR does not exist."
+    return 1
 fi
-# Get the current directory
-CURRENT_DIR=$(pwd)
+
+npm install eyedeeaphotos
+
+# Verify installation
+if [ $? -eq 0 ]; then
+    echo "'Eyedeea Photos' installed"
+else
+    echo "Failed to install 'Eyedeea Photos'"
+    return 1
+fi
+
+chmod -R 777 $WWW_DIR/$APP_DIR
 
 # Start the Eyedeea Photos app with PM2
-APP_PATH="$CURRENT_DIR/node_modules/eyedeeaphotos/app.js"
+APP_PATH="$WWW_DIR/$APP_DIR/node_modules/eyedeeaphotos/app.js"
+
 
 if [ -f "$APP_PATH" ]; then
-    echo -n "Starting Eyedeea Photos with PM2..."
+    echo -n "Starting Eyedeea Photos with PM2...$APP_PATH"
     pm2 start "$APP_PATH" --name "Eyedeea Photos" > /dev/null 2>&1
     echo -e "\rStarting Eyedeea Photos with PM2...done"
 else
     echo "Error: $APP_PATH does not exist. Make sure Eyedeea Photos is installed."
 fi
+
 
 # Set up PM2 to start on system boot
 echo -n "Setting up PM2 to start on boot..."
@@ -69,15 +87,11 @@ pm2 save > /dev/null 2>&1
 echo -e "\rSetting up PM2 to start on boot...done"
 
 echo "All good! Let's configure Eyedeea Photos..."
-#!/bin/bash
-
-# Define the JSON file to read (change this if needed)
-JSON_FILE="input.json"
 
 # Check if the JSON file exists
 if [[ ! -f "$JSON_FILE" ]]; then
     echo "Error: JSON file '$JSON_FILE' not found!"
-    exit 1
+    return 1
 fi
 
 # Make the POST request and extract the "id" field from the response
@@ -86,7 +100,7 @@ RESPONSE=$(curl -s -X POST -H "Content-Type: application/json" -d @"$JSON_FILE" 
 # Check if the request was successful
 if [[ -z "$RESPONSE" ]]; then
     echo "Error: No response received from the server!"
-    exit 1
+    return 1
 fi
 
 # Extract the "id" from the response
@@ -95,7 +109,7 @@ source_id=$(echo "$response" | jq -r '.id')
 # Check if an id was extracted
 if [[ "$source_id" == "null" || -z "$source_id" ]]; then
     echo "Error: Could not communicate with Eyedeea Photos server!"
-    exit 1
+    return 1
 fi
 
 echo "New source registered: $source_id"

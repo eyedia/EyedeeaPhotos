@@ -59,6 +59,9 @@ app.get('/status', async (req, res) => {
 
 });
 
+
+console.log(`Operating System: ${platform}`);
+
 const server = app.listen(PORT, () => {
   logger.info(`Server listening on port ${PORT}`);
 });

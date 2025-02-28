@@ -3,10 +3,20 @@ import moment from 'moment-timezone';
 import getAppDataPath from 'appdata-path';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
+
+const platform = os.platform();
 
 const org = 'EyediaTech';
 const app_name = 'EyedeeaPhotos';
-const log_path = path.join(getAppDataPath(org), app_name, 'logs');
+
+const log_path = (() => {
+  if (platform.startsWith("win")) {
+    return path.join(getAppDataPath(org), app_name, 'logs');
+  } else {
+    return "/var/log/EyediaTech/EyedeeaPhotos/logs";
+  }
+})();
 
 console.log('Logs folder path:', log_path);
 

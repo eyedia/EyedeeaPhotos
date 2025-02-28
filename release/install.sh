@@ -13,6 +13,7 @@ is_installed() {
 # Install Node.js if not installed
 if ! command -v node &> /dev/null; then
     echo -n "Installing Node.js..."
+    curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
     sudo apt update > /dev/null 2>&1
     sudo apt install -y nodejs npm > /dev/null 2>&1
     echo -e "\rInstalling Node.js...done"
@@ -46,10 +47,13 @@ APP_DIR="EyedeeaPhotos"
 
 # Check if the directory exists
 if [ -d "$WWW_DIR" ]; then
+    if [ -d "$WWW_DIR/$APP_DIR" ]; then
+        rm -rf $WWW_DIR/$APP_DIR
+    fi
     mkdir $WWW_DIR/$APP_DIR
-    cp $JSON_FILE $WWW_DIR/$APP_DIR
-    echo "Installing Eyedeea Photos on $WWW_DIR ..."
+    cp $JSON_FILE $WWW_DIR/$APP_DIR    
     cd $WWW_DIR/$APP_DIR
+    echo "Installing Eyedeea Photos on $WWW_DIR/$APP_DIR ..."
 else
     echo "Directory $WWW_DIR does not exist."
     return 1
@@ -65,20 +69,23 @@ else
     return 1
 fi
 
+cd $WWW_DIR
 chmod -R 777 $WWW_DIR/$APP_DIR
 
 # Start the Eyedeea Photos app with PM2
-APP_PATH="$WWW_DIR/$APP_DIR/node_modules/eyedeeaphotos/app.js"
+APP_DIR_FULL="$WWW_DIR/$APP_DIR/node_modules/eyedeeaphotos"
 
 
-if [ -f "$APP_PATH" ]; then
-    echo -n "Starting Eyedeea Photos with PM2...$APP_PATH"
-    pm2 start "$APP_PATH" --name "Eyedeea Photos" > /dev/null 2>&1
+if [ -d "$APP_DIR_FULL" ]; then
+    echo -n "Starting Eyedeea Photos with PM2...$APP_DIR_FULL"
+    cd $APP_DIR_FULL
+    pm2 start "app.js" --name "Eyedeea Photos" > /dev/null 2>&1
     echo -e "\rStarting Eyedeea Photos with PM2...done"
 else
-    echo "Error: $APP_PATH does not exist. Make sure Eyedeea Photos is installed."
+    echo "Error: $APP_DIR_FULL does not exist. Make sure Eyedeea Photos is installed."
 fi
 
+cd $WWW_DIR/$APP_DIR
 
 # Set up PM2 to start on system boot
 echo -n "Setting up PM2 to start on boot..."

@@ -10,8 +10,13 @@ const platform = os.platform();
 const org = 'EyediaTech';
 const app_name = 'EyedeeaPhotos';
 
+const is_jest_running = process.env.JEST_WORKER_ID !== undefined
+
 const log_path = (() => {
-  if (platform.startsWith("win")) {
+  if (is_jest_running){
+    return "./logs"
+  }
+  else if (platform.startsWith("win")) {
     return path.join(getAppDataPath(org), app_name, 'logs');
   } else {
     return "/var/log/EyediaTech/EyedeeaPhotos/logs";

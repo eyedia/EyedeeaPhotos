@@ -8,13 +8,11 @@ export function encrypt(text) {
   const key = get_key();
   if(!key)
     return;
-  logger.info(`3: ${key}`);
   const cipher = crypto.createCipheriv(algorithm, key, iv);
   let encrypted = cipher.update(text, 'utf8', 'hex');
   encrypted += cipher.final('hex');
   const authTag = cipher.getAuthTag().toString('hex');
   const en_str = en_to_string(iv.toString('hex'), authTag, encrypted);
-  logger.info(`4: ${text}  --> ${en_str}`);
   return en_str;
   //return { encrypted, authTag, iv: iv.toString('hex') };
 }
@@ -27,7 +25,6 @@ export function decrypt(encrypted) {
   decipher.setAuthTag(Buffer.from(en_data.auth_tag, 'hex'));
   let decrypted = decipher.update(en_data.e_text, 'hex', 'utf8');
   decrypted += decipher.final('utf8');
-  logger.info(`4: ${encrypted}  --> ${decrypted}`);
   return decrypted;
 }
 
@@ -44,12 +41,10 @@ function en_to_string(iv, auth_tag, encrypted){
 
 function get_key(){
   let keyHex = process.env.EYEDEEA_KEY;
-  logger.info(`1: ${keyHex}`);
   if (!keyHex) {
       logger.error("'EYEDEEA_KEY' environment variable was not found! Please resinstall or contact support.");
       return;
   }
   const key = Buffer.from(keyHex, 'hex');
-  logger.info(`2: ${key}`);
   return key;
 }

@@ -174,12 +174,12 @@ input, select, textarea {
 
 	p {
 		margin: 0 0 1.25em 0;
-		font-size: 1.00vw;
+		font-size: 0.75vw;
 	}
 
 	h1, h2, h3, h4, h5, h6 {
 		font-weight: 400;
-		line-height: 1.25;
+		/*line-height: 1.25;*/
 		margin: 0 0 0.5em 0;
 		color: #555;
 	}
@@ -192,11 +192,13 @@ input, select, textarea {
 	h2 {
 		/*font-size: 1.25em;*/
 		font-size: 2.00vw;
+		line-height: 1.50
 	}
 
 	h3 {
 		/*font-size: 1em;*/
 		font-size: 1.25vw;
+		line-height: 0.25
 	}
 
 	h4 {
@@ -1249,6 +1251,9 @@ input, select, textarea {
 
 				#viewer .slide .caption h3 {
 					color: darkgray;
+				}
+				#viewer .slide .caption p {
+					color:dimgray;
 				}
 
 			#viewer .slide .image {

@@ -17,6 +17,7 @@ export function encrypt(text) {
   //return { encrypted, authTag, iv: iv.toString('hex') };
 }
 export function decrypt(encrypted) {
+  try{
   const en_data = string_to_en(encrypted);
   const key = get_key();
   if(!key)
@@ -26,6 +27,10 @@ export function decrypt(encrypted) {
   let decrypted = decipher.update(en_data.e_text, 'hex', 'utf8');
   decrypted += decipher.final('utf8');
   return decrypted;
+}catch(error){
+  logger.error(error);
+  return undefined;
+}
 }
 
 function string_to_en(encrypted){

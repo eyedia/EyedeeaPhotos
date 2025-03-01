@@ -65,7 +65,7 @@ function refresh_pic() {
         }
 
     }
-
+    console.log("started");
     for (let i = 0; i < total; i++) {
         (function (foo) {
             get_photo(foo).then(photo_url_etc => {
@@ -102,6 +102,7 @@ function refresh_pic() {
 
                 count++;
                 if (count > total - 1) {
+                    console.log("finished");
                     top_init();
                 }
 

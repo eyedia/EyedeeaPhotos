@@ -226,6 +226,10 @@ export async function list_geo(source_id, offset = 0, limit = 1000) {
 
 export async function get_photo(photo_data, size = "sm", callback) {
   return authenticate_if_required(photo_data.source_id, auth_result => {
+    if (!nas_auth_token[photo_data.source_id]) {
+      callback("Cannot communicate with Synology as there is no auth token. Mostly it happens when server is not able to decrypt cache.", null);
+      return;
+    }
     let m_param = {
       api: "SYNO.FotoTeam.Thumbnail",
       SynoToken: nas_auth_token[photo_data.source_id].synotoken,
@@ -259,7 +263,7 @@ export async function get_photo(photo_data, size = "sm", callback) {
 export async function create_eyedeea_tags(source_id) {
   let eyedeea_tags = ["eyedeea_dns", "eyedeea_mark"];
   eyedeea_tags.forEach(eyedeea_tag => {
-    create_tag(source_id, eyedeea_tag, (err, result) => {      
+    create_tag(source_id, eyedeea_tag, (err, result) => {
       if (!err) {
         const query = `insert or ignore into tag(name, syno_id) values (?, ?)`;
         meta_db.run(query, [eyedeea_tag, result.data.tag.id], (err) => {

@@ -4,6 +4,9 @@ eyedeea_url="http://127.0.0.1:8080"
 
 key_hex=$(openssl rand -hex 32)
 export EYEDEEA_KEY="$key_hex"
+echo "export "$EYEDEEA_KEY"="$key_hex>>~/.bashrc
+echo $EYEDEEA_KEY"="$key_hex>>~/.profile
+echo $EYEDEEA_KEY"="$key_hex>>/etc/environment
 echo "EYEDEEA_KEY set successfully"
 
 is_installed() {

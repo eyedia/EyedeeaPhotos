@@ -1,10 +1,10 @@
 import express from 'express';
-import { scan, logs, geo } from '../controllers/source_scan_controller.js';
+import { scan, scan_log_list, scan_log_get } from '../controllers/source_scan_controller.js';
 
 const router = express.Router({ mergeParams: true });
 
 router.post('/scan', scan);
-router.get('/logs', logs);
-router.get('/geo', geo);
+router.get('/scan/logs', scan_log_list);
+router.get('/scan/logs/:view_log_id', scan_log_get);
 
 export default router;

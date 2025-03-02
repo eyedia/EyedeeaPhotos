@@ -1,4 +1,5 @@
 import { scanner_is_busy } from "../../sources/scanner.js";
+import { list as meta_scan_log_list, get as meta_scan_log_get } from "../../meta/meta_scan_log.mjs";
 import { scan as syno_scan_service } from "../../sources/synology/syno_scanner.mjs";
 import { authenticate as fs_authenticate, fs_config } from "../../sources/fs/fs_client.mjs";
 import { scan as fs_scan_service } from "../../sources/fs/fs_scanner.mjs";
@@ -76,32 +77,33 @@ function execute_fs_scan(source, res) {
   });
 }
 
-export const logs = async (req, res) => {
+export const scan_log_list = async (req, res) => {
   try {
-    const users = ["u1", "u2"];   //await User.find();
-    res.json(users);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    meta_scan_log_list(req.params.id, (err, rows) => {
+      if (err) {
+        logger.error(err.message);
+      } else {
+        res.json(rows);
+      }
+    });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).send('Internal Server Error');
   }
 };
 
-export const geo = async (req, res) => {
-  try {
-    const users = ["u1", "u2"];   //await User.find();
-    res.json(users);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
 
-/*
-export const createUser = async (req, res) => {
+export const scan_log_get = async (req, res) => {
   try {
-    const newUser = new User(req.body);
-    const savedUser = await newUser.save();
-    res.status(201).json(savedUser);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+    meta_scan_log_get(req.params.view_log_id, (err, item) => {
+      if (err) {
+        logger.error(err.message);
+      } else {
+        res.json(item);
+      }
+    });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).send('Internal Server Error');
   }
 };
-*/

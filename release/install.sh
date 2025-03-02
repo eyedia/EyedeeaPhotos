@@ -72,6 +72,10 @@ else
     return 1
 fi
 
+LOG_DIR="/var/log/EyediaTech/EyedeeaPhotos"
+mkdir $LOG_DIR
+chmod -R 777 $LOG_DIR
+
 cd $WWW_DIR
 chmod -R 777 $WWW_DIR/$APP_DIR
 

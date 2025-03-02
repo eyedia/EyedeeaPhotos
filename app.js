@@ -10,6 +10,7 @@ import view_router from './api/routers/view_router.js';
 import source_router from './api/routers/source_router.js';
 import source_scan_router from './api/routers/source_scan_router.js';
 import source_browser_router from './api/routers/source_browser_router.js';
+import { list as meta_list_sources } from "./meta/meta_source.mjs";
 import { encrypt, decrypt } from "./meta/encrypt.js";
 
 const logger = config_log.logger;
@@ -49,7 +50,21 @@ if (!is_jest_running) {
 
     cron.schedule("0 1 * * *", () => {
       logger.info('Auto scanning...');
-      syno_scan(undefined, undefined);
+      meta_list_sources((err, sources) => {
+        if (sources) {
+          sources.forEach(source => {
+            if (source.type == constants.SOURCE_TYPE_NAS)
+              syno_scan((source, undefined, undefined), result => {
+                console.log(result);
+              });
+            else
+            fs_scan((source), result => {
+              console.log(result);
+            });
+          });
+        }
+      });
+
     });
   });
 }

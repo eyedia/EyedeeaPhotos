@@ -12,6 +12,7 @@ import source_scan_router from './api/routers/source_scan_router.js';
 import source_browser_router from './api/routers/source_browser_router.js';
 import { list as meta_list_sources } from "./meta/meta_source.mjs";
 import { encrypt, decrypt } from "./meta/encrypt.js";
+import constants from "./constants.js";
 
 const logger = config_log.logger;
 
@@ -53,14 +54,29 @@ if (!is_jest_running) {
       meta_list_sources((err, sources) => {
         if (sources) {
           sources.forEach(source => {
-            if (source.type == constants.SOURCE_TYPE_NAS)
-              syno_scan((source, undefined, undefined), result => {
-                console.log(result);
-              });
-            else
-            fs_scan((source), result => {
-              console.log(result);
-            });
+            if (source.type == constants.SOURCE_TYPE_NAS) {
+              logger.info(`Auto scanning NAS type ${source.name}...`);
+              syno_scan((source, undefined, undefined), (err, scan_log_details) => {
+                logger.info(scan_log_details);
+              },
+              (scan_finished => {
+                logger.info(scan_finished);
+              })
+            );
+            }
+            else {
+              logger.info(`Auto scanning FS type ${source.name}...`);
+              new Promise((resolve, reject) => {
+              fs_scan(source, (err, scan_log_details) => {
+                logger.info(scan_log_details);
+              },
+                (scan_finished => {
+                  logger.info(scan_finished);
+                  resolve();
+                })
+              );
+            })
+            }
           });
         }
       });

@@ -10,9 +10,9 @@ import { get_exif_data, google_map_api_called, reset_fs_client } from "./fs_clie
 const logger = config_log.logger;
 
 
-export async function scan(source, callback) {
+export async function scan(source, inform_caller_scan_started, inform_caller_scan_ended) {
   if(!fs.existsSync(source.url)){
-    callback(`Source ${source.name} was not configuration correctly, ${source.url} does not exist!`, null);
+    inform_caller_scan_started(`Source ${source.name} was not configuration correctly, ${source.url} does not exist!`, null);
     return;
   }
   let scan_start_data = {
@@ -25,13 +25,14 @@ export async function scan(source, callback) {
   start_scanning(scan_start_data, (err, scan_started_data) => {
     if (err) {
       logger.error(err);
-      callback(err, null);
+      inform_caller_scan_started(err, null);
     } else {
-      callback(null, scan_started_data);
+      inform_caller_scan_started(null, scan_started_data);
       internal_scan(source, source.url);
     }
   },
-    fs_scanning_ended);
+    fs_scanning_ended,
+    inform_caller_scan_ended);
 }
 
 async function internal_scan(source, dir) {
@@ -77,8 +78,11 @@ async function internal_scan(source, dir) {
   });
 }
 
-function fs_scanning_ended(err, scan_log_end_data) {
+function fs_scanning_ended(err, scan_log_end_data, inform_caller_scan_ended) {
   scan_log_end_data.info += `Google MAP API was called ${google_map_api_called} times.`;
   logger.info(scan_log_end_data.info);
   meta_stop_scan(scan_log_end_data);
+
+  if(inform_caller_scan_ended)
+    inform_caller_scan_ended(scan_log_end_data);
 }

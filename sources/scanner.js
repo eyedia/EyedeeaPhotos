@@ -19,7 +19,7 @@ export function scanner_is_busy() {
     return _timeout_id == 0 ? false : true;
 }
 
-export function start_scanning(scan_start_data, callback_started, callback_ended) {
+export function start_scanning(scan_start_data, callback_started, callback_ended, inform_caller_scan_ended) {
     if (_timeout_id != 0) {
         //already a scan running, return bad
         logger.error("Scanning is already in progress!");
@@ -32,12 +32,12 @@ export function start_scanning(scan_start_data, callback_started, callback_ended
     _timeout_id = setTimeout(() => {
         clearInterval(_interval_id);
         _interval_id = 0;
-        stop_scanning(true, undefined, callback_ended);
+        stop_scanning(true, undefined, callback_ended, inform_caller_scan_ended);
         logger.error(`${scan_start_data.source.name} scanning timed out. Please check logs, read documentation and increase timeout if neccessary.`);
     }, 1000 * 60 * scan_start_data.max_time_in_mins);    //Auto stop after max_time_in_mins minutes
 
     _interval_id = setInterval(() => {
-        keep_checking_when_insert_stops(scan_start_data, callback_ended);
+        keep_checking_when_insert_stops(scan_start_data, callback_ended, inform_caller_scan_ended);
     }, 1000 * scan_start_data.interval_in_secs);
 
     logger.info(`${scan_start_data.source.name} scanning initialized. Timeout id:${_timeout_id} and interval id:${_interval_id}`);
@@ -58,8 +58,8 @@ export function start_scanning(scan_start_data, callback_started, callback_ended
     });
 }
 
-function keep_checking_when_insert_stops(scan_start_data, callback_ended) {
-    logger.info("Validating last scan...");
+function keep_checking_when_insert_stops(scan_start_data, callback_ended, inform_caller_scan_ended) {
+    logger.info("Validating last scan...");    
     get_last_inserted_diff((err, rows) => {
         if (err) {
             logger.error(err);
@@ -70,7 +70,7 @@ function keep_checking_when_insert_stops(scan_start_data, callback_ended) {
                 if (timed_out) {
                     clearInterval(_interval_id);
                     _interval_id = 0;
-                    stop_scanning(scan_start_data, undefined, callback_ended);
+                    stop_scanning(scan_start_data, undefined, callback_ended, inform_caller_scan_ended);
                 }
             }
         }
@@ -78,7 +78,7 @@ function keep_checking_when_insert_stops(scan_start_data, callback_ended) {
 
 }
 
-export function stop_scanning(scan_start_data, timed_out, callback_ended) {
+export function stop_scanning(scan_start_data, timed_out, callback_ended, inform_caller_scan_ended) {
     if (!timed_out) {
         let number_of_photos = 0;
         meta_db.get(`select count(*) as cnt from photo where source_id = ?`, [scan_start_data.source.id],
@@ -100,7 +100,7 @@ export function stop_scanning(scan_start_data, timed_out, callback_ended) {
                 _interval_id = 0;
                 logger.info(scan_log_end_data.info);                
                 search_init();
-                callback_ended(null, scan_log_end_data);
+                callback_ended(null, scan_log_end_data, inform_caller_scan_ended);
             });
     } else {
         
@@ -113,7 +113,6 @@ export function stop_scanning(scan_start_data, timed_out, callback_ended) {
         _interval_id = 0;
         clearTimeout(_timeout_id);
         _timeout_id = 0;
-        logger.info(scan_log_end_data.info);
-        callback_ended(null, scan_log_end_data);
+        callback_ended(null, scan_log_end_data, inform_caller_scan_ended);
     }
 }

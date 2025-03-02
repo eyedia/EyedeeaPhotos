@@ -25,10 +25,8 @@ export function start_scanning(scan_start_data, callback_started, callback_ended
         logger.error("Scanning is already in progress!");
         return;
     }
-    let scan_log_data = {
-        "source_id": scan_start_data.source.id
-    }
     _scan_log_id = 0;
+
     _timeout_id = setTimeout(() => {
         clearInterval(_interval_id);
         _interval_id = 0;
@@ -40,26 +38,35 @@ export function start_scanning(scan_start_data, callback_started, callback_ended
         keep_checking_when_insert_stops(scan_start_data, callback_ended, inform_caller_scan_ended);
     }, 1000 * scan_start_data.interval_in_secs);
 
-    logger.info(`${scan_start_data.source.name} scanning initialized. Timeout id:${_timeout_id} and interval id:${_interval_id}`);
+    if (!scan_start_data.scan_log_id) {
+        logger.info(`${scan_start_data.source.name} scanning initialized. Timeout id:${_timeout_id} and interval id:${_interval_id}`);
+        let scan_log_data = {
+            "source_id": scan_start_data.source.id
+        }
 
-    meta_clear_scan(scan_start_data.source.id, () => {
-        meta_start_scan(scan_log_data, (err, scan_log_id) => {
-            if (err) {
-                logger.error(err.message);
-            } else {
-                _scan_log_id = scan_log_id;
-                let scan_started_data = {
-                    "scan_log_id": scan_log_id,
-                    "source_id": scan_start_data.source.id
+        meta_clear_scan(scan_start_data.source.id, () => {
+            meta_start_scan(scan_log_data, (err, scan_log_id) => {
+                if (err) {
+                    logger.error(err.message);
+                } else {
+                    _scan_log_id = scan_log_id;
+                    let scan_started_data = {
+                        "scan_log_id": scan_log_id,
+                        "source_id": scan_start_data.source.id
+                    }
+                    callback_started(null, scan_started_data)
                 }
-                callback_started(null, scan_started_data)
-            }
+            });
         });
-    });
+    } else {
+        logger.info(`${scan_start_data.source.name} 2nd round scanning initialized. Timeout id:${_timeout_id} and interval id:${_interval_id}`);
+        _scan_log_id = scan_start_data.scan_log_id;
+        callback_started(null, scan_start_data)
+    }
 }
 
 function keep_checking_when_insert_stops(scan_start_data, callback_ended, inform_caller_scan_ended) {
-    logger.info("Validating last scan...");    
+    logger.info("Validating last scan...");
     get_last_inserted_diff((err, rows) => {
         if (err) {
             logger.error(err);
@@ -92,22 +99,23 @@ export function stop_scanning(scan_start_data, timed_out, callback_ended, inform
                 }
                 let scan_log_end_data = {
                     "id": _scan_log_id,
-                    "info": `${scan_start_data.source.name} scanning finished. Total ${number_of_photos} photos found.`
+                    "info": `${scan_start_data.source.name} scanning finished. Total ${number_of_photos} photos found.`,
+                    "source": scan_start_data.source
                 }
                 meta_stop_scan(scan_log_end_data);
                 clearTimeout(_timeout_id);
                 _timeout_id = 0;
                 _interval_id = 0;
-                logger.info(scan_log_end_data.info);                
+                logger.info(scan_log_end_data.info);
                 search_init();
                 callback_ended(null, scan_log_end_data, inform_caller_scan_ended);
             });
     } else {
-        
         let scan_log_end_data = {
             "id": _scan_log_id,
-            "info": `${scan_start_data.source.name} scanning timed out!`
-        }        
+            "info": `${scan_start_data.source.name} scanning timed out!`,
+            "source": scan_start_data.source
+        }
         stop_scan(scan_log_end_data);
         clearInterval(_interval_id);
         _interval_id = 0;

@@ -5,7 +5,7 @@ import {
 } from "../../meta/meta_scan.mjs";
 import { start_scanning } from '../scanner.js';
 import config_log from "../../config_log.js";
-import { search_init } from '../../meta/meta_search.mjs';
+import { get as meta_get_scan_log } from '../../meta/meta_scan_log.mjs';
 
 const logger = config_log.logger;
 let _failed_folders_tried = false;
@@ -21,14 +21,14 @@ export async function scan(source, folder_id, folder_name, inform_caller_scan_st
         insert_data_threshold: 0.0005
     }
     start_scanning(scan_start_data, (err, scan_started_data) => {
-        if (err) {
-            logger.error(err);
-            inform_caller_scan_started(err, null);
-        } else {
-            inform_caller_scan_started(null, scan_started_data);
-            internal_scan(scan_started_data, folder_id, folder_name);
-        }
-    },
+            if (err) {
+                logger.error(err);
+                inform_caller_scan_started(err, null);
+            } else {
+                inform_caller_scan_started(null, scan_started_data);
+                internal_scan(scan_started_data, folder_id, folder_name);
+            }
+        },
         syno_scanning_ended,
         inform_caller_scan_ended);
 }
@@ -136,7 +136,9 @@ function scan_failed_folders(scan_log_end_data) {
                 rows.forEach(function (row) {
                     logger.info(`Retrying failed folders: ${row.folder_id}: ${row.folder_name}`);
                     list_dir_loop(scan_log_end_data, row.folder_id, row.folder_name, _offset, _limit);
-                    update_scan_log(scan_log_end_data, row.folder_id, 1);
+
+                    logger.info(`updating re-scanning result: ${scan_log_end_data.id}, ${row.folder_id}`);
+                    update_scan_log(scan_log_end_data.id, row.folder_id, 1);
                 });
             }
         }
@@ -147,12 +149,31 @@ function scan_failed_folders(scan_log_end_data) {
 function syno_scanning_ended(err, scan_log_end_data, inform_caller_scan_ended) {
     if (!_failed_folders_tried) {
         logger.info("Started secondary scans (retrying failed folders)...");
-        scan_failed_folders(scan_log_end_data);
+        syno_start_failed_folders(scan_log_end_data, inform_caller_scan_ended);
     } else {
         _failed_folders_tried = true;
-        //another end is required, we need to update total count after failed folders
+        if(inform_caller_scan_ended)
+            inform_caller_scan_ended(scan_log_end_data);
     }
+}
 
-    if(inform_caller_scan_ended)
-        inform_caller_scan_ended(scan_log_end_data);
+export function syno_start_failed_folders(scan_log_end_data, inform_caller_scan_ended){
+
+    let scan_start_data = {
+        source: scan_log_end_data.source,
+        scan_log_id: scan_log_end_data.id,
+        max_time_in_mins: 12,
+        interval_in_secs: 30,
+        insert_data_threshold: 0.0005
+    }
+    start_scanning(scan_start_data, (err, scan_started_data) => {
+            if (err) {
+                logger.error(err);                
+            } else {
+                console.log("1");       
+                scan_failed_folders(scan_log_end_data);
+            }
+        },
+        syno_scanning_ended,
+        inform_caller_scan_ended);
 }

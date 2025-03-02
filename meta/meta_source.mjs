@@ -104,10 +104,11 @@ export function get(id, decrypt_value, callback) {
                 logger.error(err.message);
                 callback(err, null);
             } else if (source && (source.config != null || source.config != "")) {
-                if (decrypt_value) {
+                if (decrypt_value) {                    
                     source.password = source.password ? decrypt(source.password) : source.password;
                     source.cache = source.cache ? decrypt(source.cache) : source.cache;
-                    source.config = source.config ? JSON.parse(decrypt(source.config)) : source.config;
+                    source.config = source.config ? decrypt(source.config) : source.config;
+                    source.config = source.config ? JSON.parse(source.config) : source.config;
                 }
                 callback(null, source);
             }

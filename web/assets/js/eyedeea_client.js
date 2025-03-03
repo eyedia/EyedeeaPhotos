@@ -22,16 +22,17 @@ async function get_photo(photo_index) {
     }
     const response = await fetch(photo_url);
     if (!response.ok) {
-        console.error(`HTTP error! status: ${response.status}`);
-        const fake_headers = new Map();
-        fake_headers.set('Content-Type', 'image/jpeg');
+        console.error(`HTTP error! status: ${response.status}`);       
         const photo_data = {
             "folder_name": "Eyedeea Photos",
-            "photo_index": photo_index,
-            "time": Math.floor(Date.now() / 1000)
+            "photo_index": photo_index
         };
-        fake_headers.set('Photo-Data', JSON.stringify(photo_data));
-        return ["/eyedeea_photos.jpg", "L", fake_headers];
+        let photo_info = {
+            "url": "/eyedeea_photos.jpg",
+            "orientation": "L",
+            "meta_data": photo_data,
+        }
+        return photo_info;
     }
     const blob = await response.blob();
     const this_photo_url = URL.createObjectURL(blob);
@@ -44,7 +45,12 @@ async function get_photo(photo_index) {
 
     save_photo_to_cache(blob, photo_orientation, photo_data);
     //console.timeEnd("ts_get_photo_" + photo_index);
-    return [this_photo_url, photo_orientation, photo_data];
+    let photo_info = {
+        "url": this_photo_url,
+        "orientation": photo_orientation,
+        "meta_data": photo_data,
+    }
+    return photo_info;
 }
 
 async function get_photo_size(photo_url) {
@@ -144,7 +150,12 @@ async function retrieve_photo_from_cache(key) {
             if (result) {
                 const blob = result.blob;
                 const photo_url = URL.createObjectURL(blob);
-                resolve([photo_url, result.orientation, result.photo_data]);
+                const photo_info = {
+                    "url": photo_url,
+                    "orientation": result.orientation,
+                    "meta_data": result.photo_data,
+                }
+                resolve(photo_info);
             } else {
                 resolve(null);
             }

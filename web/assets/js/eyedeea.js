@@ -52,22 +52,22 @@ function refresh_pic() {
             e_toggles[t].remove();
         }
     }
-    console.log("started");
+    
     for (let i = 0; i < total; i++) {
         (function (internal_i) {
-            get_photo(internal_i).then(photo_url_etc => {
-                const photo_data =  photo_url_etc[2];
+            get_photo(internal_i).then(photo_info => {
+                const photo_data = photo_info.meta_data;
                 if (photo_data) {
                     let id_suffix = String(photo_data.photo_index).padStart(2, '0');
                     const e_article = document.getElementById('article-' + id_suffix);
 
                     let e_img = document.getElementById("img-" + id_suffix);
-                    e_img.setAttribute("src", photo_url_etc[0]);
+                    e_img.setAttribute("src", photo_info.url);
                     e_img.setAttribute("title", photo_data.filename);
 
                     let e_a = document.getElementById("a-" + id_suffix);
-                    e_a.setAttribute("href", photo_url_etc[0]);
-                    e_a.setAttribute("orientation_v2", photo_url_etc[1]);
+                    e_a.setAttribute("href", photo_info.url);
+                    e_a.setAttribute("orientation_v2", photo_info.orientation);
                     e_a.setAttribute("orientation", photo_data.orientation);
                     e_a.setAttribute("photo_id", photo_data.photo_id);
 
@@ -88,9 +88,7 @@ function refresh_pic() {
 
                 count++;
                 if (count > total - 1) {
-                    console.log("finished");
                     top_init();
-                    console.log("finished 2");
                 }
 
             })
@@ -239,13 +237,13 @@ async function mt_dont_show() {
 }
 
 async function mt_download() {
-    get_photo(main.current).then(photo_url_etc => {
-        if (photo_url_etc) {
+    get_photo(main.current).then(photo_info => {
+        if (photo_info) {
             const a = document.createElement("a");
-            a.href = photo_url_etc[0];
-            const photo_data = JSON.parse(photo_url_etc[2].get("Photo-Data"));
-            if (photo_data)
-                a.download = photo_data.filename;
+            a.href = photo_info.url;
+            
+            if (photo_info.meta_data)
+                a.download = photo_info.meta_data.filename;
             else
                 a.download = "photo.jpg";
 

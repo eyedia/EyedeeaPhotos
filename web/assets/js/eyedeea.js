@@ -1,7 +1,6 @@
 const days_of_week = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-const photo_url_server = window.location.protocol + "//" + window.location.host + "/api/view";
 let refresh_client = 60;
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -30,27 +29,16 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log("setting timer...");
             setInterval(function () {
                 refresh_pic();
-            }, 10 * 1000);
+            }, 30 * 1000);
         })
-        .catch(err => {
-            console.log("xxerror...");
+        .catch(err => {            
             console.log(err);
         });
 
-
 });
-
-async function get_config() {
-    return fetch(photo_url_server + "/config")
-        .then(response => response.json())
-        .then(data => {
-            return data;
-        });
-}
 
 
 function refresh_pic() {
-
     var total = 12;
     var count = 0;
 
@@ -63,14 +51,12 @@ function refresh_pic() {
         for (let t = 0; t < e_toggles.length; t++) {
             e_toggles[t].remove();
         }
-
     }
     console.log("started");
     for (let i = 0; i < total; i++) {
-        (function (foo) {
-            get_photo(foo).then(photo_url_etc => {
-
-                const photo_data = JSON.parse(photo_url_etc[2].get("Photo-Data"));                
+        (function (internal_i) {
+            get_photo(internal_i).then(photo_url_etc => {
+                const photo_data =  photo_url_etc[2];
                 if (photo_data) {
                     let id_suffix = String(photo_data.photo_index).padStart(2, '0');
                     const e_article = document.getElementById('article-' + id_suffix);
@@ -104,6 +90,7 @@ function refresh_pic() {
                 if (count > total - 1) {
                     console.log("finished");
                     top_init();
+                    console.log("finished 2");
                 }
 
             })
@@ -114,52 +101,6 @@ function refresh_pic() {
     }
 }
 
-
-async function get_photo(photo_index) {
-    let local_photo_url = photo_url_server
-    if (photo_index) {
-        local_photo_url = local_photo_url + `?photo_index=${photo_index}`;
-    }
-    //console.log(`calling...${local_photo_url}`)
-    const response = await fetch(local_photo_url);
-    if (!response.ok) {
-        //we want to hide the error. I believe Firestick browser like Amazon Silk
-        //goes to sleep mode after 'x' times
-        //we silently show the logo for this cycle.
-        //The actual root cause: At times Synology API returns 404 
-        // which could be handled at the server side.
-        console.log(`HTTP error! status: ${response.status}`);
-        const fake_headers = new Map();
-        fake_headers.set('Content-Type', 'image/jpeg');
-        const photo_data = {
-            "folder_name": "Eyedeea Photos",
-            "photo_index": photo_index,
-            "time": Math.floor(Date.now() / 1000)
-        };
-        fake_headers.set('Photo-Data', JSON.stringify(photo_data));
-        return ["/eyedeea_photos.jpg", fake_headers];
-    }
-    const blob = await response.blob();
-    const this_photo_url = URL.createObjectURL(blob);
-    const this_photo_size = await get_photo_size(this_photo_url);
-    let photo_orientation = (this_photo_size.height > this_photo_size.width) ? "P" : "L";
-    return [this_photo_url, photo_orientation, response.headers];
-}
-
-async function get_photo_size(photo_url) {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => {
-            const { width, height } = img;
-            resolve({ width, height });
-        };
-
-        img.onerror = () => {
-            reject(new Error('Failed to load image'));
-        };
-        img.src = photo_url;
-    });
-}
 
 function set_image_attributes(photo_data, e_title, e_sub_title, e_sub_title2) {
     if (photo_data == null) {
@@ -217,7 +158,7 @@ function set_sub_title(photo_data, e_sub_title) {
             }
 
             let country = ""
-            if((photo_data.address.country) && (photo_data.address.country != ""))
+            if ((photo_data.address.country) && (photo_data.address.country != ""))
                 country = photo_data.address.country;
 
             if (city_or_town != "")
@@ -323,25 +264,4 @@ function toggle_lighten(element, toggle_color) {
         element.classList.remove(toggle_color);
         return false;
     }
-}
-
-function set_tag(photo_id, tag) {
-    fetch(photo_url_server + "/" + photo_id + "/" + tag, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(responseData => {
-            //console.log('Success:', responseData);
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
 }

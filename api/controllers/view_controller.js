@@ -33,12 +33,20 @@ export const get_viewer_config = async (req, res) => {
 export const get_random_photo = async (req, res) => {
   if (req.query.photo_index && !isNaN(parseInt(req.query.photo_index))) {
     //UI requesting specific photos (max up to 12)
-    get_photo_history((err, rows) => {      
+    get_photo_history(req.query.limit, (err, rows) => {      
       if (err) {
         logger.error(err.message);
-        return get_default_photo(res);
+        if(req.query.photo_id_only)
+          res.json({"photo_id": 0});
+        else
+          return get_default_photo(res);
       } else {
-        return return_photo_from_rows(req, res, rows);
+        if(req.query.photo_id_only){          
+          res.json({"photo_id": rows[req.query.photo_index].photo_id});
+        }
+        else{
+          return return_photo_from_rows(req, res, rows);
+        }
       }
     });
 
@@ -67,6 +75,26 @@ export const get_random_photo = async (req, res) => {
     });
   }
 }
+
+
+export const get_lined_up_photo_data = async (req, res) => {
+  try {
+    get_photo_history(req.query.limit, (err, rows) => {
+      if (err) {
+        logger.error(err.message);
+      } else {
+        if (req.query.photo_id_only) {
+          res.json(rows.map(row => row.photo_id));
+        }else{
+          res.json(rows);
+        }
+      }
+    });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+};
 
 function return_photo_from_rows(req, res, rows){
   if (rows && rows.length > 0) {

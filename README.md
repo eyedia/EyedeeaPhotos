@@ -107,10 +107,13 @@ I end up setting up NAS. But, you can simply migrate your photos to an external 
 ## Download Eyedeea Photos
 
 ### Simple Installation
+
+> **_NOTE:_** After installing we will set up one source, this is temporary solution until we have Eyedeea Photos Management user interface is ready!.
+
 | Windows | Linux | Mac |
 | ------- | ----- | --- |
-|Download [Install Scripts](release/install_scripts.zip) and execute win_install.ps1 on Windows Powershell | _Use Expert_ | _Use Expert_ |
-![Eyedeea Photos Installation](graphics/eyedeea_photos_installation.gif)
+|Download [Install Scripts](release/install_scripts.zip) and execute ```./install.ps1``` on Windows Powershell |Download [Install Scripts](release/install_scripts.zip) and execute ```sudo ./install.sh``` on terminal  | _Use Expert_ |
+<img src="graphics/eyedeea_photos_installation.gif" alt="Eyedeea Photos Installation" width="50%"/>
 
 ### Expert Installation
 - Install Node.js

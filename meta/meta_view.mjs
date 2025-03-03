@@ -62,14 +62,17 @@ export function get_random_photo(callback) {
     });
 }
 
-export function get_photo_history(callback) {
+export function get_photo_history(limit, callback) {
+    if(!limit)
+        limit = 12;
+
     let query = `select p.id, p.source_id, p.photo_id, p.filename, p.folder_id, p.folder_name, 
                 p.time, p.type, p.orientation, p.cache_key, p.tags, p.address, s.type as 'source_type'
                 from photo p
                 inner join source s on p.source_id = s.id
                 inner join view_log vl on vl.photo_id = p.photo_id 
-                order by update_sequence desc limit 12`;
-    meta_db.all(query, (err, rows) => {
+                order by update_sequence desc limit ?`;
+    meta_db.all(query, [limit], (err, rows) => {
         if (err) {
             callback(err, null);
         } else {

@@ -168,8 +168,8 @@ function set_current_photo(callback) {
             callback(err, null);
         } else {
             if (rows.length == 0) {
-                //let query = "SELECT * FROM photo WHERE photo_id = 28360";
-                let query = "SELECT photo_id FROM view_log WHERE status = 0 ORDER BY RANDOM() LIMIT 1";
+                let query = "SELECT * FROM photo WHERE photo_id = 39672";
+                //let query = "SELECT photo_id FROM view_log WHERE status = 0 ORDER BY RANDOM() LIMIT 1";
                 meta_db.all(query, (err, rows) => {
                     if (err) {
                         if(callback)

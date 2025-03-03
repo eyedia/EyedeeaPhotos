@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log("setting timer...");
             setInterval(function () {
                 refresh_pic();
-            }, refresh_client * 1000);
+            }, 10 * 1000);
         })
         .catch(err => {
             console.log("xxerror...");
@@ -81,7 +81,7 @@ function refresh_pic() {
 
                     let e_a = document.getElementById("a-" + id_suffix);
                     e_a.setAttribute("href", photo_url_etc[0]);
-                    e_img.setAttribute("orientation_v2", photo_url_etc[1]);
+                    e_a.setAttribute("orientation_v2", photo_url_etc[1]);
                     e_a.setAttribute("orientation", photo_data.orientation);
                     e_a.setAttribute("photo_id", photo_data.photo_id);
 

@@ -1,6 +1,7 @@
 import express from "express";
 import helmet from "helmet";
 import cron from "node-cron";
+import cors from 'cors';
 import config_log from "./config_log.js";
 import { set_random_photo, get_config } from "./meta/meta_view.mjs";
 import { scan as syno_scan } from "./sources/synology/syno_scanner.mjs";
@@ -23,7 +24,7 @@ process.on('uncaughtException', (err) => {
 
 const app = express(helmet());
 app.disable('x-powered-by')
-
+app.use(cors());
 app.use(express.static('web'));
 app.use(express.json());
 

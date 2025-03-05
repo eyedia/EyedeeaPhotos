@@ -1,6 +1,23 @@
 const photo_url_server = window.location.protocol + "//" + window.location.host + "/api/view";
 //const photo_url_server = "http://192.168.86.101/api/view"
 
+function cache_incoming_photos() {
+    console.log("caching incoming photos...");
+    var total = 12;
+    for (let i = 0; i < total; i++) {
+        (function (internal_i) {
+            get_photo(internal_i).then(photo_info => {
+                const photo_data = photo_info.meta_data;
+                if (photo_data) {
+                }
+            })
+                .catch(error => {
+                    console.error('Error fetching image:', error);
+                });
+        }(i));
+    }
+}
+
 async function get_photo(photo_index) {
     //console.time("ts_get_photo_" + photo_index);
     let photo_url = photo_url_server;
@@ -15,14 +32,15 @@ async function get_photo(photo_index) {
             const json_data = await response.json();
             const cache_data = await retrieve_photo_from_cache(json_data.photo_id);
             if (cache_data != null) {
-                //console.timeEnd("ts_get_photo_" + photo_index);
+                //console.timeEnd("ts_get_photo_" + photo_index);                
+                cache_data.meta_data.photo_index = photo_index;
                 return cache_data;
             }
         }
     }
     const response = await fetch(photo_url);
     if (!response.ok) {
-        console.error(`HTTP error! status: ${response.status}`);       
+        console.error(`HTTP error! status: ${response.status}`);
         const photo_data = {
             "folder_name": "Eyedeea Photos",
             "photo_index": photo_index
@@ -44,6 +62,7 @@ async function get_photo(photo_index) {
         photo_data = JSON.parse(v_photo_data);
 
     save_photo_to_cache(blob, photo_orientation, photo_data);
+    console.log("server", photo_data);
     //console.timeEnd("ts_get_photo_" + photo_index);
     let photo_info = {
         "url": this_photo_url,
@@ -99,7 +118,7 @@ function set_tag(photo_id, tag) {
 }
 
 
-function openDB() {
+function open_cache_db() {
     return new Promise((resolve, reject) => {
         const request = indexedDB.open('EyedeeaPhotos', 1);
 
@@ -125,7 +144,13 @@ async function save_photo_to_cache(blob, orientation, photo_data) {
         return;
     const key = photo_data.photo_id;
 
-    const db = await openDB();
+    const count = await get_cache_item_count();
+
+    if (count >= 24) {
+        await delete_oldest_entries_from_cache(12);
+    }
+
+    const db = await open_cache_db();
     const transaction = db.transaction('photos', 'readwrite');
     const store = transaction.objectStore('photos');
 
@@ -139,7 +164,7 @@ async function save_photo_to_cache(blob, orientation, photo_data) {
 
 
 async function retrieve_photo_from_cache(key) {
-    const db = await openDB();
+    const db = await open_cache_db();
     const transaction = db.transaction('photos', 'readonly');
     const store = transaction.objectStore('photos');
     const request = store.get(key);
@@ -164,42 +189,40 @@ async function retrieve_photo_from_cache(key) {
     });
 }
 
+async function get_cache_item_count() {
+    const db = await open_cache_db();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction('photos', 'readonly');
+        const store = transaction.objectStore('photos');
+        const request = store.count();
 
-/*
-function retrieve_photo_from_cache_using_local_storage(key) {
-    const cache_data = localStorage.getItem(key);
-    if (!cache_data) return null;
-
-    const data = JSON.parse(cache_data);        
-
-    // Convert base64 to Blob
-    const byteCharacters = atob(data.photo_url.split(',')[1]); 
-    const byteNumbers = new Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-    }
-    const byteArray = new Uint8Array(byteNumbers);
-    const blob = new Blob([byteArray], { type: "image/jpg" });
-
-    const photo_url = URL.createObjectURL(blob);
-    return [photo_url, data.orientation, data.photo_data];
+        request.onsuccess = function () {
+            resolve(request.result);
+        };
+        request.onerror = function (event) {
+            reject(event.target.error);
+        };
+    });
 }
 
+async function delete_oldest_entries_from_cache(count_to_delete = 10) {
+    const db = await open_cache_db();
+    const transaction = db.transaction('photos', 'readwrite');
+    const store = transaction.objectStore('photos');
+    const request = store.openCursor();
 
-function save_photo_to_cache_using_local_storage(blob, orientation, photo_data) {
-    if (!photo_data)
-        return;
-    const key = photo_data.photo_id;   
-    const reader = new FileReader();
-    reader.readAsDataURL(blob);
-    reader.onloadend = function () {
-        const data = {            
-            "orientation": orientation,
-            "photo_data": photo_data,
-            "photo_url": reader.result
-    
-        }
-        localStorage.setItem(key, JSON.stringify(data));
-        //localStorage.setItem(key, reader.result);
-    };
-}*/
+    let deletedCount = 0;
+    return new Promise((resolve, reject) => {
+        request.onsuccess = function (event) {
+            const cursor = event.target.result;
+            if (cursor && deletedCount < count_to_delete) {
+                store.delete(cursor.primaryKey);
+                deletedCount++;
+                cursor.continue();
+            } else {
+                resolve(deletedCount);
+            }
+        };
+        request.onerror = (event) => reject(event.target.error);
+    });
+}

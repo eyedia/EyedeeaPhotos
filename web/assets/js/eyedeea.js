@@ -23,13 +23,17 @@ document.addEventListener('DOMContentLoaded', function () {
     get_config()
         .then(config_from_server => {
             if (config_from_server && config_from_server.refresh_client) {
-                console.log(`got the server config: ${config_from_server.refresh_client}`);
-                refresh_client = config_from_server.refresh_client;
+                console.log(`got the server config: ${config_from_server.refresh_client}`);                
+                if(config_from_server.refresh_client > 60)
+                    refresh_client = 60;    //client cannot function properly if it is less than 60
             }
-            console.log("setting timer...");
+            console.log("setting timers...");
+            setInterval(function () {
+                cache_incoming_photos();
+            }, (refresh_client - 30) * 1000);
             setInterval(function () {
                 refresh_pic();
-            }, 30 * 1000);
+            }, refresh_client * 1000);
         })
         .catch(err => {            
             console.log(err);

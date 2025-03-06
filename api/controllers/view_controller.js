@@ -1,6 +1,8 @@
 import useragent from "useragent";
 import fs from 'fs';
-import { get_random_photo as meta_get_random_photo, 
+import { 
+  get_photo as meta_get_photo,
+  get_random_photo as meta_get_random_photo, 
   get_photo_history, 
   get_config,
   get_tag as meta_get_tag } from "../../meta/meta_view.mjs";
@@ -29,6 +31,30 @@ export const get_viewer_config = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+export const get_photo = async (req, res) => {
+  meta_get_photo(req.params.photo_id, (err, photo) => {
+      if (err) {
+        logger.error(err);
+        return get_default_photo(res);
+      } else {
+        if (photo) {          
+          photo["photo_index"] = 0;
+          //photo_data.address = JSON.parse(photo_data.address);
+          if (photo.source_type == constants.SOURCE_TYPE_NAS) {
+            get_photo_from_synology(photo, req, res);
+          }else if (photo.source_type == constants.SOURCE_TYPE_FS){
+            fs_get_photo(photo, res);
+          } else {
+            logger.error(`The source type ${photo.source_id} was not configured, returning default photo.`);
+            return get_default_photo(res);
+          }
+        }else{
+          return get_default_photo(res);
+        }
+      }
+    });  
+}
 
 export const get_random_photo = async (req, res) => {
   if (req.query.photo_index && !isNaN(parseInt(req.query.photo_index))) {

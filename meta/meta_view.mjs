@@ -6,6 +6,23 @@ import { search } from "./meta_search.mjs";
 
 const logger = config_log.logger;
 
+export function get_photo(photo_id, callback) {
+    let query = `select p.id, p.source_id, p.photo_id, p.filename, p.folder_id, p.folder_name, 
+                p.time, p.type, p.orientation, p.cache_key, p.tags, p.address, s.type as 'source_type'
+                from photo p
+                inner join source s on p.source_id = s.id
+                where p.photo_id = ?`;
+    meta_db.get(query, [photo_id], (err, photo) => {
+        if (err) {
+            callback(err, null);
+        } else {            
+            if(photo.address)
+                photo.address = JSON.parse(JSON.stringify(photo.address));                             
+            callback(null, photo);
+        }
+    });
+}
+
 export function get_random_photo(callback) {
     let query = `select p.id, p.source_id, p.photo_id, p.filename, p.folder_id, p.folder_name, 
                 p.time, p.type, p.orientation, p.cache_key, p.tags, p.address, s.type as 'source_type'

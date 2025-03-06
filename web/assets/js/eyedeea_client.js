@@ -1,21 +1,41 @@
 const photo_url_server = window.location.protocol + "//" + window.location.host + "/api/view";
 //const photo_url_server = "http://192.168.86.101/api/view"
 
-function cache_incoming_photos() {
+async function cache_incoming_photos() {
     console.log("caching incoming photos...");
-    var total = 12;
-    for (let i = 0; i < total; i++) {
-        (function (internal_i) {
-            get_photo(internal_i).then(photo_info => {
-                const photo_data = photo_info.meta_data;
-                if (photo_data) {
-                }
-            })
-                .catch(error => {
-                    console.error('Error fetching image:', error);
-                });
-        }(i));
+    var total = 13;
+    
+    const response = await fetch(photo_url_server + `/photos?photo_id_only=true&limit=${total}`);
+    if (!response.ok)
+        return;
+    
+    const photo_ids = await response.json();    
+    photo_ids.forEach(async function(photo_id) {
+        const response = await fetch(photo_url_server + `/photos/${photo_id}`);
+        if (!response.ok)
+            return;
+        await save_photo_from_respose(response);
+            
+      });
+}
+
+async function save_photo_from_respose(response){
+    const blob = await response.blob();
+    const this_photo_url = URL.createObjectURL(blob);
+    const this_photo_size = await get_photo_size(this_photo_url);
+    let photo_orientation = (this_photo_size.height > this_photo_size.width) ? "P" : "L";
+    const v_photo_data = response.headers.get("photo-data");
+    let photo_data = undefined;
+    if (v_photo_data)
+        photo_data = JSON.parse(v_photo_data);
+
+    save_photo_to_cache(blob, photo_orientation, photo_data);
+    let photo_info = {
+        "url": this_photo_url,
+        "orientation": photo_orientation,
+        "meta_data": photo_data,
     }
+    return photo_info;
 }
 
 async function get_photo(photo_index) {
@@ -24,12 +44,11 @@ async function get_photo(photo_index) {
     let photo_url_id_only = undefined;
     if (photo_index) {
         photo_url = photo_url + `?photo_index=${photo_index}`;
-        photo_url_id_only = photo_url + `&photo_id_only=true`;
-    }
-    if (photo_url_id_only) {
-        const response = await fetch(photo_url_id_only);
-        if (response.ok) {
-            const json_data = await response.json();
+        photo_url_id_only = photo_url + `&photo_id_only=true`;    
+    
+        const response_id = await fetch(photo_url_id_only);
+        if (response_id.ok) {
+            const json_data = await response_id.json();
             const cache_data = await retrieve_photo_from_cache(json_data.photo_id);
             if (cache_data != null) {
                 //console.timeEnd("ts_get_photo_" + photo_index);                
@@ -38,6 +57,7 @@ async function get_photo(photo_index) {
             }
         }
     }
+    
     const response = await fetch(photo_url);
     if (!response.ok) {
         console.error(`HTTP error! status: ${response.status}`);
@@ -52,23 +72,20 @@ async function get_photo(photo_index) {
         }
         return photo_info;
     }
-    const blob = await response.blob();
-    const this_photo_url = URL.createObjectURL(blob);
-    const this_photo_size = await get_photo_size(this_photo_url);
-    let photo_orientation = (this_photo_size.height > this_photo_size.width) ? "P" : "L";
-    const v_photo_data = response.headers.get("photo-data");
-    let photo_data = undefined;
-    if (v_photo_data)
-        photo_data = JSON.parse(v_photo_data);
+    photo_info = save_photo_from_respose(response);
+    // const blob = await response.blob();
+    // const this_photo_url = URL.createObjectURL(blob);
+    // const this_photo_size = await get_photo_size(this_photo_url);
+    // let photo_orientation = (this_photo_size.height > this_photo_size.width) ? "P" : "L";
+    // const v_photo_data = response.headers.get("photo-data");
+    // let photo_data = undefined;
+    // if (v_photo_data)
+    //     photo_data = JSON.parse(v_photo_data);
 
-    save_photo_to_cache(blob, photo_orientation, photo_data);
-    console.log("server", photo_data);
+    // save_photo_to_cache(blob, photo_orientation, photo_data);
+    // console.log("server", photo_data);
     //console.timeEnd("ts_get_photo_" + photo_index);
-    let photo_info = {
-        "url": this_photo_url,
-        "orientation": photo_orientation,
-        "meta_data": photo_data,
-    }
+    
     return photo_info;
 }
 

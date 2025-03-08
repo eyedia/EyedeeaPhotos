@@ -79,7 +79,7 @@ function execute_fs_scan(source, res) {
 
 export const scan_log_list = async (req, res) => {
   try {
-    meta_scan_log_list(req.params.id, (err, rows) => {
+    meta_scan_log_list(req.params.id,req.query.limit, req.query.offset, (err, rows) => {
       if (err) {
         logger.error(err.message);
       } else {

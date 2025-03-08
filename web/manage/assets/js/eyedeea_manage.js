@@ -177,45 +177,75 @@ async function get_source() {
     }
 }
 
-async function get_scan_logs() {
+async function get_scan_logs(offset) {
     if (g_source == null){
     console.log("retr")
         return;
-    }
-    try {
-        const response = await fetch(`/api/sources/${g_source.id}/scan/logs`); // Replace with actual API URL
-        const data = await response.json();
-
-        if (!Array.isArray(data)) {
-            console.error('Unexpected data format:', data);
-            return;
-        }
-
-        const tableBody = document.getElementById('scan-logs-table-body');
-        tableBody.innerHTML = '';
-
-        data.forEach(item => {
-            const createdAt = new Date(item.created_at);
-            console.log(item.updated_at);
-            let duration = "N/A";
-            if(item.updated_at){
-                const updatedAt = new Date(item.updated_at);
-                const durationMs = updatedAt - createdAt;
-                duration = new Date(durationMs).toISOString().substr(11, 8); // Converts to HH:mm:ss
-            }
-
-            const row = `<tr>
-        <td>${item.root_folder_id ?? 'Default'}</td>
-        <td>${item.root_folder_name ?? 'Default'}</td>
-        <td>${item.info}</td>
-        <td>${item.created_at}</td>
-        <td>${item.updated_at}</td>
-        <td>${duration}</td>
-    </tr>`;
-
-            tableBody.innerHTML += row;
-        });
+    }    
+    try {        
+        const apiUrl = `/api/sources/${g_source.id}/scan/logs`
+        let limit = 10;
+        if(!offset)
+            offset = 0;
+        
+        fetch(`${apiUrl}?limit=${limit}&offset=${offset}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                renderTable(data.records);
+                renderPagination(data.total_records, data.total_pages, data.current_offset, limit);
+            })
+            .catch(error => console.error("Error fetching data:", error));        
+        
+        
     } catch (error) {
         console.error('Error fetching data:', error);
+    }
+}
+
+function renderTable(records) {
+            
+    const tableBody = document.getElementById('scan-logs-table-body');
+    tableBody.innerHTML = '';
+    
+    records.forEach(item => {        
+        let duration = "N/A";
+        if(item.updated_at){
+            const createdAt = new Date(item.created_at);
+            const updatedAt = new Date(item.updated_at);
+            const durationMs = updatedAt - createdAt;
+            const str_duration = new Date(durationMs).toISOString()
+            duration = str_duration.substring(11, str_duration.length - 5); // Converts to HH:mm:ss
+        }
+        
+        const row = `<tr>
+            <td>${item.root_folder_id ?? 'N/A'}</td>
+            <td>${item.root_folder_name ?? 'N/A'}</td>
+            <td>${item.info}</td>
+            <td>${item.created_at}</td>
+            <td>${item.updated_at}</td>
+            <td>${duration}</td>
+        </tr>`;
+        
+        tableBody.innerHTML += row;
+    });
+}
+
+function renderPagination(total_records, total_pages, current_offset, limit) {
+    let page_ul = document.getElementById("pagination");
+    page_ul.innerHTML = "";
+    for (let i = 0; i < total_pages; i++) {        
+        let new_li = document.createElement("li");
+        //new_li.textContent = i + 1;
+        let new_a = document.createElement("a");
+        new_a.href = "javascript:void(0);";        
+        new_a.onclick = () => get_scan_logs(i * limit);
+        new_a.textContent = i + 1;  
+        new_a.classList.add("page");
+        if (i * limit === current_offset) {
+            new_a.disabled = true;
+        }
+        new_li.appendChild(new_a);
+        page_ul.appendChild(new_li);
     }
 }

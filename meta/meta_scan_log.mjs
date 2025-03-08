@@ -3,16 +3,38 @@ import { meta_db } from "./meta_base.mjs";
 
 const logger = config_log.logger;
 
-export function list(source_id, callback) {
-    let query = `select * from scan_log where source_id = ?`;
-    meta_db.all(query, [source_id], (err, rows) => {
-        if (err) {
-            logger.error(err.message);
-            callback(err, null);
-        } else {
-            callback(null, rows);
-        }
-    });
+export function list(source_id, limit, offset, callback) {
+    limit = parseInt(limit) || 10;
+    offset = parseInt(offset) || 0;
+
+    meta_db.get("SELECT COUNT(*) as count FROM scan_log where source_id = ?",
+        [source_id], (err, row) => {
+            if (err) {
+                callback(err, null);
+            }
+            let total_records = row.count;
+            let total_pages = Math.ceil(total_records / limit);            
+            let query = `select id, IFNULL(root_folder_id, 'Default') root_folder_id,
+                IFNULL(root_folder_name, 'Default') root_folder_name,
+                IFNULL(info, 'N/A') info,
+                IFNULL(created_at, 'N/A') created_at,
+                IFNULL(updated_at, 'N/A') updated_at
+                from scan_log where source_id = ? ORDER BY created_at LIMIT ? OFFSET ?`;
+            meta_db.all(query, [source_id, limit, offset], (err, rows) => {
+                if (err) {
+                    logger.error(err.message);
+                    callback(err, null);
+                } else {                    
+                    callback(null, {
+                        total_records: total_records,
+                        total_pages: total_pages,
+                        current_offset: offset,
+                        limit: limit,
+                        records: rows
+                    });
+                }
+            });
+        });
 }
 
 export function get(id, callback) {
@@ -22,7 +44,7 @@ export function get(id, callback) {
             if (err) {
                 logger.error(err.message);
                 callback(err, null);
-            } else{
+            } else {
                 callback(null, view_log);
             }
         });

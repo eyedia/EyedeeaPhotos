@@ -20,22 +20,52 @@
 
                 <!-- Header -->
                 <header id="header">
-                    <a href="index.html" class="logo"><strong>Editorial</strong> by HTML5 UP</a>
+                    <div style="display: table;">
+                        <a href="index.html" class="logo">
+                            <img src="../images/Eyedeea_Photos_m_logo.png" width="10%" alt="Eyedeea Photos Logo"
+                                style="vertical-align: middle;" />
+                            <h1 style="display: inline;vertical-align: middle;">Eyedeea Photos</h1>
+                        </a>
+                    </div>
                     <ul class="icons">
-                        <li><a href="https://github.com/eyedia/EyedeeaPhotos" target="_blank" class="icon brands fa fa-github"><span class="label">Git Hub</span></a></li>
-                        <li><a href="https://eyedeeaphotos.eyediatech.com/" target="_blank" class="icon brands fa fa-globe"><span class="label">Eyedeea Website</span></a></li>
+                        <li><a href="https://github.com/eyedia/EyedeeaPhotos" target="_blank"
+                                class="icon brands fa fa-github"><span class="label">Git Hub</span></a></li>
+                        <li><a href="https://eyedeeaphotos.eyediatech.com/" target="_blank"
+                                class="icon brands fa fa-globe"><span class="label">Eyedeea Website</span></a></li>
                     </ul>
                 </header>
                 <!-- Content -->
                 <section>
+                    <!--Update Source-->                    
                     <header class="main">
-                        <h1 id="title">Photo Sources</h1>
+                        <h2 id="title">Photo Sources</h2>
+                        
+                    </header>
+                    <!-- Scan Logs-->
+                    <h3>Scan Logs</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Folder Id</th>
+                                <th>Folder Name</th>
+                                <th>Info</th>
+                                <th>Started</th>
+                                <th>Finished</th>
+                                <th>Duration</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scan-logs-table-body">
+                        </tbody>
+                    </table>
+                    <!--Update Source-->                    
+                    <header class="main">
+                        <h3>Update Source</h3>
                         <div id="div_msg" name="div_msg" class="col-12" style="visibility:hidden;">
                             <p id="msg" name="msg">Saved successfully.</p>
                             <span id="auth_status_caption" name="auth_status_caption">Authentication Status</span>
                             <span id="auth_status_value" name="auth_status_value" class="inline-p">Success</span>
                         </div>
-                    </header>
+                    </header>                    
                     <div class="row gtr-200">
                         <div class="col-6 col-12-medium">
                             <div class="row gtr-uniform">
@@ -64,15 +94,15 @@
                                     <input type="password" name="password" id="password" value="" placeholder="Password"
                                         oninput="validate_fields()" />
                                 </div>
-                                <div id="google_api_key" name="google_api_key" class="col-12" style="visibility:hidden">
+                                <div id="google_api_key" name="google_api_key" class="col-12">
                                     <input type="text" name="url_fs" id="url_fs" value=""
                                         placeholder="Google Geo API Key (Optional)" />
                                 </div>
                                 <!-- Break -->
                                 <div class="col-12">
                                     <ul class="actions">
-                                        <li><input id="add" name="add" type="submit" value="Save" class="primary"
-                                                /></li>
+                                        <li><input id="add" name="add" type="submit" value="Save" class="primary" />
+                                        </li>
                                         <li><input type="reset" value="Cancel" /></li>
                                     </ul>
                                 </div>
@@ -142,7 +172,7 @@
     <script src="assets/js/eyedeea_manage.js"></script>
     <script>
         get_sources();
-        get_source();        
+        get_source();
         nav_sources_ctr.classList.add("active");
     </script>
 

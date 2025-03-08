@@ -153,6 +153,7 @@ function getQueryParam(param) {
     return urlParams.get(param);
 }
 
+let g_source = null
 async function get_source() {
     const id = getQueryParam('id'); // Get 'id' from the URL query string
     if (!id) {
@@ -164,13 +165,57 @@ async function get_source() {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const source = await response.json();
-        console.log(source);
+        g_source = source;
         name.value = source.name;
         source_type.value = source.type;
         url.value = source.url;
         user_name.value = source.user;
         title.innerText = `Source: ${source.name}`;
+        get_scan_logs();
     } catch (error) {
         console.error("Error fetching data:", error);
+    }
+}
+
+async function get_scan_logs() {
+    if (g_source == null){
+    console.log("retr")
+        return;
+    }
+    try {
+        const response = await fetch(`/api/sources/${g_source.id}/scan/logs`); // Replace with actual API URL
+        const data = await response.json();
+
+        if (!Array.isArray(data)) {
+            console.error('Unexpected data format:', data);
+            return;
+        }
+
+        const tableBody = document.getElementById('scan-logs-table-body');
+        tableBody.innerHTML = '';
+
+        data.forEach(item => {
+            const createdAt = new Date(item.created_at);
+            console.log(item.updated_at);
+            let duration = "N/A";
+            if(item.updated_at){
+                const updatedAt = new Date(item.updated_at);
+                const durationMs = updatedAt - createdAt;
+                duration = new Date(durationMs).toISOString().substr(11, 8); // Converts to HH:mm:ss
+            }
+
+            const row = `<tr>
+        <td>${item.root_folder_id ?? 'Default'}</td>
+        <td>${item.root_folder_name ?? 'Default'}</td>
+        <td>${item.info}</td>
+        <td>${item.created_at}</td>
+        <td>${item.updated_at}</td>
+        <td>${duration}</td>
+    </tr>`;
+
+            tableBody.innerHTML += row;
+        });
+    } catch (error) {
+        console.error('Error fetching data:', error);
     }
 }

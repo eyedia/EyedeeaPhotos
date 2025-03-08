@@ -44,7 +44,7 @@
                             <div class="row gtr-uniform">
                                 <div class="col-6 col-12-xsmall">
                                     <input type="text" name="name" id="name" value="" placeholder="Name"
-                                        oninput="validate_fields()" autofocus />
+                                        oninput="validate_fields()" />
                                 </div>
                                 <div class="col-6 col-12-xsmall">
                                     <div class="col-12">
@@ -74,7 +74,7 @@
                                 <!-- Break -->
                                 <div class="col-12">
                                     <ul class="actions">
-                                        <li><input id="add" name="add" type="submit" value="Add" class="primary"
+                                        <li><input id="add" name="add" type="submit" value="Save" class="primary"
                                                 /></li>
                                         <li><input type="reset" value="Cancel" /></li>
                                     </ul>
@@ -92,7 +92,6 @@
         <!-- Sidebar -->
         <div id="sidebar">
             <div class="inner">
-
                 <!-- Search -->
                 <section id="search" class="alt">
                     <form method="post" action="#">
@@ -108,7 +107,7 @@
                     <ul>
                         <li><a href="index.html">Home</a></li>
                         <li>
-                            <span class="opener">Sources</span>
+                            <span id="nav_sources_ctr" class="opener">Sources</span>
                             <ul id="nav_sources">
                                 <!-- Dynamically filled-->
                             </ul>
@@ -145,7 +144,9 @@
     <script src="assets/js/manage_main.js"></script>
     <script src="assets/js/eyedeea_manage.js"></script>
     <script>
-       get_sources();
+        get_sources();
+        get_source();        
+        nav_sources_ctr.classList.add("active");
     </script>
 
 </body>

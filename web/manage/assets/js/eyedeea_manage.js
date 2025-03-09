@@ -85,7 +85,6 @@ function validate_fields() {
 function is_valid_dir(path) {
     const first_check = /[:/\\/]/.test(path);
     if (!first_check) return false;
-    console.log(first_check);
     const pathRegex = /^(?:[a-zA-Z]:\\|\\\\|\/|\.\/|~\/)?(?:[\w.-]+[\\\/])*[\w.-]+$/;
     return pathRegex.test(path);
 }
@@ -96,12 +95,10 @@ function is_valid_url(url) {
 
 
 function toggle_message(show, msg_text, auth_status) {
-    console.log(msg_text, auth_status)
     const div_msg = document.getElementById('div_msg');
     const msg = document.getElementById('msg');
     const auth_status_caption = document.getElementById('auth_status_caption');
     const auth_status_value = document.getElementById('auth_status_value');
-    console.log(msg.hidden)
     if (show) {
         msg.textContent = msg_text;
         div_msg.style.visibility = 'visible';
@@ -178,21 +175,23 @@ async function get_source() {
     }
 }
 
-async function get_scan_logs(offset) {
+async function get_scan_logs(clicked_by_a, offset) {
     if (g_source == null) {
         console.log("retr")
         return;
     }
+    // console.log(clicked_by_a);
+    // if(clicked_by_a && clicked_by_a.parentElement)
+    //     do_it(clicked_by_a.parentElement.textContent);
     try {
         const apiUrl = `/api/sources/${g_source.id}/scan/logs`
         let limit = 10;
         if (!offset)
             offset = 0;
-
+        console.log(offset);
         fetch(`${apiUrl}?limit=${limit}&offset=${offset}`)
             .then(response => response.json())
             .then(data => {
-                console.log(data);
                 renderTable(data.records);
                 renderPagination(data.total_records, data.total_pages, data.current_offset, limit);
             })
@@ -211,7 +210,7 @@ function renderTable(records) {
 
     records.forEach(item => {
         let duration = "N/A";
-        if (item.updated_at) {
+        if (item.updated_at && item.updated_at != "N/A") {            
             const createdAt = new Date(item.created_at);
             const updatedAt = new Date(item.updated_at);
             const durationMs = updatedAt - createdAt;
@@ -220,8 +219,6 @@ function renderTable(records) {
         }
 
         const row = `<tr>
-            <td>${item.root_folder_id ?? 'N/A'}</td>
-            <td>${item.root_folder_name ?? 'N/A'}</td>
             <td>${item.info}</td>
             <td>${item.created_at}</td>
             <td>${item.updated_at}</td>
@@ -236,19 +233,35 @@ function renderPagination(total_records, total_pages, current_offset, limit) {
     let page_ul = document.getElementById("pagination");
     page_ul.innerHTML = "";
     for (let i = 0; i < total_pages; i++) {
-        let new_li = document.createElement("li");
-        //new_li.textContent = i + 1;
+        let new_li = document.createElement("li");        
         let new_a = document.createElement("a");
         new_a.href = "javascript:void(0);";
-        new_a.onclick = () => get_scan_logs(i * limit);
         new_a.textContent = i + 1;
         new_a.classList.add("page");
-        if (i * limit === current_offset) {
-            new_a.disabled = true;
+        new_a.onclick = (event) => { 
+            console.log(event.currentTarget.parentElement.textContent)
+            do_it(event.currentTarget.parentElement.textContent)
+            get_scan_logs(event.currentTarget, i * limit); 
         }
         new_li.appendChild(new_a);
         page_ul.appendChild(new_li);
+       
     }
+    do_it("1");
+}
+
+
+function do_it(page_no){
+    console.log("page:", page_no);
+    let page_ul = document.getElementById("pagination");
+    const listItems = page_ul.getElementsByTagName("li");
+    for (let item of listItems) {
+        if(item.textContent == page_no)
+            item.childNodes[0].classList.add("active");
+        else
+            item.childNodes[0].classList.remove("active");
+    }
+        
 }
 
 

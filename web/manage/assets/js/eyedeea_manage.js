@@ -281,3 +281,16 @@ async function scan() {
     
 
 }
+
+function do_it(page_no){
+    let page_ul = document.getElementById("pagination");
+    const listItems = page_ul.getElementsByTagName("li");
+    for (let item of listItems) {
+        if(item.textContent == page_no)
+            item.childNodes[0].classList.add("active");
+        else
+            item.childNodes[0].classList.remove("active");
+        console.log(item.childNodes[0]);
+    }
+        
+}

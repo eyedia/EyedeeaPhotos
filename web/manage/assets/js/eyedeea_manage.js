@@ -1,6 +1,6 @@
-let ul_nav_sources = document.getElementById("nav_sources");  
-let nav_sources_ctr = document.getElementById("nav_sources_ctr");  
-let title = document.getElementById("title"); 
+let ul_nav_sources = document.getElementById("nav_sources");
+let nav_sources_ctr = document.getElementById("nav_sources_ctr");
+let title = document.getElementById("title");
 const add = document.getElementById('add');
 const source_type = document.getElementById('source_type');
 const google_api_key = document.getElementById('google_api_key');
@@ -84,14 +84,15 @@ function validate_fields() {
 
 function is_valid_dir(path) {
     const first_check = /[:/\\/]/.test(path);
-    if(!first_check) return false;
+    if (!first_check) return false;
     console.log(first_check);
     const pathRegex = /^(?:[a-zA-Z]:\\|\\\\|\/|\.\/|~\/)?(?:[\w.-]+[\\\/])*[\w.-]+$/;
     return pathRegex.test(path);
 }
-function is_valid_url(url) {    
+function is_valid_url(url) {
     const urlRegex = /^(https?:\/\/)?([\w.-]+)\.([a-z]{2,6})([\/\w .-]*)*\/?$/i;
-    return urlRegex.test(url);        }
+    return urlRegex.test(url);
+}
 
 
 function toggle_message(show, msg_text, auth_status) {
@@ -119,14 +120,14 @@ function toggle_message(show, msg_text, auth_status) {
     }
 }
 
-function add_source_to_nav_menu(source) {              
+function add_source_to_nav_menu(source) {
     let newLi = document.createElement("li");
     let newAnchor = document.createElement("a");
     newAnchor.href = `source.html?id=${source.id}`;
-    newAnchor.textContent = source.name;       
-    newLi.appendChild(newAnchor);            
+    newAnchor.textContent = source.name;
+    newLi.appendChild(newAnchor);
     ul_nav_sources.appendChild(newLi);
-     
+
 }
 
 async function get_sources() {
@@ -135,9 +136,9 @@ async function get_sources() {
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        const data = await response.json();                
+        const data = await response.json();
         if (Array.isArray(data)) {
-            data.forEach((item, index) => {                        
+            data.forEach((item, index) => {
                 add_source_to_nav_menu(item);
             });
         } else {
@@ -158,7 +159,7 @@ async function get_source() {
     const id = getQueryParam('id'); // Get 'id' from the URL query string
     if (!id) {
         return;
-    }    
+    }
     try {
         const response = await fetch(`/api/sources/${id}`);
         if (!response.ok) {
@@ -178,16 +179,16 @@ async function get_source() {
 }
 
 async function get_scan_logs(offset) {
-    if (g_source == null){
-    console.log("retr")
+    if (g_source == null) {
+        console.log("retr")
         return;
-    }    
-    try {        
+    }
+    try {
         const apiUrl = `/api/sources/${g_source.id}/scan/logs`
         let limit = 10;
-        if(!offset)
+        if (!offset)
             offset = 0;
-        
+
         fetch(`${apiUrl}?limit=${limit}&offset=${offset}`)
             .then(response => response.json())
             .then(data => {
@@ -195,29 +196,29 @@ async function get_scan_logs(offset) {
                 renderTable(data.records);
                 renderPagination(data.total_records, data.total_pages, data.current_offset, limit);
             })
-            .catch(error => console.error("Error fetching data:", error));        
-        
-        
+            .catch(error => console.error("Error fetching data:", error));
+
+
     } catch (error) {
         console.error('Error fetching data:', error);
     }
 }
 
 function renderTable(records) {
-            
+
     const tableBody = document.getElementById('scan-logs-table-body');
     tableBody.innerHTML = '';
-    
-    records.forEach(item => {        
+
+    records.forEach(item => {
         let duration = "N/A";
-        if(item.updated_at){
+        if (item.updated_at) {
             const createdAt = new Date(item.created_at);
             const updatedAt = new Date(item.updated_at);
             const durationMs = updatedAt - createdAt;
             const str_duration = new Date(durationMs).toISOString()
             duration = str_duration.substring(11, str_duration.length - 5); // Converts to HH:mm:ss
         }
-        
+
         const row = `<tr>
             <td>${item.root_folder_id ?? 'N/A'}</td>
             <td>${item.root_folder_name ?? 'N/A'}</td>
@@ -226,7 +227,7 @@ function renderTable(records) {
             <td>${item.updated_at}</td>
             <td>${duration}</td>
         </tr>`;
-        
+
         tableBody.innerHTML += row;
     });
 }
@@ -234,13 +235,13 @@ function renderTable(records) {
 function renderPagination(total_records, total_pages, current_offset, limit) {
     let page_ul = document.getElementById("pagination");
     page_ul.innerHTML = "";
-    for (let i = 0; i < total_pages; i++) {        
+    for (let i = 0; i < total_pages; i++) {
         let new_li = document.createElement("li");
         //new_li.textContent = i + 1;
         let new_a = document.createElement("a");
-        new_a.href = "javascript:void(0);";        
+        new_a.href = "javascript:void(0);";
         new_a.onclick = () => get_scan_logs(i * limit);
-        new_a.textContent = i + 1;  
+        new_a.textContent = i + 1;
         new_a.classList.add("page");
         if (i * limit === current_offset) {
             new_a.disabled = true;
@@ -248,4 +249,35 @@ function renderPagination(total_records, total_pages, current_offset, limit) {
         new_li.appendChild(new_a);
         page_ul.appendChild(new_li);
     }
+}
+
+
+async function scan() {
+    if (g_source == null) {
+        console.log("retr")
+        return;
+    }
+
+    await fetch(`/api/sources/${g_source.id}/scan`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+        .then(response => {     
+            return response.json();
+        })
+        .then(data => {            
+            if ("message" in data) {
+                console.error(data);                
+            } else {
+                console.log('Scanning started:', data);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    //const responseData = await response.json();
+    
+
 }

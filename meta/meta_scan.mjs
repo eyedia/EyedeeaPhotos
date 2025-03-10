@@ -64,10 +64,15 @@ export function start_scan(json_data, callback) {
 }
 
 export function stop_scan(json_data, callback) {
-    const insert_query = `UPDATE scan_log set updated_at =strftime('%Y-%m-%d %H:%M:%S', 'now'), info =? WHERE id =?`;
+    const insert_query = `UPDATE scan_log set updated_at =strftime('%Y-%m-%d %H:%M:%S', 'now'), 
+    total_photos =?,
+    total_dirs =?,
+    total_geo_apis =?,
+    info =?
+    WHERE id =?`;
     return meta_db.run(
         insert_query,
-        [json_data.info, json_data.id],
+        [json_data.total_photos, json_data.total_dirs, json_data.total_geo_apis, json_data.info, json_data.id],
         function (err) {
             if (err) {
                 logger.error('Error updating data:', err);

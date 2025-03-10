@@ -215,11 +215,13 @@ function renderTable(records) {
             duration = str_duration.substring(11, str_duration.length - 5); // Converts to HH:mm:ss
         }
 
-        const row = `<tr>
-            <td>${item.info}</td>
+        const row = `<tr>            
             <td>${item.created_at}</td>
             <td>${item.updated_at}</td>
             <td>${duration}</td>
+            <td>${item.total_photos}</td>
+            <td>${item.total_dirs}</td>
+            <td>${item.total_geo_apis}</td>
         </tr>`;
 
         tableBody.innerHTML += row;
@@ -283,6 +285,7 @@ async function scan() {
                 console.error(data);                
             } else {
                 console.log('Scanning started:', data);
+                get_scan_logs();
             }
         })
         .catch(error => {

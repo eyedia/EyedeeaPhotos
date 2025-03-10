@@ -11,10 +11,10 @@ import {
 
 const logger = config_log.logger;
 export let fs_config = {};
-export let google_map_api_called = 0;
+export let total_geo_apis = 0;
 
 export function reset_fs_client() {
-    google_map_api_called = 0;
+    total_geo_apis = 0;
 }
 
 export async function authenticate(source_id, callback) {
@@ -166,7 +166,7 @@ async function get_geo_reverse(source_id, lat, lng, callback) {
         callback(null, null);
         return;
     }
-    google_map_api_called++;
+    total_geo_apis++;
     const m_client = new google_client({});
     m_client
         .reverseGeocode({

@@ -16,9 +16,11 @@ export function list(source_id, limit, offset, callback) {
             let total_pages = Math.ceil(total_records / limit);            
             let query = `select id, IFNULL(root_folder_id, 'Default') root_folder_id,
                 IFNULL(root_folder_name, 'Default') root_folder_name,
-                IFNULL(info, 'N/A') info,
-                IFNULL(created_at, 'N/A') created_at,
-                IFNULL(updated_at, 'N/A') updated_at
+                IFNULL(total_photos,'N/A') total_photos,
+                IFNULL(total_dirs,'N/A') total_dirs,
+                IFNULL(total_geo_apis,'N/A') total_geo_apis,                
+                IFNULL(strftime('%Y-%m-%d %H:%M:%S', created_at, 'localtime'), 'N/A') created_at,
+                IFNULL(strftime('%Y-%m-%d %H:%M:%S', updated_at, 'localtime'), 'N/A') updated_at
                 from scan_log where source_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`;
             meta_db.all(query, [source_id, limit, offset], (err, rows) => {
                 if (err) {

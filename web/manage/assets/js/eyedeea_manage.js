@@ -4,7 +4,8 @@ let title = document.getElementById("title");
 const add = document.getElementById('add');
 const source_type = document.getElementById('source_type');
 const google_api_key = document.getElementById('google_api_key');
-const name = document.getElementById('name');
+const source_name = document.getElementById('source_name');
+const url_caption = document.getElementById('url_caption');
 const url = document.getElementById('url');
 const user_name = document.getElementById('user_name');
 const password = document.getElementById('password');
@@ -12,7 +13,7 @@ const password = document.getElementById('password');
 
 add.addEventListener('click', function (event) {
     const data = {
-        "name": name.value,
+        "name": source_name.value,
         "type": source_type.value,
         "url": url.value,
         "user": user_name.value,
@@ -25,13 +26,13 @@ source_type.addEventListener('change', function (event) {
     if (event.target.value === 'fs') {
         google_api_key.style.visibility = 'visible';
         url.placeholder = "D:\\My_Photos";
-        user_name.placeholder = "User Name(Optional)";
-        password.placeholder = "Password(Optional)";
+        user_name.style.visibility = 'hidden';
+        password.style.visibility = 'hidden';
     } else {
         google_api_key.style.visibility = 'hidden';
         url.placeholder = "https://SYNOLOGY-IP:5001/webapi";
-        user_name.placeholder = "User Name";
-        password.placeholder = "Password";
+        user_name.style.visibility = 'visible';
+        password.style.visibility = 'visible';
     }
     validate_fields();
 });
@@ -64,7 +65,7 @@ async function save_source(url, data) {
 }
 
 function validate_fields() {
-    if ((name.value.trim() === "") || (url.value.trim() === "") || (source_type.value === '')) {
+    if ((source_name.value.trim() === "") || (url.value.trim() === "") || (source_type.value === '')) {
         add.disabled = true;
         return;
     }
@@ -164,10 +165,10 @@ async function get_source() {
         }
         const source = await response.json();
         g_source = source;
-        name.value = source.name;
+        source_name.value = source.name;
         source_type.value = source.type;
         url.value = source.url;
-        user_name.value = source.user;
+        //user_name.value = source.user;
         title.innerText = `Source: ${source.name}`;
         get_scan_logs();
     } catch (error) {
@@ -175,25 +176,21 @@ async function get_source() {
     }
 }
 
-async function get_scan_logs(clicked_by_a, offset) {
+async function get_scan_logs(triggered_by_page_a, offset) {
     if (g_source == null) {
         console.log("retr")
         return;
     }
-    // console.log(clicked_by_a);
-    // if(clicked_by_a && clicked_by_a.parentElement)
-    //     do_it(clicked_by_a.parentElement.textContent);
     try {
         const apiUrl = `/api/sources/${g_source.id}/scan/logs`
         let limit = 10;
         if (!offset)
             offset = 0;
-        console.log(offset);
         fetch(`${apiUrl}?limit=${limit}&offset=${offset}`)
             .then(response => response.json())
             .then(data => {
                 renderTable(data.records);
-                renderPagination(data.total_records, data.total_pages, data.current_offset, limit);
+                renderPagination(data.total_records, data.total_pages, data.current_offset, limit, triggered_by_page_a);
             })
             .catch(error => console.error("Error fetching data:", error));
 
@@ -229,7 +226,7 @@ function renderTable(records) {
     });
 }
 
-function renderPagination(total_records, total_pages, current_offset, limit) {
+function renderPagination(total_records, total_pages, current_offset, limit, triggered_by_page_a) {
     let page_ul = document.getElementById("pagination");
     page_ul.innerHTML = "";
     for (let i = 0; i < total_pages; i++) {
@@ -238,21 +235,22 @@ function renderPagination(total_records, total_pages, current_offset, limit) {
         new_a.href = "javascript:void(0);";
         new_a.textContent = i + 1;
         new_a.classList.add("page");
-        new_a.onclick = (event) => { 
-            console.log(event.currentTarget.parentElement.textContent)
-            do_it(event.currentTarget.parentElement.textContent)
+        new_a.onclick = (event) => {
+            event.preventDefault();
             get_scan_logs(event.currentTarget, i * limit); 
         }
         new_li.appendChild(new_a);
         page_ul.appendChild(new_li);
        
     }
-    do_it("1");
+    if(triggered_by_page_a)
+        set_active_page_no(triggered_by_page_a.parentElement.textContent)
+    else
+    set_active_page_no("1");
 }
 
 
-function do_it(page_no){
-    console.log("page:", page_no);
+function set_active_page_no(page_no){
     let page_ul = document.getElementById("pagination");
     const listItems = page_ul.getElementsByTagName("li");
     for (let item of listItems) {
@@ -293,17 +291,4 @@ async function scan() {
     //const responseData = await response.json();
     
 
-}
-
-function do_it(page_no){
-    let page_ul = document.getElementById("pagination");
-    const listItems = page_ul.getElementsByTagName("li");
-    for (let item of listItems) {
-        if(item.textContent == page_no)
-            item.childNodes[0].classList.add("active");
-        else
-            item.childNodes[0].classList.remove("active");
-        console.log(item.childNodes[0]);
-    }
-        
 }

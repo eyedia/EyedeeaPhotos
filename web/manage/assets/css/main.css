@@ -232,6 +232,16 @@ hr {
 .align-right {
   text-align: right; }
 
+#parts-container {
+    position: relative;
+}
+
+#part1, #part2 {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
 /* Row */
 .row {
   display: flex;

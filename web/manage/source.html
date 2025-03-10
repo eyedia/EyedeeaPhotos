@@ -6,7 +6,6 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
     <link rel="stylesheet" href="assets/css/main.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 
 <body class="is-preload">
@@ -36,19 +35,39 @@
                 </header>
                 <!-- Content -->
                 <section>
-                    <!--Update Source-->                    
+                    <!--Update Source-->
                     <header class="main">
-                        <h2 id="title">Photo Sources</h2>                        
+                        <h2 id="title">Photo Sources</h2>
                     </header>
                     <!-- Scan-->
-                    <h3>Scan</h3>
-                    <div class="col-12">
-                        <p>Last scanned: 2025-02-27 22:55:31                 
-                        <a href="#" onclick="do_it(2)" class="button primary icon fa fa-search" style="vertical-align: middle;">Scan Now</a>
-                        </p>
+                    <div class="row gtr-200">
+                        <div class="col-6 col-12-medium">
+                            <div class="row gtr-uniform">
+                                <div>
+                                    <p>Total Photos: 27271 </p>
+                                </div>
+                            </div>
+                            <div class="row gtr-uniform">
+                                <div>
+                                    <p>Total Dirs: 120 </p>
+                                </div>
+                            </div>
+                            <div class="row gtr-uniform">
+                                <div>
+                                    <p>Last scanned: 2025-02-27 22:55:31 </p>
+                                </div>
+                                <div style="padding-top: 12px;">
+                                    <a onclick="scan()" class="button primary icon fa-search">Scan Now</a>
+                                </div>
+                                <div>
+                                    <p>Scan started </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                    <hr />
                     <!-- Scan Logs-->
-                    <h3>Scan Logs</h3>
+                    <h3>Scan History</h3>
                     <table>
                         <thead>
                             <tr>
@@ -66,23 +85,26 @@
 
                         </ul>
                     </table>
-                    <!--Update Source-->                    
+                    
+                    <!--Update Source-->
                     <header class="main">
-                        <h3>Update Source</h3>
+                        <h3>Source Details</h3>
                         <div id="div_msg" name="div_msg" class="col-12" style="visibility:hidden;">
                             <p id="msg" name="msg">Saved successfully.</p>
                             <span id="auth_status_caption" name="auth_status_caption">Authentication Status</span>
                             <span id="auth_status_value" name="auth_status_value" class="inline-p">Success</span>
                         </div>
-                    </header>                    
+                    </header>
                     <div class="row gtr-200">
                         <div class="col-6 col-12-medium">
                             <div class="row gtr-uniform">
                                 <div class="col-6 col-12-xsmall">
-                                    <input type="text" name="name" id="name" value="" placeholder="Name"
+                                    <p>Name</p>
+                                    <input type="text" id="source_name" value="" placeholder="Name"
                                         oninput="validate_fields()" />
                                 </div>
                                 <div class="col-6 col-12-xsmall">
+                                    <p>Type</p>
                                     <div class="col-12">
                                         <select name="source_type" id="source_type">
                                             <option value="">- Type -</option>
@@ -92,18 +114,19 @@
                                     </div>
                                 </div>
                                 <div class="col-12">
+                                    <p id="url_caption">Directory Location</p>
                                     <input type="text" name="url" id="url" value=""
                                         placeholder="https://SYNOLOGY-IP:5001/webapi" oninput="validate_fields()" />
                                 </div>
-                                <div class="col-6 col-12-xsmall">
+                                <div class="col-6 col-12-xsmall">                                    
                                     <input type="text" name="user_name" id="user_name" value="" placeholder="User Name"
                                         oninput="validate_fields()" />
                                 </div>
-                                <div class="col-6 col-12-xsmall">
+                                <div class="col-6 col-12-xsmall">                                    
                                     <input type="password" name="password" id="password" value="" placeholder="Password"
                                         oninput="validate_fields()" />
                                 </div>
-                                <div id="google_api_key" name="google_api_key" class="col-12">
+                                <div id="google_api_key" name="google_api_key" class="col-12">                                    
                                     <input type="text" name="url_fs" id="url_fs" value=""
                                         placeholder="Google Geo API Key (Optional)" />
                                 </div>

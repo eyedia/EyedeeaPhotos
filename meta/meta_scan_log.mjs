@@ -19,7 +19,7 @@ export function list(source_id, limit, offset, callback) {
                 IFNULL(info, 'N/A') info,
                 IFNULL(created_at, 'N/A') created_at,
                 IFNULL(updated_at, 'N/A') updated_at
-                from scan_log where source_id = ? ORDER BY created_at LIMIT ? OFFSET ?`;
+                from scan_log where source_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`;
             meta_db.all(query, [source_id, limit, offset], (err, rows) => {
                 if (err) {
                     logger.error(err.message);

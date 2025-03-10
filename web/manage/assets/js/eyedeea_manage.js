@@ -9,7 +9,11 @@ const url_caption = document.getElementById('url_caption');
 const url = document.getElementById('url');
 const user_name = document.getElementById('user_name');
 const password = document.getElementById('password');
-
+const scan_caption = document.getElementById('scan_caption');
+const btn_scan = document.getElementById('btn_scan');
+const total_photos = document.getElementById('total_photos');
+const total_dirs = document.getElementById('total_dirs');
+const last_scanned = document.getElementById('last_scanned');
 
 add.addEventListener('click', function (event) {
     const data = {
@@ -170,11 +174,37 @@ async function get_source() {
         url.value = source.url;
         //user_name.value = source.user;
         title.innerText = `Source: ${source.name}`;
+        get_source_latest_scan_data();
         get_scan_logs();
     } catch (error) {
         console.error("Error fetching data:", error);
     }
 }
+
+async function get_source_latest_scan_data() {
+    const id = getQueryParam('id'); // Get 'id' from the URL query string
+    if (!id) {
+        return;
+    }
+    try {
+        const response = await fetch(`/api/sources/${id}/scan/logs?latest=true`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+        
+        if(data && data.length >0){
+            total_photos.innerText = data[0].total_photos;
+            total_dirs.innerText = data[0].total_dirs;
+            //total_geo_apis.innerText = data[0].total_geo_apis;
+            last_scanned.innerText = data[0].updated_at;
+        }
+    } catch (error) {
+        console.error("Error fetching data:", error);
+    }
+}
+
+
 
 async function get_scan_logs(triggered_by_page_a, offset) {
     if (g_source == null) {
@@ -271,6 +301,7 @@ async function scan() {
         return;
     }
 
+   
     await fetch(`/api/sources/${g_source.id}/scan`, {
         method: 'POST',
         headers: {
@@ -282,9 +313,17 @@ async function scan() {
         })
         .then(data => {            
             if ("message" in data) {
-                console.error(data);                
+                console.error(data);   
+                scan_caption.innerText = `Scanning could not be started. ${data.message}`
+                scan_caption.style.color = "red";
+                scan_caption.style.visibility = 'visible';
+                setTimeout(function () { scan_caption.style.visibility = 'hidden'; }, 10000);
             } else {
-                console.log('Scanning started:', data);
+                scan_caption.style.removeProperty("color");
+                scan_caption.style.visibility = 'visible';    
+                show_count_down_refresh_timer(data);                           
+                btn_scan.classList.add("disabled");
+                
                 get_scan_logs();
             }
         })
@@ -294,4 +333,38 @@ async function scan() {
     //const responseData = await response.json();
     
 
+}
+
+function show_count_down_refresh_timer(data){
+    let timeLeft = 10;
+    const countdownInterval = setInterval(async function() {
+        if (timeLeft >= 0) {           
+          //countdownElement.textContent = timeLeft;
+          scan_caption.innerText = `Scanning started; scan log id: ${data.scan_log_id}. Refreshing in ${timeLeft}`;  
+          timeLeft--;
+        } else {
+          clearInterval(countdownInterval);
+          scan_caption.innerText = `Scanning started; scan log id: ${data.scan_log_id}. Refreshing...`;
+
+        try {
+            const response = await fetch(`/api/sources/${g_source.id}/scan/logs/${data.scan_log_id}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const current_scan_log = await response.json();
+            
+            if(current_scan_log && current_scan_log.updated_at){                
+                btn_scan.classList.remove("disabled");
+                scan_caption.style.visibility = 'hidden';    
+                scan_caption.innerText = "";
+                get_scan_logs();
+                get_source_latest_scan_data();
+            }else{                
+                show_count_down_refresh_timer(data);
+            }
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
+        }
+      }, 1000);
 }

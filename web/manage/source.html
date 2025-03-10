@@ -44,23 +44,37 @@
                         <div class="col-6 col-12-medium">
                             <div class="row gtr-uniform">
                                 <div>
-                                    <p>Total Photos: 27271 </p>
+                                    <p>Total Photos:</p>
+                                </div>
+                                <div>
+                                    <p id="total_photos">27271 </p>
                                 </div>
                             </div>
                             <div class="row gtr-uniform">
                                 <div>
-                                    <p>Total Dirs: 120 </p>
+                                    <p>Total Directories:</p>
+                                </div>
+                                <div>
+                                    <p id="total_dirs">120 </p>
                                 </div>
                             </div>
                             <div class="row gtr-uniform">
                                 <div>
-                                    <p>Last scanned: 2025-02-27 22:55:31 </p>
+                                    <p>Last scanned:</p>
+                                </div>
+                                <div>
+                                    <p id="last_scanned">2025-02-27 22:55:31 </p>
                                 </div>
                                 <div style="padding-top: 12px;">
-                                    <a onclick="scan()" class="button primary icon fa-search">Scan Now</a>
+                                    <a id="btn_scan" onclick="scan()" class="button primary icon solid fa-search">Scan Now</a>
                                 </div>
                                 <div>
-                                    <p>Scan started </p>
+                                    <p id="scan_caption" style="visibility: hidden;"></p>                                    
+                                </div>
+                            </div>
+                            <div class="row gtr-uniform">
+                                <div>
+                                    <p><a href="#source_details">Source Details</a></p>
                                 </div>
                             </div>
                         </div>
@@ -95,7 +109,7 @@
                             <span id="auth_status_value" name="auth_status_value" class="inline-p">Success</span>
                         </div>
                     </header>
-                    <div class="row gtr-200">
+                    <div id="source_details" class="row gtr-200">
                         <div class="col-6 col-12-medium">
                             <div class="row gtr-uniform">
                                 <div class="col-6 col-12-xsmall">
@@ -166,7 +180,7 @@
                     <ul>
                         <li><a href="index.html">Home</a></li>
                         <li>
-                            <span id="nav_sources_ctr" class="opener">Sources</span>
+                            <span id="nav_sources_ctr" class="opener active">Sources</span>
                             <ul id="nav_sources">
                                 <!-- Dynamically filled-->
                             </ul>
@@ -205,7 +219,7 @@
     <script>
         get_sources();
         get_source();
-        nav_sources_ctr.classList.add("active");
+        //nav_sources_ctr.classList.add("active");
     </script>
 
 </body>

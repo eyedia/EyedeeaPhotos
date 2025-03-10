@@ -1,5 +1,5 @@
 import { scanner_is_busy } from "../../sources/scanner.js";
-import { list as meta_scan_log_list, get as meta_scan_log_get } from "../../meta/meta_scan_log.mjs";
+import { list as meta_scan_log_list, get_scan_log_summary as meta_get_scan_log_summary, get as meta_scan_log_get } from "../../meta/meta_scan_log.mjs";
 import { scan as syno_scan_service } from "../../sources/synology/syno_scanner.mjs";
 import { authenticate as fs_authenticate, fs_config } from "../../sources/fs/fs_client.mjs";
 import { scan as fs_scan_service } from "../../sources/fs/fs_scanner.mjs";
@@ -23,7 +23,7 @@ export const scan = async (req, res) => {
         res.status(503).json({ error: "Scanning is already in progress." });
       }
 
-    } else {      
+    } else {
       res.status(400).json({ "message": `Source id ${req.params.id} does not exist!` });
     }
   });
@@ -79,13 +79,25 @@ function execute_fs_scan(source, res) {
 
 export const scan_log_list = async (req, res) => {
   try {
-    meta_scan_log_list(req.params.id,req.query.limit, req.query.offset, (err, rows) => {
-      if (err) {
-        logger.error(err.message);
-      } else {
-        res.json(rows);
-      }
-    });
+    
+    if (req.query.latest && req.query.latest == "true") {      
+      meta_get_scan_log_summary(req.params.id, (err, rows) => {
+        if (err) {
+          logger.error(err.message);
+        } else {
+          res.json(rows);
+        }
+      });
+
+    } else {
+      meta_scan_log_list(req.params.id, req.query.limit, req.query.offset, (err, rows) => {
+        if (err) {
+          logger.error(err.message);
+        } else {
+          res.json(rows);
+        }
+      });
+    }
   } catch (error) {
     logger.error(error);
     res.status(500).send('Internal Server Error');

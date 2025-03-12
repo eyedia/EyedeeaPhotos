@@ -166,31 +166,32 @@ function getQueryParam(param) {
 
 let g_source = null
 async function get_source() {
-    const id = getQueryParam('id'); // Get 'id' from the URL query string
-    const source_name = document.getElementById('source_name');
-    const source_type = document.getElementById('source_type');
-    const url = document.getElementById('url');
-    const directory = document.getElementById('directory');
-    const username = document.getElementById("username");
-    let title = document.getElementById("title");
-    if (!id) {
-        return;
-    }
+    const id = getQueryParam('id'); 
+    if (!id) return;
+
     try {
         const response = await fetch(`/api/sources/${id}`);
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
+
         const source = await response.json();
         g_source = source;
-        console.log(source);
-        source_name.value = source.name;
-        source_type.value = source.type;
-        url.value = source.url;
-        if(source.user)
-            username.value = source.user;
-        directory.value = source.url;
-        title.innerText = `Source: ${source.name}`;
+
+        const source_name = document.getElementById('source_name');
+        const source_type = document.getElementById('source_type');
+        const url = document.getElementById('url');
+        const directory = document.getElementById('directory');
+        const username = document.getElementById("username");
+        const title = document.getElementById("title");
+
+        if (source_name) source_name.value = source.name;
+        if (source_type) source_type.value = source.type;
+        if (url && source.type === "nas") url.value = source.url;
+        if (directory && source.type === "fs") directory.value = source.url;
+        if (username && source.user) username.value = source.user;
+        if (title) title.innerText = `Source: ${source.name}`;
+
         toggleFields(true);
         get_source_latest_scan_data();
         get_scan_logs();
@@ -314,45 +315,40 @@ function set_active_page_no(page_no) {
 
 }
 
-
 async function scan() {
-    if (g_source == null) {
-        console.log("retr")
+    if (!g_source) {
+        console.log("Source is null.");
         return;
     }
+
     const btn_scan = document.getElementById('btn_scan');
     const scan_caption = document.getElementById('scan_caption');
-    await fetch(`/api/sources/${g_source.id}/scan`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    })
-        .then(response => {
-            return response.json();
-        })
-        .then(data => {
-            if ("message" in data) {
-                console.error(data);
-                scan_caption.innerText = `Scanning could not be started. ${data.message}`
-                scan_caption.style.color = "red";
-                scan_caption.style.visibility = 'visible';
-                setTimeout(function () { scan_caption.style.visibility = 'hidden'; }, 10000);
-            } else {
-                scan_caption.style.removeProperty("color");
-                scan_caption.style.visibility = 'visible';
-                show_count_down_refresh_timer(data, btn_scan, scan_caption);
-                btn_scan.classList.add("disabled");
 
-                get_scan_logs();
+    try {
+        const response = await fetch(`/api/sources/${g_source.id}/scan`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
         });
-    //const responseData = await response.json();
 
-
+        const data = await response.json();
+        if (data.message) {
+            console.error(data);
+            scan_caption.innerText = `Scanning could not be started. ${data.message}`;
+            scan_caption.style.color = "red";
+            scan_caption.style.visibility = 'visible';
+            setTimeout(() => scan_caption.style.visibility = 'hidden', 10000);
+        } else {
+            scan_caption.style.removeProperty("color");
+            scan_caption.style.visibility = 'visible';
+            show_count_down_refresh_timer(data, btn_scan, scan_caption);
+            btn_scan.classList.add("disabled");
+            get_scan_logs();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
 }
 
 function show_count_down_refresh_timer(data, btn_scan, scan_caption) {
@@ -360,7 +356,8 @@ function show_count_down_refresh_timer(data, btn_scan, scan_caption) {
     const countdownInterval = setInterval(async function () {
         if (timeLeft >= 0) {
             //countdownElement.textContent = timeLeft;
-            scan_caption.innerText = `Scanning started; scan log id: ${data.scan_log_id}. Refreshing in ${timeLeft}`;
+            let formatted_time_left = formatDuration(timeLeft);
+            scan_caption.innerText = `Scanning started; scan log id: ${data.scan_log_id}. Refreshing in ${formatted_time_left}`;
             timeLeft--;
         } else {
             clearInterval(countdownInterval);
@@ -387,4 +384,21 @@ function show_count_down_refresh_timer(data, btn_scan, scan_caption) {
             }
         }
     }, 1000);
+}
+
+function formatDuration(seconds) {
+    if (isNaN(seconds) || seconds < 0) {
+        return "Invalid input";
+    }
+
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    let formattedTime = [];
+    if (hours > 0) formattedTime.push(`${hours} hour${hours !== 1 ? 's' : ''}`);
+    if (minutes > 0) formattedTime.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
+    if (secs > 0 || formattedTime.length === 0) formattedTime.push(`${secs} second${secs !== 1 ? 's' : ''}`);
+
+    return formattedTime.join(", ");
 }

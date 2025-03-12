@@ -1,7 +1,8 @@
 import { list_dir, list_dir_items } from "./syno_client.mjs";
 import {
     save_item, save_scan_log_detail,
-    get_scan_log_detail, update_scan_log
+    get_scan_log_detail, update_scan_log,
+    stop_scan as meta_stop_scan 
 } from "../../meta/meta_scan.mjs";
 import { start_scanning } from '../scanner.js';
 import config_log from "../../config_log.js";
@@ -12,6 +13,8 @@ let _failed_folders_tried = false;
 
 let _offset = 0;
 let _limit = 1000;
+let total_dirs = 1;
+let total_photos = 0;
 
 export async function scan(source, folder_id, folder_name, inform_caller_scan_started, inform_caller_scan_ended) {
     let scan_start_data = {
@@ -25,6 +28,8 @@ export async function scan(source, folder_id, folder_name, inform_caller_scan_st
                 logger.error(err);
                 inform_caller_scan_started(err, null);
             } else {
+                total_dirs = 1;
+                total_photos = 0;
                 inform_caller_scan_started(null, scan_started_data);
                 internal_scan(scan_started_data, folder_id, folder_name);
             }
@@ -58,6 +63,7 @@ async function internal_scan(scan_started_data, folder_id = -1, folder_name = ""
 }
 
 async function list_dir_loop(scan_started_data, folder_id, folder_name, offset, limit) {
+    total_dirs++;
     logger.info(`01-Getting sub folder ${folder_id}...`);
     let args = {
         "source_id": scan_started_data.source_id,
@@ -84,6 +90,7 @@ async function list_dir_loop(scan_started_data, folder_id, folder_name, offset, 
                 list_dir_items(args, (err, photo_data) => {
                     if (photo_data) {
                         photo_data.data.list.forEach(function (photo) {
+                            total_photos++;
                             let one_record = {
                                 "source_id": scan_started_data.source_id,
                                 "photo_id": photo.id,
@@ -152,6 +159,9 @@ function syno_scanning_ended(err, scan_log_end_data, inform_caller_scan_ended) {
         syno_start_failed_folders(scan_log_end_data, inform_caller_scan_ended);
     } else {
         _failed_folders_tried = true;
+        scan_log_end_data.total_dirs = total_dirs;
+        scan_log_end_data.total_photos = total_photos;
+        meta_stop_scan(scan_log_end_data);
         if(inform_caller_scan_ended)
             inform_caller_scan_ended(scan_log_end_data);
     }

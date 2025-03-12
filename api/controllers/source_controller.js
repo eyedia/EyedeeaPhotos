@@ -87,8 +87,9 @@ function authenticate_source(source, callback) {
         create_eyedeea_tags(source.id);
       callback(auth_result);
     });
-  } else if (source.type == constants.SOURCE_TYPE_FS) {
-    fs_authenticate(source.id);
-    callback({ "auth_status": true, "error": {} });
+  } else if (source.type == constants.SOURCE_TYPE_FS) {    
+    fs_authenticate(source.id, auth_result => {      
+      callback(auth_result);
+    });
   }
 }

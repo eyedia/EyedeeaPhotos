@@ -134,6 +134,22 @@ p {
     display: inline;
 }
 
+.x {
+  filter: grayscale(1);
+  border: none;
+  background: none;
+  position: absolute;
+  top: 15px;
+  right: 10px;
+  transition: ease filter, transform 0.3s;
+  cursor: pointer;
+  transform-origin: center;
+  &:hover {
+    filter: grayscale(0);
+    transform: scale(1.1);
+  }
+}
+
 h1, h2, h3, h4, h5, h6 {
   color: #3d4449;
   font-family: "Roboto Slab", serif;

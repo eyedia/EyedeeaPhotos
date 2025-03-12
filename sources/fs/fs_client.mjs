@@ -18,19 +18,26 @@ export function reset_fs_client() {
 }
 
 export async function authenticate(source_id, callback) {
-    meta_get_source(source_id, true, (err, fs_config_from_db) => {
+    meta_get_source(source_id, true, (err, source) => {
         if (err) {
             logger.error(err.message);
             if (callback)
-                callback(err, null);
+                callback({ "auth_status": false, "error": { "message": err.message } });
         } else {
-            if (!fs_config_from_db) {
+            if (!source) {
+                callback({ "auth_status": false, "error": { "message": err } });
                 logger.error("FS was not configured!");
                 return;
             }
-            fs_config[source_id] = fs_config_from_db;
+            fs_config[source_id] = source;
+            if (!fs.existsSync(source.url)) {
+                const message = `The directory ${source.url} does not exist or not accessible!`
+                callback({ "auth_status": false, "error": { "message": message } });
+                logger.error(message);
+                return;
+              }
             if (callback)
-                callback(null, fs_config_from_db);
+                callback({ "auth_status": true, "error": {} });
         }
     });
 }

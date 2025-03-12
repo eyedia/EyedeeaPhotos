@@ -55,9 +55,15 @@ async function save_source(url, data) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const responseData = await response.json();
-        if ((response.status == 201) || (response.status == 200)) {
+        const error_message = ""
+            
+        if (response.status == 201) {
             console.log('New source has been registered with id:', responseData.id);
-            toggle_message(true, "Saved successfully!", responseData.authenticate.auth_status);
+            toggle_message(true, "Saved successfully!", responseData.authenticate);
+            setTimeout(function () { toggle_message(); }, 5000);
+        }else if (response.status == 200) {
+            console.log('Saved successfully!');
+            toggle_message(true, "Saved successfully!", responseData.authenticate);
             setTimeout(function () { toggle_message(); }, 5000);
         }
         return responseData;
@@ -99,7 +105,7 @@ function is_valid_url(url) {
 }
 
 
-function toggle_message(show, msg_text, auth_status) {
+function toggle_message(show, msg_text, authenticate) {
     const div_msg = document.getElementById('div_msg');
     const msg = document.getElementById('msg');
     const auth_status_caption = document.getElementById('auth_status_caption');
@@ -113,11 +119,17 @@ function toggle_message(show, msg_text, auth_status) {
         auth_status_value.style.color = "limegreen";
     }
 
-    if (auth_status == true) {
+        
+    if ((authenticate) && (authenticate.auth_status == true)) {
         auth_status_value.textContent = "Success";
         auth_status_value.style.color = "limegreen";
     } else {
-        auth_status_value.textContent = "Failed";
+        let error_message = ""
+        if(authenticate)
+            if(authenticate.error)
+                if (authenticate.error.message)
+                    error_message = authenticate.error.message
+        auth_status_value.textContent = "Failed! " + error_message;
         auth_status_value.style.color = "crimson";
     }
 }

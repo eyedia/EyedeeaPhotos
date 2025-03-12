@@ -104,57 +104,44 @@
                     <header class="main">
                         <h3>Source Details</h3>                        
                     </header>
-                    <div id="source_details" class="row gtr-200">
-                        <div class="col-6 col-12-medium">
-                            <div class="row gtr-uniform">
-                                <div class="col-6 col-12-xsmall">
-                                    <p>Name</p>
-                                    <input type="text" id="source_name" value="" placeholder="Name"
-                                        oninput="validate_fields()" />
-                                </div>
-                                <div class="col-6 col-12-xsmall">
-                                    <p>Type</p>
-                                    <div class="col-12">
-                                        <select name="source_type" id="source_type">
-                                            <option value="">- Type -</option>
-                                            <option value="nas">Synology NAS</option>
-                                            <option value="fs">File System</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-12">
-                                    <p id="url_caption">Directory Location</p>
-                                    <input type="text" name="url" id="url" value=""
-                                        placeholder="https://SYNOLOGY-IP:5001/webapi" oninput="validate_fields()" />
-                                </div>
-                                <div class="col-6 col-12-xsmall">                                    
-                                    <input type="text" name="user_name" id="user_name" value="" placeholder="User Name"
-                                        oninput="validate_fields()" />
-                                </div>
-                                <div class="col-6 col-12-xsmall">                                    
-                                    <input type="password" name="password" id="password" value="" placeholder="Password"
-                                        oninput="validate_fields()" />
-                                </div>
-                                <div id="google_api_key" name="google_api_key" class="col-12">                                    
-                                    <input type="text" name="url_fs" id="url_fs" value=""
-                                        placeholder="Google Geo API Key (Optional)" />
-                                </div>
-                                <!-- Break -->
-                                <div class="col-12">
-                                    <ul class="actions">
-                                        <li><input id="add" name="add" type="submit" value="Save" class="primary" />
-                                        </li>
-                                    </ul>
-                                </div>
-                                <div id="div_msg" name="div_msg" class="col-12" style="visibility:hidden;">
-                                    <p id="msg" name="msg">Saved successfully.</p>
-                                    <span id="auth_status_caption" name="auth_status_caption">Authentication Status</span>
-                                    <span id="auth_status_value" name="auth_status_value" class="inline-p">Success</span>
-                                </div>
-                            </div>
-
+                    <div class="erow">
+                        <label for="name">Name:</label>
+                        <input type="text" id="source_name" name="source_name" oninput="validate_fields()">
+                    </div>
+                    <div class="erow">
+                        <label for="type">Type:</label>
+                        <select id="source_type" name="source_type" onchange="toggleFields()">
+                            <option value="">Select</option>
+                            <option value="nas">NAS</option>
+                            <option value="fs">FS</option>
+                        </select>
+                    </div>
+                    
+                    <div id="nasFields" class="hidden">
+                        <div class="erow">
+                            <label for="url">URL:</label>
+                            <input type="text" id="url" name="url" oninput="validate_fields()">
+                        </div>
+                        <div class="erow">
+                            <label for="username">Username:</label>
+                            <input type="text" id="username" name="username" oninput="validate_fields()">
+                            <label for="password">Password:</label>
+                            <input type="password" id="password" name="password" oninput="validate_fields()">
                         </div>
                     </div>
+                    
+                    <div id="fsFields" class="hidden">
+                        <div class="erow">
+                            <label for="directory">Directory:</label>
+                            <input type="text" id="directory" name="directory" oninput="validate_fields()">
+                        </div>
+                        <div class="erow">
+                            <label for="apiKey">API Key:</label>
+                            <input type="text" id="apiKey" name="apiKey">
+                        </div>
+                    </div>
+                    <input id="add" name="add" type="submit" value="Save" class="primary" />
+                    <div id="message" class="message hidden"></div>
 
                 </section>
 
@@ -216,8 +203,8 @@
     <script src="assets/js/manage_main.js"></script>
     <script src="assets/js/eyedeea_manage.js"></script>
     <script>
-        get_sources();
-        get_source();
+        // get_sources();
+        // get_source();
         //nav_sources_ctr.classList.add("active");
     </script>
 

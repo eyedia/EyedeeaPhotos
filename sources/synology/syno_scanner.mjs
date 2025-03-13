@@ -2,7 +2,7 @@ import { list_dir, list_dir_items } from "./syno_client.mjs";
 import {
     save_item, save_scan_log_detail,
     get_scan_log_detail, update_scan_log,
-    stop_scan as meta_stop_scan 
+    stop_scan as meta_stop_scan
 } from "../../meta/meta_scan.mjs";
 import { start_scanning } from '../scanner.js';
 import config_log from "../../config_log.js";
@@ -16,26 +16,34 @@ let _limit = 1000;
 let total_dirs = 1;
 let total_photos = 0;
 
-export async function scan(source, folder_id, folder_name, inform_caller_scan_started, inform_caller_scan_ended) {
-    let scan_start_data = {
-        source: source,
-        max_time_in_mins: 12,
-        interval_in_secs: 30,
-        insert_data_threshold: 0.0005
-    }
-    start_scanning(scan_start_data, (err, scan_started_data) => {
-            if (err) {
-                logger.error(err);
-                inform_caller_scan_started(err, null);
-            } else {
-                total_dirs = 1;
-                total_photos = 0;
-                inform_caller_scan_started(null, scan_started_data);
-                internal_scan(scan_started_data, folder_id, folder_name);
+export async function scan(source, folder_id, folder_name, inform_caller_scan_started, inform_caller_scan_ended) {    
+    //lets do health check before scanning
+    health_check(source.id, (err, data) => {
+        if (err) {            
+            inform_caller_scan_started(err, null);
+            return;
+        } else {
+            let scan_start_data = {
+                source: source,
+                max_time_in_mins: 12,
+                interval_in_secs: 30,
+                insert_data_threshold: 0.0005
             }
-        },
-        syno_scanning_ended,
-        inform_caller_scan_ended);
+            start_scanning(scan_start_data, (err, scan_started_data) => {
+                if (err) {
+                    logger.error(err);
+                    inform_caller_scan_started(err, null);
+                } else {
+                    total_dirs = 1;
+                    total_photos = 0;
+                    inform_caller_scan_started(null, scan_started_data);
+                    internal_scan(scan_started_data, folder_id, folder_name);
+                }
+            },
+                syno_scanning_ended,
+                inform_caller_scan_ended);
+        }
+    });
 }
 
 async function internal_scan(scan_started_data, folder_id = -1, folder_name = "") {
@@ -50,6 +58,9 @@ async function internal_scan(scan_started_data, folder_id = -1, folder_name = ""
         list_dir(args, (err, data) => {
             if (data && data.data.list.length > 0) {
                 data.data.list.forEach(function (root_folder) {
+                    if (total_dirs >= 10) {
+                        return;
+                    }
                     list_dir_loop(scan_started_data, root_folder.id, root_folder.name, _offset, _limit);
                 });
             }
@@ -64,6 +75,7 @@ async function internal_scan(scan_started_data, folder_id = -1, folder_name = ""
 
 async function list_dir_loop(scan_started_data, folder_id, folder_name, offset, limit) {
     total_dirs++;
+
     logger.info(`01-Getting sub folder ${folder_id}...`);
     let args = {
         "source_id": scan_started_data.source_id,
@@ -162,12 +174,12 @@ function syno_scanning_ended(err, scan_log_end_data, inform_caller_scan_ended) {
         scan_log_end_data.total_dirs = total_dirs;
         scan_log_end_data.total_photos = total_photos;
         meta_stop_scan(scan_log_end_data);
-        if(inform_caller_scan_ended)
+        if (inform_caller_scan_ended)
             inform_caller_scan_ended(scan_log_end_data);
     }
 }
 
-export function syno_start_failed_folders(scan_log_end_data, inform_caller_scan_ended){
+export function syno_start_failed_folders(scan_log_end_data, inform_caller_scan_ended) {
 
     let scan_start_data = {
         source: scan_log_end_data.source,
@@ -177,13 +189,28 @@ export function syno_start_failed_folders(scan_log_end_data, inform_caller_scan_
         insert_data_threshold: 0.0005
     }
     start_scanning(scan_start_data, (err, scan_started_data) => {
-            if (err) {
-                logger.error(err);                
-            } else {
-                console.log("1");       
-                scan_failed_folders(scan_log_end_data);
-            }
-        },
+        if (err) {
+            logger.error(err);
+        } else {            
+            scan_failed_folders(scan_log_end_data);
+        }
+    },
         syno_scanning_ended,
         inform_caller_scan_ended);
+}
+
+async function health_check(source_id, callback) {
+    let args = {
+        "source_id": source_id,
+        "folder_id": undefined,
+        "offset": _offset,
+        "limit": _limit
+    }
+    list_dir(args, (err, data) => {        
+        if (err) {
+            callback(err, null);
+        } else {
+            callback(null, data);
+        }
+    });
 }

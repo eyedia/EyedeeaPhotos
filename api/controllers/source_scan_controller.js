@@ -42,7 +42,12 @@ const syno_scan = async (source, req, res) => {
 
   try {
     await syno_scan_service(source, folder_id, folder_name, (err, scan_log_details) => {
-      res.json(scan_log_details);
+      if(err){
+        res.status(503).json(err);
+        return;
+      }else{
+        res.json(scan_log_details);
+      }
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

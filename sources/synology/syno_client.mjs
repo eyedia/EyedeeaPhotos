@@ -40,10 +40,16 @@ export async function authenticate(source_id, callback) {
           },
           httpsAgent: httpsAgent
         })
-          .then(function (response) {
+          .then(function (response) {            
             nas_config.cache = response.data.data;
             nas_auth_token[source_id] = nas_config.cache;
             if (response.data.error) {
+              logger.error(response.data);
+              if ((response.data.error.code) && (response.data.error.code == 407)){
+                const syno_error_msg = "Synology blocked this IP address because it has reached the maximum number of failed login attempts allowed within a specific time period. Please contact Synology system administrator."
+                response.data.error["details"] = syno_error_msg
+                logger.error(syno_error_msg);
+              }
               callback({ "auth_status": false, "error": response.data.error });
             } else {
               return meta_update_cache(nas_config, (update_err, updated_nas_config, status_code) => {
@@ -124,6 +130,12 @@ export async function list_dir(args, callback) {
     args.limit = 1000
 
   authenticate_if_required(args.source_id, auth_result => {
+    if(!auth_result.auth_status){
+      const err_msg = "Authentication failed. Please check the error log and try again later."      
+      callback({"message": auth_result}, null);
+      return;
+    }
+    console.log(auth_result)
     let m_param = {
       api: "SYNO.FotoTeam.Browse.Folder",
       SynoToken: nas_auth_token[args.source_id].synotoken,

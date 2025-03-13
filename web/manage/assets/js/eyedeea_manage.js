@@ -53,17 +53,33 @@ async function save_source(url, data) {
         if (responseData.authenticate && responseData.authenticate.error) {
             error_message = responseData.authenticate.error.message;
         }
-        console.log(response.status);
+        if(response.status == 201){
+            get_sources();  //refesh nav menu           
+        } 
+
+        if (error_message && error_message.code) {
+            error_message = `Saved successfully! But check your config. Eyedeea Photos could not communicate with the server. <br>${error_message.code}: ${error_message.message}`;
+        }
         if ((response.status === 201 || response.status === 200) && !error_message) {
+            if(response.status === 201){
+                window.location.href = `source.html?id=${responseData.id}`;
+            }
             messageDiv.textContent = "Saved successfully";
             messageDiv.className = "message success";
         } else {
-            messageDiv.textContent = error_message;
+            messageDiv.innerHTML = error_message;
             messageDiv.className = "message error";
+            return;
         }
-
+        
         messageDiv.classList.remove("hidden");
-        setTimeout(() => messageDiv.classList.add("hidden"), 5000);
+        setTimeout(() => 
+            {
+                messageDiv.classList.add("hidden");
+                const dialog = document.getElementById('dialog');
+                if(dialog)
+                    dialog.close();
+            }, 5000);
 
         return responseData;
     } catch (error) {
@@ -84,24 +100,24 @@ function validate_fields() {
     const directory = document.getElementById("directory");
     const add = document.getElementById("add"); // Ensure the "add" button exists in your HTML
 
-    // General validation
     if (!source_name.value.trim() || !source_type.value) {
         add.disabled = true;
         return;
     }
-
     if (source_type.value === 'nas') {
         if (!url.value.trim() || !username.value.trim() || !password.value.trim()) {
             add.disabled = true;
             return;
         }
         add.disabled = !is_valid_url(url.value);
+        add.disabled = false;
     } else if (source_type.value === 'fs') {
         if (!directory.value.trim()) {
             add.disabled = true;
             return;
         }
         add.disabled = !is_valid_dir(directory.value);
+        add.disabled = false;
     } else {
         add.disabled = true;
         return;
@@ -142,6 +158,8 @@ function add_source_to_nav_menu(source) {
 
 async function get_sources() {
     try {
+        let ul_nav_sources = document.getElementById("nav_sources");
+        ul_nav_sources.innerHTML = "";
         const response = await fetch("/api/sources");
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
@@ -402,3 +420,4 @@ function formatDuration(seconds) {
 
     return formattedTime.join(", ");
 }
+

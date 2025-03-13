@@ -106,7 +106,7 @@
                                 <input type="text" id="apiKey" name="apiKey">
                             </div>
                         </div>
-                        <input id="add" name="add" type="submit" value="Save" class="primary" />
+                        <input id="add" name="add" type="submit" value="Save" class="primary" disabled />
                         <div id="message" class="message hidden"></div>
                     </section>
 
@@ -134,7 +134,7 @@
                     <ul>
                         <li><a href="index.html">Home</a></li>
                         <li>
-                            <span class="opener">Sources</span>
+                            <span id="nav_sources_ctr" class="opener active">Sources</span>
                             <ul id="nav_sources">
                                 <!-- Dynamically filled-->
                             </ul>
@@ -169,11 +169,7 @@
     <script src="assets/js/breakpoints.min.js"></script>
     <script src="assets/js/util.js"></script>
     <script src="assets/js/manage_main.js"></script>
-    <script src="assets/js/eyedeea_manage.js"></script>
-    <script>
-        get_sources();
-    </script>
-
+    <script src="assets/js/eyedeea_manage.js"></script>    
 </body>
 
 </html>

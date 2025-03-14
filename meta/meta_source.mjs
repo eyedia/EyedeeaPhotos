@@ -145,3 +145,61 @@ export function clear_cache(id, callback) {
             }
         });
 }
+
+export function save_source_dir(dir_data, callback) {
+    //console.log(dir_data);
+    let query = `select * from source_dir where dir_name = ? COLLATE NOCASE`;
+
+    meta_db.get(query, [dir_data.dir_name],
+        (err, meta_dir_data) => {
+            if (err) {
+                logger.error(err.message);
+            } else {
+                if (!meta_dir_data) {
+                    meta_db.run(
+                        `INSERT INTO source_dir (dir_id, dir_name, parent_id, source_id) VALUES (?, ?, ?, ?)`,
+                        [dir_data.dir_id, dir_data.dir_name, dir_data.parent_id, dir_data.source_id],
+                        function (err) {
+                            if (err) {
+                                logger.error('Error inserting data:', err);
+                                callback(err, null);
+                            } else {
+                                dir_data["id"] = this.lastID;
+                               callback(null, dir_data);
+                            }
+                        });
+                } else {
+                    callback(null, dir_data);
+                    // meta_db.run(
+                    //     `UPDATE source_dir set dir_id = ?, dir_name = ?, parent_id = ?, source_id = ?, updated_at = strftime('%Y-%m-%d %H:%M:%S', 'now') where id = ?`,
+                    //     [dir_data.dir_id, dir_data.dir_name, dir_data.parent_id, dir_data.source_id, meta_dir_data.id],
+                    //     function (err) {
+                    //         if (err) {
+                    //             logger.error('Error updating data:', err);
+                    //             callback(err, null);
+                    //         } else {
+                    //             dir_data["id"] = meta_dir_data.id;
+                    //             callback(null, dir_data);
+                    //         }
+                    //     });
+                }
+            }
+        });
+}
+
+export function get_source_dir(dir_id, callback) {
+    let query = `select * from source_dir where dir_id = ?`;
+
+    meta_db.get(query, [dir_id],
+        (err, meta_dir_data) => {
+            if (err) {
+                logger.error(err.message);
+            } else {
+                if (meta_dir_data) {                    
+                    callback(null, meta_dir_data);                    
+                }else{
+                    callback({"message": "Not found"}, null);
+                }
+            }
+        });
+}

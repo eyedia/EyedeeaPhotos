@@ -6,7 +6,9 @@ import config_log from "../../config_log.js";
 import {
   get as meta_get_source,
   update_cache as meta_update_cache,
-  clear_cache as meta_clear_cache
+  clear_cache as meta_clear_cache,
+  save_source_dir,
+  get_source_dir
 } from "../../meta/meta_source.mjs"
 import { meta_db } from '../../meta/meta_base.mjs';
 
@@ -40,12 +42,12 @@ export async function authenticate(source_id, callback) {
           },
           httpsAgent: httpsAgent
         })
-          .then(function (response) {            
+          .then(function (response) {
             nas_config.cache = response.data.data;
             nas_auth_token[source_id] = nas_config.cache;
             if (response.data.error) {
               logger.error(response.data);
-              if ((response.data.error.code) && (response.data.error.code == 407)){
+              if ((response.data.error.code) && (response.data.error.code == 407)) {
                 const syno_error_msg = "Synology blocked this IP address because it has reached the maximum number of failed login attempts allowed within a specific time period. Please contact Synology system administrator."
                 response.data.error["details"] = syno_error_msg
                 logger.error(syno_error_msg);
@@ -130,9 +132,9 @@ export async function list_dir(args, callback) {
     args.limit = 1000
 
   authenticate_if_required(args.source_id, auth_result => {
-    if(!auth_result.auth_status){
-      const err_msg = "Authentication failed. Please check the error log and try again later."      
-      callback({"message": auth_result}, null);
+    if (!auth_result.auth_status) {
+      const err_msg = "Authentication failed. Please check the error log and try again later."
+      callback({ "message": auth_result }, null);
       return;
     }
     let m_param = {
@@ -167,6 +169,76 @@ export async function list_dir(args, callback) {
   });
 
 }
+export async function get_dir_details(args, callback) {
+  if (!args.folder_id) {
+    callback({ message: "folder_id is required" }, null);
+    return;
+  }
+  const folder_id = args.folder_id;
+  get_source_dir(folder_id, (err, data_details) => {
+    if(data_details){
+      callback(null, data_details)
+    }else{
+      args.folder_id = -1; // Start from root
+      get_dir_details_recursive(folder_id, args, (err, dir_details) => {
+        if (err) {
+          callback(err, null);
+        } else {
+          callback(null, dir_details);
+        }
+      });
+    }
+
+  });  
+  
+}
+
+export async function get_dir_details_recursive(folder_id, args, callback) {
+  list_dir(args, (err, data) => {
+    if (err || !data || !data.data.list || data.data.list.length === 0) {
+      callback({ message: "Directory not found" }, null);
+      return;
+    }
+
+    for (const sub_dir of data.data.list) {
+      const dir_data = {
+        "source_id": args.source_id,
+        "dir_id" : sub_dir.id,
+        "dir_name" : sub_dir.name,
+        "parent" : sub_dir.parent
+      }
+      save_source_dir(dir_data, (err, saved_data_dir) => {});
+
+      if (sub_dir.id == folder_id) {
+        callback(null, sub_dir);
+        return;
+      }
+      
+    }
+
+    // If not found in this directory, recurse into subdirectories
+    let pending = data.data.list.length;
+    if (pending === 0) {
+      callback({ message: "Directory not found" }, null);
+      return;
+    }
+
+    for (const sub_dir of data.data.list) {
+      get_dir_details_recursive(folder_id, { ...args, folder_id: sub_dir.id }, (err, result) => {
+        if (result) {
+          callback(null, result);
+          return;
+        }
+
+        pending--;
+        if (pending === 0) {
+          callback({ message: "Directory not found" }, null);
+        }
+      });
+    }
+  });
+}
+
 
 export async function list_dir_items(args, callback) {
   authenticate_if_required(args.source_id, auth_result => {

@@ -134,6 +134,16 @@ function create_tables(callback) {
             address TEXT
             created_at TEXT DEFAULT CURRENT_TIMESTAMP,
 			UNIQUE(latitude, longitude) ON CONFLICT REPLACE
+            );,`,
+        `CREATE TABLE source_dir (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            dir_id INTEGER,
+            dir_name TEXT UNIQUE NOT NULL,
+            parent_id INTEGER,
+			source_id INTEGER,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+			updated_at TEXT,
+			FOREIGN KEY(source_id) REFERENCES source(id)
             );`
     ];
 

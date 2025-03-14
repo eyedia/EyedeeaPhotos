@@ -1,4 +1,4 @@
-import { list_dir, list_dir_items, list_geo, get_photo } from "../../sources/synology/syno_client.mjs";
+import { list_dir, list_dir_items, get_dir_details, list_geo, get_photo } from "../../sources/synology/syno_client.mjs";
 import config_log from "../../config_log.js";
 
 const logger = config_log.logger;
@@ -53,7 +53,15 @@ export const get_folders = async (req, res) => {
     }    
     list_dir(args, (err, data) => {
       if (data) {
-        res.json(data);
+        get_dir_details(args, (err, folder_details) => {
+          if(err){
+            res.json(data);
+          }else{
+            data["details"] = folder_details;
+            res.json(data);
+          }
+        });
+        
       }else{
         res.status(400).json({"message": "Not found"});
       }

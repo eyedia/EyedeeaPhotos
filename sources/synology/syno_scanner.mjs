@@ -57,10 +57,7 @@ async function internal_scan(scan_started_data, folder_id = -1, folder_name = ""
         }
         list_dir(args, (err, data) => {
             if (data && data.data.list.length > 0) {
-                data.data.list.forEach(function (root_folder) {
-                    if (total_dirs >= 10) {
-                        return;
-                    }
+                data.data.list.forEach(function (root_folder) {                    
                     list_dir_loop(scan_started_data, root_folder.id, root_folder.name, _offset, _limit);
                 });
             }
@@ -121,11 +118,10 @@ async function list_dir_loop(scan_started_data, folder_id, folder_name, offset, 
                             save_item(one_record);
                         });
                     } else {
-                        logger.info("Server resource exhausted. Cooling down for 5 seconds...");
+                        logger.info("Server did not respond on time, added to the retry directories...");
                         let scan_failed_data = {
                             "folder_id": folder_id,
                             "folder_name": folder_name,
-                            "info": "debug info, blah",
                             "scan_log_id": scan_started_data.scan_log_id
                         }
                         save_scan_log_detail(scan_failed_data);
@@ -137,7 +133,6 @@ async function list_dir_loop(scan_started_data, folder_id, folder_name, offset, 
             let scan_failed_data = {
                 "folder_id": folder_id,
                 "folder_name": folder_name,
-                "info": "",
                 "scan_log_id": scan_started_data.scan_log_id
             }
             save_scan_log_detail(scan_failed_data);
@@ -168,8 +163,12 @@ function scan_failed_folders(scan_log_end_data) {
 function syno_scanning_ended(err, scan_log_end_data, inform_caller_scan_ended) {
     if (!_failed_folders_tried) {
         logger.info("Started secondary scans (retrying failed folders)...");
+        logger.info("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+        console.log("After 1st round scan:", scan_log_end_data.total_dirs, total_dirs, total_photos);
         syno_start_failed_folders(scan_log_end_data, inform_caller_scan_ended);
     } else {
+        logger.info("YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
+        console.log("After 2nd round scan:", scan_log_end_data.total_dirs, total_dirs, total_photos);
         _failed_folders_tried = true;
         scan_log_end_data.total_dirs = total_dirs;
         scan_log_end_data.total_photos = total_photos;

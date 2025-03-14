@@ -106,8 +106,7 @@ export function stop_scanning(scan_start_data, timed_out, callback_ended, inform
                 meta_stop_scan(scan_log_end_data);
                 clearTimeout(_timeout_id);
                 _timeout_id = 0;
-                _interval_id = 0;
-                logger.info(scan_log_end_data.info);
+                _interval_id = 0;                
                 search_init();
                 callback_ended(null, scan_log_end_data, inform_caller_scan_ended);
             });

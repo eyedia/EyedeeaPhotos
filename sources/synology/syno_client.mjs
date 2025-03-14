@@ -135,7 +135,6 @@ export async function list_dir(args, callback) {
       callback({"message": auth_result}, null);
       return;
     }
-    console.log(auth_result)
     let m_param = {
       api: "SYNO.FotoTeam.Browse.Folder",
       SynoToken: nas_auth_token[args.source_id].synotoken,

@@ -23,6 +23,14 @@ export async function scan(source, folder_id, inform_caller_scan_started, inform
             inform_caller_scan_started(err, null);
             return;
         } else {
+            let folder_name = "";
+            if(folder_id > -1){
+                get_dir_details(folder_id, (err, dir_details) => {
+                    if(dir_details){       
+                        folder_name = dir_details.dir_name;
+                    }
+                });
+            }else{
             let scan_start_data = {
                 source: source,
                 clean_photos: folder_id ? false : true,
@@ -38,16 +46,17 @@ export async function scan(source, folder_id, inform_caller_scan_started, inform
                     total_dirs = 1;
                     total_photos = 0;
                     inform_caller_scan_started(null, scan_started_data);
-                    internal_scan(scan_started_data, folder_id);
+                    internal_scan(scan_started_data, folder_id, folder_name);
                 }
             },
                 syno_scanning_ended,
                 inform_caller_scan_ended);
         }
+        }
     });
 }
 
-async function internal_scan(scan_started_data, folder_id = -1) {
+async function internal_scan(scan_started_data, folder_id, folder_name) {
 
     if (folder_id === -1) {
         //scan starts from root
@@ -68,18 +77,10 @@ async function internal_scan(scan_started_data, folder_id = -1) {
     } else {
         //scan starts from a specific folder
         logger.info(`Starting scanning from a specific folder... ${folder_id}`);
-        let args = {
-            "source_id": scan_started_data.source_id,
-            "folder_id": folder_id,
-            "offset": _offset,
-            "limit": _limit
-        }
-        list_dir(args, (err, data) => {
-            console.log(data.data.list.length);
-            if (data && data.data.list.length > 0) {
-                data.data.list.forEach(function (specific_folder) {
-                    list_dir_loop(scan_started_data, specific_folder.id, specific_folder.name, _offset, _limit);
-                });
+        get_dir_details(folder_id, (err, dir_details) => {
+            if(dir_details){       
+                logger.info(`Starting scanning from a specific folder... ${folder_id}, ${dir_details.dir_name}`);
+                list_dir_loop(scan_started_data, specific_folder.id, dir_details.dir_name, _offset, _limit);
             }
         });
     }

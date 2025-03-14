@@ -22,6 +22,7 @@ export async function scan(source, inform_caller_scan_started, inform_caller_sca
 
   let scan_start_data = {
     source: source,
+    clean_photos: true,
     max_time_in_mins: 2,
     interval_in_secs: 10,
     insert_data_threshold: 0.0002

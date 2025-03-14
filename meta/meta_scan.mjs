@@ -6,7 +6,14 @@ import { meta_db } from "./meta_base.mjs";
 const logger = config_log.logger;
 
 
-export function clear_scan(source_id, callback) {
+export function clear_scan(source_id, clean_photos, callback) {
+    if ((!clean_photos) || (clean_photos == false)){
+        logger.info("Partial scan, not clearing old photos");
+        if (callback)
+            callback();
+        return;
+    }
+
     const clean_queries = [
         `DELETE FROM photo WHERE source_id = ${source_id}`,
         `delete from view_log where photo_id not in (select photo_id from photo)`];

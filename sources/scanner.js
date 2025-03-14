@@ -30,7 +30,7 @@ export function start_scanning(scan_start_data, callback_started, callback_ended
     _timeout_id = setTimeout(() => {
         clearInterval(_interval_id);
         _interval_id = 0;
-        stop_scanning(true, undefined, callback_ended, inform_caller_scan_ended);
+        stop_scanning(scan_start_data, undefined, callback_ended, inform_caller_scan_ended);
         logger.error(`${scan_start_data.source.name} scanning timed out. Please check logs, read documentation and increase timeout if neccessary.`);
     }, 1000 * 60 * scan_start_data.max_time_in_mins);    //Auto stop after max_time_in_mins minutes
 
@@ -44,7 +44,7 @@ export function start_scanning(scan_start_data, callback_started, callback_ended
             "source_id": scan_start_data.source.id
         }
 
-        meta_clear_scan(scan_start_data.source.id, () => {
+        meta_clear_scan(scan_start_data.source.id, scan_start_data.clean_photos, () => {
             meta_start_scan(scan_log_data, (err, scan_log_id) => {
                 if (err) {
                     logger.error(err.message);
@@ -70,13 +70,13 @@ function keep_checking_when_insert_stops(scan_start_data, callback_ended, inform
     get_last_inserted_diff((err, rows) => {
         if (err) {
             logger.error(err);
-        } else {
+        } else {            
             if (rows) {
                 let timed_out = rows.diff > scan_start_data.insert_data_threshold;   //0.0002;
                 logger.info(`${scan_start_data.source.name} scan diff: ${rows.diff}, timed out: ${timed_out}`)
                 if (timed_out) {
                     clearInterval(_interval_id);
-                    _interval_id = 0;
+                    _interval_id = 0;                    
                     stop_scanning(scan_start_data, undefined, callback_ended, inform_caller_scan_ended);
                 }
             }

@@ -31,17 +31,12 @@ export const scan = async (req, res) => {
 
 const syno_scan = async (source, req, res) => {
   let folder_id = undefined;
-  if (req.params.folder_id) {
-    folder_id = req.params.folder_id;
-  }
-
-  let folder_name = undefined;
-  if (req.query.folder_name) {
-    folder_name = req.query.folder_name;
+  if (req.query.folder_id) {
+    folder_id = req.query.folder_id;
   }
 
   try {
-    await syno_scan_service(source, folder_id, folder_name, (err, scan_log_details) => {
+    await syno_scan_service(source, folder_id, (err, scan_log_details) => {
       if(err){
         res.status(503).json(err);
         return;

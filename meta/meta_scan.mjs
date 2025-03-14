@@ -7,7 +7,7 @@ const logger = config_log.logger;
 
 
 export function clear_scan(source_id, clean_photos, callback) {
-    if ((!clean_photos) || (clean_photos == false)){
+    if ((!clean_photos) || (clean_photos == false)) {
         logger.info("Partial scan, not clearing old photos");
         if (callback)
             callback();
@@ -17,7 +17,7 @@ export function clear_scan(source_id, clean_photos, callback) {
     const clean_queries = [
         `DELETE FROM photo WHERE source_id = ${source_id}`,
         `delete from view_log where photo_id not in (select photo_id from photo)`];
-    
+
     let total_queries = clean_queries.length
     clean_queries.forEach((query) => {
         meta_db.run(
@@ -26,9 +26,9 @@ export function clear_scan(source_id, clean_photos, callback) {
                 if (err) {
                     logger.error('Error deleting data from photo:', err);
                 } else {
-                    total_queries = total_queries - 1;                    
+                    total_queries = total_queries - 1;
                 }
-                if(total_queries <=0){                    
+                if (total_queries <= 0) {
                     if (callback)
                         callback();
                 }
@@ -63,9 +63,25 @@ export function start_scan(json_data, callback) {
                     callback(err, null);
                 }
             } else {
-                if (callback) {
-                    callback(null, this.lastID);
-                }
+                const scan_log_id = this.lastID;
+                const update_query = `UPDATE source set active_scan = true where id = ?`;
+                meta_db.run(
+                    update_query,
+                    [json_data.source_id],
+                    function (err) {
+                        if (err) {
+                            logger.error('Error updating source:', err);
+                            if (callback) {
+                                callback(err, null);
+                            }
+                        } else {
+                            if (callback) {
+                                callback(null, scan_log_id);
+                            }
+                        }
+                    });
+
+
             }
         });
 }
@@ -87,9 +103,23 @@ export function stop_scan(json_data, callback) {
                     callback(err, null);
                 }
             } else {
-                if (callback) {
-                    callback(null, this.lastID);
-                }
+                const scan_log_id = this.lastID;
+                const update_query = `UPDATE source set active_scan = true where id = ?`;
+                meta_db.run(
+                    update_query,
+                    [json_data.source_id],
+                    function (err) {
+                        if (err) {
+                            logger.error('Error updating source:', err);
+                            if (callback) {
+                                callback(err, null);
+                            }
+                        } else {
+                            if (callback) {
+                                callback(null, scan_log_id);
+                            }
+                        }
+                    });
             }
         });
 }
@@ -126,12 +156,12 @@ export function get_scan_log_detail(scan_log_id, scan_status = 0, callback) {
     let query = `SELECT * FROM scan_log_detail WHERE scan_log_id = ? and re_scanned = ?`
     meta_db.all(query, [scan_log_id, scan_status],
         (err, rows) => {
-        if (err) {
-            callback(err, null);
-        } else {
-            callback(null, rows);
-        }
-    });
+            if (err) {
+                callback(err, null);
+            } else {
+                callback(null, rows);
+            }
+        });
 }
 
 export function update_scan_log(scan_log_id, folder_id, re_scanned) {
@@ -179,15 +209,15 @@ export function get_geo_address(latitude, longitude, callback) {
     let query = `select address from geo_address where latitude = ? and longitude =?`;
     meta_db.all(query, [latitude, longitude],
         (err, rows) => {
-        if (err) {
-            logger.error(err);
-            callback(undefined);
-        } else {
-            if (rows && rows.length > 0) {
-                callback(rows[0]);
-            } else {
+            if (err) {
+                logger.error(err);
                 callback(undefined);
+            } else {
+                if (rows && rows.length > 0) {
+                    callback(rows[0]);
+                } else {
+                    callback(undefined);
+                }
             }
-        }
-    });
+        });
 }

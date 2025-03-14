@@ -352,8 +352,14 @@ async function scan() {
 
         const data = await response.json();
         if (data.message) {
-            console.error(data);
-            scan_caption.innerText = `Scanning could not be started. ${data.message}`;
+            console.error(data.message);
+            error_message = ""
+            if (data.message && data.message.error.code) {
+                error_message = `Saved successfully! But check your config. Eyedeea Photos could not communicate with the server. <br>${ data.message.error.code}: ${ data.message.error.code}`;
+            }else if (data.message){
+                error_message = data.message;
+            }
+            scan_caption.innerText = `Scanning could not be started. ${error_message}`;
             scan_caption.style.color = "red";
             scan_caption.style.visibility = 'visible';
             setTimeout(() => scan_caption.style.visibility = 'hidden', 10000);

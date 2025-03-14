@@ -176,11 +176,20 @@ function scan_failed_folders(scan_log_end_data) {
 
 
 function syno_scanning_ended(err, scan_log_end_data, inform_caller_scan_ended) {
-    if (!_failed_folders_tried) {
-        logger.info("Started secondary scans (retrying failed folders)...");
-        logger.info("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-        console.log("After 1st round scan:", scan_log_end_data.total_dirs, total_dirs, total_photos);
-        syno_start_failed_folders(scan_log_end_data, inform_caller_scan_ended);
+    if (!_failed_folders_tried) {        
+        get_scan_log_detail(scan_log_end_data.id, undefined, (err, rows) => {
+            if (err) {
+                logger.error(err);
+            } else {
+                if (rows && rows.length > 0) {
+                    logger.info("Started secondary scans (retrying failed folders)...");
+                    logger.info("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+                    console.log("After 1st round scan:", scan_log_end_data.total_dirs, total_dirs, total_photos);
+                    syno_start_failed_folders(scan_log_end_data, inform_caller_scan_ended);
+                }
+            }
+        });
+        
     } else {
         logger.info("YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
         console.log("After 2nd round scan:", scan_log_end_data.total_dirs, total_dirs, total_photos);

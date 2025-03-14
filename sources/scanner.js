@@ -66,7 +66,7 @@ export function start_scanning(scan_start_data, callback_started, callback_ended
 }
 
 function keep_checking_when_insert_stops(scan_start_data, callback_ended, inform_caller_scan_ended) {
-    logger.info("Validating last scan...");
+    logger.info("Checking if current scan is completed...");
     get_last_inserted_diff((err, rows) => {
         if (err) {
             logger.error(err);

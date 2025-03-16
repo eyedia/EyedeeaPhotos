@@ -5,28 +5,35 @@ import { meta_db } from "./meta_base.mjs";
 
 const logger = config_log.logger;
 
-export function search_init() {
+export function search_init(callback) {
     const create_search_indexes = [
         `DELETE FROM fts`,
-
         `INSERT INTO fts 
             (photo_id, folder_name, tags, address) 
             SELECT 
             photo_id, folder_name, tags, address 
-            FROM photo;`
+            FROM photo`
     ];
 
-    create_search_indexes.forEach((query) => {
-        meta_db.run(query, (err) => {
-            if (err) {
-                logger.error(err.message);
-            } else {
-                logger.info('.');
-            }
+    const promises = create_search_indexes.map((query) => {
+        return new Promise((resolve, reject) => {
+            meta_db.run(query, (err) => {
+                if (err) {
+                    logger.error(err.message);
+                    reject(err);
+                } else {
+                    logger.info('.');
+                    resolve();
+                }
+            });
         });
     });
-    
+
+    Promise.all(promises)
+        .then(() => callback(null))
+        .catch((err) => callback(err));
 }
+
 
 export function search(callback) {
     let query = `SELECT * FROM view_filter where current = 1 LIMIT 1`;

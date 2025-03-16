@@ -31,13 +31,11 @@ export function search_init() {
 export function search(callback) {
     let query = `SELECT * FROM view_filter where current = 1 LIMIT 1`;
 
-    meta_db.all(query, (err, rows) => {
+    meta_db.get(query, (err, filter_data) => {
         if (err) {
             logger.error(err.message);
         } else {
-            if (rows.length == 1) {
-                let filter_data = rows[0];
-                //let filter_data = {"filter_must": "belize"}
+            if (filter_data) {
                 query = `SELECT photo_id 
                         FROM fts 
                         WHERE fts MATCH ?`;

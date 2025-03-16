@@ -6,7 +6,7 @@ import config_log from "./config_log.js";
 import { set_random_photo, get_config } from "./meta/meta_view.mjs";
 import { scan as syno_scan } from "./sources/synology/syno_scanner.mjs";
 import { scan as fs_scan } from "./sources/fs/fs_scanner.mjs";
-import view_manage_router from './api/routers/view_manage_router.js';
+import view_filter_router from './api/routers/view_filter_router.js';
 import view_router from './api/routers/view_router.js';
 import source_router from './api/routers/source_router.js';
 import source_scan_router from './api/routers/source_scan_router.js';
@@ -31,7 +31,7 @@ app.use(express.json());
 
 app.use('/api/system', system_router);
 app.use('/api/view', view_router);
-app.use('/api/view/manage', view_manage_router);
+app.use('/api/view/filters', view_filter_router);
 app.use('/api/sources', source_router);
 app.use('/api/sources/:id', source_scan_router);
 app.use('/api/sources/:id/browse', source_browser_router);

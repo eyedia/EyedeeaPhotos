@@ -53,3 +53,7 @@ function get_key(){
   const key = Buffer.from(keyHex, 'hex');
   return key;
 }
+
+export function generate_short_GUID() {
+  return crypto.randomBytes(8).toString("hex");
+}

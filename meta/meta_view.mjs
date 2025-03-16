@@ -117,6 +117,7 @@ export function set_random_photo() {
         if (number_of_already_set_photos < 25) {
             let query = "";
             search((err, view_filter_id, photo_ids) => {
+                //console.log(err, view_filter_id, photo_ids);
                 if (err) {
                     logger.error(err);
                 } else {                    
@@ -128,7 +129,6 @@ export function set_random_photo() {
                         query = `SELECT * FROM photo WHERE id IN (SELECT id FROM photo WHERE type='photo' ORDER BY RANDOM() LIMIT 1000)`;
                     }
                 }
-                
                 meta_db.all(query, [], (err, random_photos) => {
                     if (err) {
                         logger.error(err.message);

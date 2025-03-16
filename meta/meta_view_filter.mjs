@@ -41,43 +41,6 @@ export function create_or_update(view_filter, callback) {
 }
 
 
-export function set_current(name, callback) {
-    let query = `select * from view_filter where name = '${name}' COLLATE NOCASE`;
-    meta_db.get(query, (err, view_filter) => {
-        if (err) {
-            logger.error(err.message);
-        } else {
-            if (view_filter) {
-
-                meta_db.run(
-                    `UPDATE view_filter set current = 1, updated_at = strftime('%Y-%m-%d %H:%M:%S', 'now') where name = ?`,
-                    [name],
-                    function (err) {
-                        if (err) {
-                            logger.error('Error updating data:', err);
-                            callback(err, null, 500);
-                        } else {
-                            meta_db.run(
-                                `UPDATE view_filter set current = 0 where name != ?`,
-                                [name],
-                                function (err) {
-                                    if (err) {
-                                        logger.error('Error updating data:', err);
-                                        callback(err, null, 500);
-                                    } else {
-                                        callback(null, view_filter, 200);
-                                    }
-                                });
-                        }
-                    });
-            } else {
-                callback(null, null);
-            }
-        }
-    });
-}
-
-
 export function list(callback) {
     let query = `select 0 id, 1 current, "Default" name, "N/A" keyword,
         (select count(*) from photo)total_photos,
@@ -119,7 +82,7 @@ export function get(id, callback) {
 
 export function make_active(id, callback) {    
     const try_id = parseInt(id);
-    let query = `select * from view_filter where id =?`;
+    let query = `select * from view_filter where id = ?`;
     if (isNaN(try_id))
         query = `select * from view_filter where name = ? COLLATE NOCASE`;
     meta_db.all(query, [id],
@@ -169,4 +132,33 @@ export function make_active(id, callback) {
             }
         }
     });
+}
+
+
+export function make_inactive(callback) {
+    //will be called when default filter is enabled
+    meta_db.run(
+        `UPDATE view_filter set current = 0`,
+        [],
+        function (err) {
+            if (err) {
+                logger.error('Error updating data:', err);
+                callback(err, null);
+            } else {
+                meta_db.run(
+                    //disable pending random photos (status is non zero)
+                    //so that new photos from new filter are picked up
+                    `UPDATE view_log set status = 2 where status = 0`,
+                    [],
+                    function (err) {
+                        if (err) {
+                            logger.error('Error updating data:', err);
+                            callback(err, null);
+                        } else {
+                            set_random_photo();                          
+                            callback(err, {"success": true});
+                        }
+                    });
+            }
+        });
 }

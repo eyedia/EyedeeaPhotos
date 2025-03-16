@@ -29,11 +29,11 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     let pathArray = window.location.pathname.split("/");
-    const documentName = pathArray[pathArray.length - 1]; // Last part of the path
+    const documentName = pathArray[pathArray.length - 1];
 
-    console.log("Document Name:", documentName);
     get_sources();
     switch (documentName) {
+        case "":
         case "index.html":
             get_system_summary();
             break;
@@ -514,7 +514,7 @@ function renderTableSummary(data) {
 
 async function get_filters(triggered_by_page_a, offset) {
     try {
-        const apiUrl = `/api/view/manage`
+        const apiUrl = `/api/view/filters`
         let limit = 10;
         if (!offset)
             offset = 0;
@@ -542,8 +542,8 @@ function renderTableFilters(data) {
     data.forEach(item => {
         const row = `<tr>       
             <td>
-                <input type="radio" id="demo-priority-${item.name}" name="demo-priority" ${item.current == 1? "checked": ""}>
-                <label for="demo-priority-${item.name}">${item.name}</label>
+                <input type="radio" id="demo-priority-${item.id}" name="demo-priority" ${item.current == 1? "checked": ""}>
+                <label for="demo-priority-${item.id}">${item.name}</label>
             </td>
             <td>${item.keyword}</td>
             <td>${item.total_photos}</td>
@@ -555,12 +555,14 @@ function renderTableFilters(data) {
     document.querySelectorAll('input[name="demo-priority"]').forEach(radio => {
         radio.addEventListener("change", function () {
             const selectedValue = this.value;
-            fetch("https://your-api-endpoint.com/update-selection", {
+            const rad_id = this.id.replace("demo-priority-", "")
+            console.log(rad_id);
+            const url = rad_id == "0"? "/api/view/filters/active" : `/api/view/filters/${rad_id}/active`
+            fetch(url, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ selected: selectedValue })
+                }
             })
             .then(response => response.json())
             .then(data => console.log("Success:", data))

@@ -79,7 +79,16 @@ export function set_current(name, callback) {
 
 
 export function list(callback) {
-    let query = `select * from view_filter`;
+    let query = `select 0 id, 1 current, "Default" name, "N/A" keyword,
+        (select count(*) from photo)total_photos,
+        current_timestamp created_at
+        UNION
+        select id, current, name, filter_must keyword,
+        (select count(*) from fts where fts match 'belize')total_photos,
+        created_at
+        from view_filter
+        order by created_at desc`;
+
     meta_db.all(query, (err, rows) => {
         if (err) {
             logger.error(err.message);
@@ -108,7 +117,7 @@ export function get(id, callback) {
 }
 
 
-export function make_active(id, callback) {
+export function make_active(id, callback) {    
     const try_id = parseInt(id);
     let query = `select * from view_filter where id =?`;
     if (isNaN(try_id))
@@ -118,7 +127,7 @@ export function make_active(id, callback) {
         if (err) {
             logger.error(err.message);
             callback(err, null);
-        } else {
+        } else {            
             if (rows.length == 1) {
                 meta_db.run(
                     `UPDATE view_filter set current = 1 where id == ?`,
@@ -127,7 +136,7 @@ export function make_active(id, callback) {
                         if (err) {
                             logger.error('Error updating data:', err);
                             callback(err, null);
-                        } else {
+                        } else {                            
                             meta_db.run(
                                 `UPDATE view_filter set current = 0 where id != ?`,
                                 [rows[0]["id"]],
@@ -135,12 +144,12 @@ export function make_active(id, callback) {
                                     if (err) {
                                         logger.error('Error updating data:', err);
                                         callback(err, null);
-                                    } else {
+                                    } else {                                        
                                         meta_db.run(
                                             //disable pending random photos (status is non zero)
                                             //so that new photos from new filter are picked up
                                             `UPDATE view_log set status = 2 where status = 0`,
-                                            [rows[0]["id"]],
+                                            [],
                                             function (err) {
                                                 if (err) {
                                                     logger.error('Error updating data:', err);

@@ -13,8 +13,24 @@ export function get_source_summary(callback) {
     meta_db.all(query, (err, rows) => {
         if (err) {
             callback(err, null);
-        } else {            
-            callback(null, rows);            
+        } else {
+            if (rows) {
+                let grand_total_sources = 0;
+                let grand_total_photos = 0;
+                rows.forEach(row => {
+                    grand_total_sources++;
+                    grand_total_photos += row.total_photos;
+                })
+                callback(null,
+                    {
+                        "summary": {
+                            "total_sources": grand_total_sources,
+                            "total_photos": grand_total_photos
+                        },
+                        "details": rows
+                    }
+                );
+            }
         }
     });
 }

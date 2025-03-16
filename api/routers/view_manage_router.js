@@ -5,6 +5,6 @@ const router = express.Router();
 router.post('/', create_or_update);
 router.get('/', list_items);
 router.get('/:id', get_item);
-router.get('/:id/active', make_active);
+router.post('/:id/active', make_active);
 
 export default router;

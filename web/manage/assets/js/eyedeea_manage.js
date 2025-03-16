@@ -21,16 +21,34 @@ document.addEventListener('DOMContentLoaded', function () {
                 return {
                     "name": source_name.value,
                     "type": source_type,
-                    "url": directory.value // Should this be "directory" instead of "url"?
+                    "url": directory.value
                 };
             }
         })();
         save_source('/api/sources', data);
     });
+
+    let pathArray = window.location.pathname.split("/");
+    const documentName = pathArray[pathArray.length - 1]; // Last part of the path
+
+    console.log("Document Name:", documentName);
     get_sources();
-    get_source();
-    console.log("refreshing...");
-    get_system_summary();
+    switch (documentName) {
+        case "index.html":
+            get_system_summary();
+            break;
+        case "player.html":
+            get_filters();
+            break;
+        case "source.html":
+            get_source();
+            break;
+        default:
+            break;
+    }
+    
+    
+    
 });
 
 async function save_source(url, data) {
@@ -245,8 +263,6 @@ async function get_source_latest_scan_data() {
     }
 }
 
-
-
 async function get_scan_logs(triggered_by_page_a, offset) {
     if (g_source == null) {
         console.log("retr")
@@ -272,7 +288,6 @@ async function get_scan_logs(triggered_by_page_a, offset) {
 }
 
 function renderTable(records) {
-
     const tableBody = document.getElementById("scan-logs-table-body");
     tableBody.innerHTML = '';
 
@@ -378,10 +393,9 @@ async function scan() {
 }
 
 function show_count_down_refresh_timer(data, btn_scan, scan_caption) {
-    let timeLeft = g_source.type == "nas" ? 10 : 30;  //seconds
+    let timeLeft = g_source.type == "nas" ? 60 : 30;  //seconds
     const countdownInterval = setInterval(async function () {
         if (timeLeft >= 0) {
-            //countdownElement.textContent = timeLeft;
             let formatted_time_left = formatDuration(timeLeft);
             scan_caption.innerText = `Scanning started; scan log id: ${data.scan_log_id}. Refreshing in ${formatted_time_left}`;
             timeLeft--;
@@ -479,11 +493,14 @@ async function get_system_summary(triggered_by_page_a, offset) {
     }
 }
 
-function renderTableSummary(records) {
+function renderTableSummary(data) {
     const tableBody = document.getElementById("source-summary-table-body");
     tableBody.innerHTML = '';
 
-    records.forEach(item => {
+    const system_summary = document.getElementById("system_summary");
+    system_summary.innerHTML = `${data.summary.total_sources} Photo sources are configured with ${data.summary.total_photos} photos.`;
+
+    data.details.forEach(item => {
         const row = `<tr>            
             <td>${item.name}</td>
             <td>${item.total_photos}</td>
@@ -491,5 +508,63 @@ function renderTableSummary(records) {
         </tr>`;
 
         tableBody.innerHTML += row;
+    });
+}
+
+
+async function get_filters(triggered_by_page_a, offset) {
+    try {
+        const apiUrl = `/api/view/manage`
+        let limit = 10;
+        if (!offset)
+            offset = 0;
+        fetch(`${apiUrl}?limit=${limit}&offset=${offset}`)
+            .then(response => response.json())
+            .then(data => {
+                renderTableFilters(data);
+                //renderPagination(data.total_records, data.total_pages, data.current_offset, limit, triggered_by_page_a);
+            })
+            .catch(error => console.error("Error fetching data:", error));
+
+
+    } catch (error) {
+        console.error('Error fetching data:', error);
+    }
+}
+
+function renderTableFilters(data) {
+    const tableBody = document.getElementById("player-filter-table-body");
+    tableBody.innerHTML = '';
+
+    //const system_summary = document.getElementById("system_summary");
+    //system_summary.innerHTML = `${data.summary.total_sources} Photo sources are configured with ${data.summary.total_photos} photos.`;
+
+    data.forEach(item => {
+        const row = `<tr>       
+            <td>
+                <input type="radio" id="demo-priority-${item.name}" name="demo-priority" ${item.current == 1? "checked": ""}>
+                <label for="demo-priority-${item.name}">${item.name}</label>
+            </td>
+            <td>${item.keyword}</td>
+            <td>${item.total_photos}</td>
+        </tr>`;
+
+        tableBody.innerHTML += row;
+    });
+
+    document.querySelectorAll('input[name="demo-priority"]').forEach(radio => {
+        radio.addEventListener("change", function () {
+            const selectedValue = this.value;
+            fetch("https://your-api-endpoint.com/update-selection", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ selected: selectedValue })
+            })
+            .then(response => response.json())
+            .then(data => console.log("Success:", data))
+            .catch(error => console.error("Error:", error));
+        });
     });
 }

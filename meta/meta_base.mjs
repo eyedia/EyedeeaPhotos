@@ -115,7 +115,7 @@ function create_tables(callback) {
 			name TEXT NOT NULL,
             filter_must TEXT NOT NULL,
 			filter_option TEXT,
-			current BOOL DEFAULT 0,
+			current BOOL DEFAULT 1,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
             );`,
 

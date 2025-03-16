@@ -29,6 +29,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     get_sources();
     get_source();
+    console.log("refreshing...");
+    get_system_summary();
 });
 
 async function save_source(url, data) {
@@ -271,7 +273,7 @@ async function get_scan_logs(triggered_by_page_a, offset) {
 
 function renderTable(records) {
 
-    const tableBody = document.getElementById('scan-logs-table-body');
+    const tableBody = document.getElementById("scan-logs-table-body");
     tableBody.innerHTML = '';
 
     records.forEach(item => {
@@ -455,4 +457,39 @@ async function any_active_scan() {
     } catch (error) {
         console.error("Error fetching data:", error);
     }
+}
+
+async function get_system_summary(triggered_by_page_a, offset) {
+    try {
+        const apiUrl = `/api/system`
+        let limit = 10;
+        if (!offset)
+            offset = 0;
+        fetch(`${apiUrl}?limit=${limit}&offset=${offset}`)
+            .then(response => response.json())
+            .then(data => {
+                renderTableSummary(data);
+                //renderPagination(data.total_records, data.total_pages, data.current_offset, limit, triggered_by_page_a);
+            })
+            .catch(error => console.error("Error fetching data:", error));
+
+
+    } catch (error) {
+        console.error('Error fetching data:', error);
+    }
+}
+
+function renderTableSummary(records) {
+    const tableBody = document.getElementById("source-summary-table-body");
+    tableBody.innerHTML = '';
+
+    records.forEach(item => {
+        const row = `<tr>            
+            <td>${item.name}</td>
+            <td>${item.total_photos}</td>
+            <td>${item.last_scanned_at}</td>
+        </tr>`;
+
+        tableBody.innerHTML += row;
+    });
 }

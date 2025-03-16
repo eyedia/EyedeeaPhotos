@@ -108,7 +108,7 @@ export function stop_scan(json_data, callback) {
                 const update_query = `UPDATE source set active_scan = false where id = ?`;
                 meta_db.run(
                     update_query,
-                    [json_data.source_id],
+                    [json_data.source.id],
                     function (err) {
                         if (err) {
                             logger.error('Error updating source:', err);

@@ -11,6 +11,7 @@ import view_router from './api/routers/view_router.js';
 import source_router from './api/routers/source_router.js';
 import source_scan_router from './api/routers/source_scan_router.js';
 import source_browser_router from './api/routers/source_browser_router.js';
+import system_router from './api/routers/system_router.js';
 import { list as meta_list_sources } from "./meta/meta_source.mjs";
 import { encrypt, decrypt } from "./meta/encrypt.js";
 import constants from "./constants.js";
@@ -28,6 +29,7 @@ app.use(cors());
 app.use(express.static('web'));
 app.use(express.json());
 
+app.use('/api/system', system_router);
 app.use('/api/view', view_router);
 app.use('/api/view/manage', view_manage_router);
 app.use('/api/sources', source_router);

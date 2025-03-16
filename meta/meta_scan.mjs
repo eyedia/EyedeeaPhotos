@@ -2,6 +2,7 @@ import sqlite3 from "sqlite3";
 import fs from "fs";
 import config_log from "../config_log.js";
 import { meta_db } from "./meta_base.mjs";
+import { get_scan_log_summary } from "./meta_scan_log.mjs";
 
 const logger = config_log.logger;
 
@@ -104,7 +105,7 @@ export function stop_scan(json_data, callback) {
                 }
             } else {
                 const scan_log_id = this.lastID;
-                const update_query = `UPDATE source set active_scan = true where id = ?`;
+                const update_query = `UPDATE source set active_scan = false where id = ?`;
                 meta_db.run(
                     update_query,
                     [json_data.source_id],
@@ -220,4 +221,40 @@ export function get_geo_address(latitude, longitude, callback) {
                 }
             }
         });
+}
+
+export function is_active_scan(source_id, callback) {
+    let query = `select count(id) cnt from source
+        where active_scan = 1
+        group by name
+        having count(id) > 0`
+
+    if (source_id) {
+        query = `select id cnt from source where active_scan = 1 and id = ?`
+    }
+    meta_db.get(query, [source_id], (err, data) => {
+        if (err) {
+            callback(err, null);
+        } else {
+            if (data) {                
+                const active = data.cnt > 0 ? true : false;
+                if (active) {
+                    meta_db.get("select * from scan_log where updated_at is null and source_id = ? ORDER BY created_at DESC LIMIT 1",
+                        [source_id], (err, row) => {
+                        if (err) {
+                            logger.error(err.message);
+                        } else {
+                            callback(null, { "active": true, "scan_log": row });
+                        }
+                    });
+                } else {
+                    callback(null, { "active": false });
+                }
+
+            }
+            else {
+                callback(null, { "active": false });
+            }
+        }
+    });
 }

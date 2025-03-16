@@ -1,11 +1,16 @@
 import { scanner_is_busy } from "../../sources/scanner.js";
-import { list as meta_scan_log_list, get_scan_log_summary as meta_get_scan_log_summary, get as meta_scan_log_get } from "../../meta/meta_scan_log.mjs";
+import { list as meta_scan_log_list, 
+  get_scan_log_summary as meta_get_scan_log_summary, 
+  get as meta_scan_log_get 
+} from "../../meta/meta_scan_log.mjs";
 import { scan as syno_scan_service } from "../../sources/synology/syno_scanner.mjs";
 import { authenticate as fs_authenticate, fs_config } from "../../sources/fs/fs_client.mjs";
 import { scan as fs_scan_service } from "../../sources/fs/fs_scanner.mjs";
 import {
   get as meta_get_source
 } from "../../meta/meta_source.mjs"
+import {is_active_scan as meta_is_active_scan} from "../../meta/meta_scan.mjs";
+
 import constants from "../../constants.js";
 import config_log from "../../config_log.js";
 
@@ -109,6 +114,23 @@ export const scan_log_list = async (req, res) => {
 export const scan_log_get = async (req, res) => {
   try {
     meta_scan_log_get(req.params.view_log_id, (err, item) => {
+      if (err) {
+        logger.error(err.message);
+      } else {
+        res.json(item);
+      }
+    });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+
+
+export const is_active_scan = async (req, res) => {
+  try {
+    meta_is_active_scan(req.params.id, (err, item) => {
       if (err) {
         logger.error(err.message);
       } else {

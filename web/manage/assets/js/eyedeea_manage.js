@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const username = document.getElementById("username");
             const password = document.getElementById("password");
             const directory = document.getElementById("directory");
-        
+
             if (source_type === "nas") {
                 return {
                     "name": source_name.value,
@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     "url": directory.value // Should this be "directory" instead of "url"?
                 };
             }
-        })();  
+        })();
         save_source('/api/sources', data);
     });
     get_sources();
@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 async function save_source(url, data) {
     const messageDiv = document.getElementById("message");
-    
+
     try {
         const response = await fetch(url, {
             method: 'POST',
@@ -53,15 +53,15 @@ async function save_source(url, data) {
         if (responseData.authenticate && responseData.authenticate.error) {
             error_message = responseData.authenticate.error.message;
         }
-        if(response.status == 201){
+        if (response.status == 201) {
             get_sources();  //refesh nav menu           
-        } 
+        }
 
         if (error_message && error_message.code) {
             error_message = `Saved successfully! But check your config. Eyedeea Photos could not communicate with the server. <br>${error_message.code}: ${error_message.message}`;
         }
         if ((response.status === 201 || response.status === 200) && !error_message) {
-            if(response.status === 201){
+            if (response.status === 201) {
                 window.location.href = `source.html?id=${responseData.id}`;
             }
             messageDiv.textContent = "Saved successfully";
@@ -71,15 +71,14 @@ async function save_source(url, data) {
             messageDiv.className = "message error";
             return;
         }
-        
+
         messageDiv.classList.remove("hidden");
-        setTimeout(() => 
-            {
-                messageDiv.classList.add("hidden");
-                const dialog = document.getElementById('dialog');
-                if(dialog)
-                    dialog.close();
-            }, 5000);
+        setTimeout(() => {
+            messageDiv.classList.add("hidden");
+            const dialog = document.getElementById('dialog');
+            if (dialog)
+                dialog.close();
+        }, 5000);
 
         return responseData;
     } catch (error) {
@@ -184,7 +183,7 @@ function getQueryParam(param) {
 
 let g_source = null
 async function get_source() {
-    const id = getQueryParam('id'); 
+    const id = getQueryParam('id');
     if (!id) return;
 
     try {
@@ -213,6 +212,7 @@ async function get_source() {
         toggleFields(true);
         get_source_latest_scan_data();
         get_scan_logs();
+        any_active_scan();
     } catch (error) {
         console.error("Error fetching data:", error);
     }
@@ -355,8 +355,8 @@ async function scan() {
             console.error(data.message);
             error_message = ""
             if (data.message && data.message.error.code) {
-                error_message = `Saved successfully! But check your config. Eyedeea Photos could not communicate with the server. <br>${ data.message.error.code}: ${ data.message.error.code}`;
-            }else if (data.message){
+                error_message = `Saved successfully! But check your config. Eyedeea Photos could not communicate with the server. <br>${data.message.error.code}: ${data.message.error.code}`;
+            } else if (data.message) {
                 error_message = data.message;
             }
             scan_caption.innerText = `Scanning could not be started. ${error_message}`;
@@ -376,7 +376,7 @@ async function scan() {
 }
 
 function show_count_down_refresh_timer(data, btn_scan, scan_caption) {
-    let timeLeft = g_source.type =="nas"?300:30;  //seconds
+    let timeLeft = g_source.type == "nas" ? 10 : 30;  //seconds
     const countdownInterval = setInterval(async function () {
         if (timeLeft >= 0) {
             //countdownElement.textContent = timeLeft;
@@ -427,3 +427,32 @@ function formatDuration(seconds) {
     return formattedTime.join(", ");
 }
 
+
+async function any_active_scan() {
+    const id = getQueryParam('id'); // Get 'id' from the URL query string    
+    if (!id) {
+        return;
+    }
+    try {
+        const response = await fetch(`/api/sources/${id}/scan`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const scan_details = await response.json();
+        if (scan_details) {
+            if (scan_details.active && scan_details.scan_log) {
+                let data = {
+                    "scan_log_id": scan_details.scan_log.id
+                }
+                const btn_scan = document.getElementById('btn_scan');
+                const scan_caption = document.getElementById('scan_caption');
+                scan_caption.style.removeProperty("color");
+                scan_caption.style.visibility = 'visible';
+                btn_scan.classList.add("disabled");
+                show_count_down_refresh_timer(data, btn_scan, scan_caption);
+            }
+        }
+    } catch (error) {
+        console.error("Error fetching data:", error);
+    }
+}

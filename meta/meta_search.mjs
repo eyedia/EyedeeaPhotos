@@ -51,7 +51,7 @@ export function search(callback) {
                     if (err) {
                         callback(err, null, null);
                     } else {
-                        const photo_ids = rows.map(row => row.photo_id).join(',');
+                        const photo_ids = rows.map(row => `'${row.photo_id}'`).join(',');
                         callback(null, filter_data.id, photo_ids);
                     }
                 });

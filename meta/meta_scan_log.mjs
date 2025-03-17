@@ -58,28 +58,6 @@ export function get_scan_log_summary(source_id, callback) {
     });
 }
 
-export function get_scan_log_summary_system(callback) {
-
-    let query = `select id, name,
-        (
-            select count(*) from photo where source_id = source.id
-        )
-        total_photos,
-        (
-            select updated_at from scan_log where updated_at is not null and source_id = source.id order by created_at desc limit 1
-        )
-        last_scanned
-        from source
-        order by source.created_at`;
-    meta_db.all(query, [], (err, rows) => {
-        if (err) {
-            logger.error(err.message);
-            callback(err, null);
-        } else {            
-            callback(null, rows);
-        }
-    });
-}
 
 export function get(id, callback) {
     let query = `select * from scan_log where id = ?`;

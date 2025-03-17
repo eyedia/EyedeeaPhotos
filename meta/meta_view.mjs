@@ -121,7 +121,7 @@ export function set_random_photo() {
                 if (err) {
                     logger.error(err);
                 } else {                    
-                    if (photo_ids) {
+                    if (photo_ids) {                        
                         //filtered random
                         query = `SELECT * FROM photo WHERE id IN (SELECT id FROM photo WHERE type='photo' and photo_id in (${photo_ids}) ORDER BY RANDOM() LIMIT 1000)`;
                     } else {                        

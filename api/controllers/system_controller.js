@@ -94,7 +94,7 @@ export const global_search = async (req, res) => {
     }
 
     // Perform the search
-    meta_global_search(keywords, limit, offset, async (err, photos) => {
+    meta_global_search(keywords, offset, limit, async (err, photos) => {
       if (err) {
         logger.error(`Search error: ${err.message}`);
         return res.status(500).json({ message: "Internal Server Error" });

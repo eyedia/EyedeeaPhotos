@@ -37,7 +37,7 @@ export function get_source_summary(callback) {
     });
 }
 
-export function global_search(keywords, limit, offset, callback) {
+export function global_search(keywords, offset, limit, callback) {
     limit = parseInt(limit) || 10;
     offset = parseInt(offset) || 0;
 
@@ -49,8 +49,8 @@ export function global_search(keywords, limit, offset, callback) {
         let total_records = row.count;
         let total_pages = Math.ceil(total_records / limit);
 
-        meta_db.all("SELECT photo_id, cache_key, source_id FROM fts WHERE fts MATCH ? limit 10", 
-            [keywords],
+        meta_db.all("SELECT photo_id, cache_key, source_id FROM fts WHERE fts MATCH ? LIMIT ? OFFSET ?", 
+            [keywords, limit, offset],
             (err, rows) => {
                 if (err) {
                     logger.error(err.message);

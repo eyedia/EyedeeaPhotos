@@ -51,24 +51,13 @@ const fetchSources = () => {
 /**
  * Fetch photo data from Synology
  */
-const get_photo_from_synology = (photo_data) => {  
+const get_photo_from_synology = (photo_data) => {
   return new Promise((resolve, reject) => {
     syno_get_photo(photo_data, "sm", (err, response) => {
       if (err || !response || !response.headers) {
         // If Synology fails, return a default image
-        fs.readFile('web/eyedeea_photos.jpg', (fsErr, data) => {
-          if (fsErr) {
-            logger.error(`Error reading default photo: ${fsErr.message}`);
-            return reject(fsErr);
-          }
-          return resolve({
-            'Content-Type': 'image/jpeg',
-            'Content-Length': data.length,
-            'photo-meta-data': JSON.stringify(photo_data),
-            'photo-data': data
-          });
-        });
-      } else {       
+        return get_default_photo(photo_data);
+      } else {
         resolve({
           'Content-Type': response.headers.get('content-type'),
           'Content-Length': response.data.length,
@@ -93,39 +82,59 @@ export const global_search = async (req, res) => {
       await fetchSources();
     }
 
+    // Convert meta_global_search to return a Promise
+    const searchPhotos = (keywords, offset, limit) => {
+      return new Promise((resolve, reject) => {
+        meta_global_search(keywords, offset, limit, (err, photos) => {
+          if (err) return reject(err);
+          resolve(photos);
+        });
+      });
+    };
+
     // Perform the search
-    meta_global_search(keywords, offset, limit, async (err, photos) => {
-      if (err) {
-        logger.error(`Search error: ${err.message}`);
-        return res.status(500).json({ message: "Internal Server Error" });
-      }
+    const photos = await searchPhotos(keywords, offset, limit);
 
-      if (!photos.records || photos.records.length === 0) {
-        return res.json([]); // Return an empty array if no results
-      }
+    if (!photos.records || photos.records.length === 0) {
+      return res.json([]); // Return an empty array if no results
+    }
 
-      let photoDataArray = await Promise.all(
-        photos.records.map(async (photo) => {
-          const source = sources[photo.source_id];
-          photo["source_type"] = source.type;
+    let photoDataArray = await Promise.all(
+      photos.records.map(async (photo) => {
+        const source = sources[photo.source_id];
+        photo["source_type"] = source.type;
 
-          if (photo.source_type === constants.SOURCE_TYPE_NAS) {
-            return get_photo_from_synology(photo);
-          } else if (photo.source_type === constants.SOURCE_TYPE_FS) {
-            // Placeholder for file system handling
-            return photo; 
-          } else {
-            logger.error(`The source type ${photo.source_id} was not configured, returning default photo.`);
-            return get_photo_from_synology(photo); // Default fallback
-          }
-        })
-      );
+        if (photo.source_type === constants.SOURCE_TYPE_NAS) {
+          return await get_photo_from_synology(photo);
+        } else {
+          logger.error(`The source type ${photo.source_id} was not configured, returning default photo.`);
+          return await get_default_photo(photo);
+        }
+      })
+    );
 
-      res.json(photoDataArray); // Send the complete array once processing is done
-    });
+    res.json(photoDataArray); // Send the complete array once processing is done
 
   } catch (error) {
     logger.error(`Unexpected error: ${error.message}`, { stack: error.stack });
     res.status(500).json({ message: "Internal Server Error" });
   }
-};
+}
+
+
+const get_default_photo = (photo_data) => {
+  return new Promise((resolve, reject) => {
+    fs.readFile('web/eyedeea_photos.jpg', (fsErr, data) => {
+      if (fsErr) {
+        logger.error(`Error reading default photo: ${fsErr.message}`);
+        return reject(fsErr);
+      }
+      return resolve({
+        'Content-Type': 'image/jpeg',
+        'Content-Length': data.length,
+        'photo-meta-data': JSON.stringify(photo_data),
+        'photo-data': data
+      });
+    });
+  });
+}

@@ -5,10 +5,12 @@ const logger = config_log.logger;
 
 
 export function get_source_summary(callback) {
-    let query = `select p.source_id,s.name, count(*)total_photos, max(sl.updated_at) last_scanned_at from photo p
-        inner join scan_log sl on sl.source_id = p.source_id
-        inner join source s on p.source_id = s.id
-        group by p.source_id`;
+    let query = `select p.source_id,s.name, 
+    (select count(*) from photo p where p.source_id = s.id)
+    total_photos, max(sl.updated_at) last_scanned_at from photo p
+    inner join scan_log sl on sl.source_id = p.source_id
+    inner join source s on p.source_id = s.id
+    group by p.source_id, s.name`;
 
     meta_db.all(query, (err, rows) => {
         if (err) {
@@ -32,5 +34,36 @@ export function get_source_summary(callback) {
                 );
             }
         }
+    });
+}
+
+export function global_search(keywords, limit, offset, callback) {
+    limit = parseInt(limit) || 10;
+    offset = parseInt(offset) || 0;
+
+    meta_db.get("SELECT COUNT(*) as count FROM fts WHERE fts MATCH ?",
+        [keywords], (err, row) => {
+        if (err) {
+            callback(err, null);
+        }
+        let total_records = row.count;
+        let total_pages = Math.ceil(total_records / limit);
+
+        meta_db.all("SELECT photo_id, source_id FROM fts WHERE fts MATCH ?", 
+            [keywords],
+            (err, rows) => {
+                if (err) {
+                    logger.error(err.message);
+                    callback(err, null);
+                } else {
+                    callback(null, {
+                        total_records: total_records,
+                        total_pages: total_pages,
+                        current_offset: offset,
+                        limit: limit,
+                        records: rows
+                    });
+                }
+        });
     });
 }

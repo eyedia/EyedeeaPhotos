@@ -6,6 +6,73 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
     <link rel="stylesheet" href="assets/css/main.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            width: 80%;
+            height: 80%;
+            padding: 10px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            padding: 8px;
+        }
+
+        .close-btn {
+            cursor: pointer;
+        }
+
+        .gallery {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .thumbnail {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+        }
+        #thumbnail-container {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        img {
+            width: 100px;
+            height: 100px;
+            margin: 5px;
+        }
+    </style>
 </head>
 
 <body class="is-preload">
@@ -23,7 +90,7 @@
                         <a href="index.html" class="logo">
                             <img src="../images/Eyedeea_Photos_m_logo.png" width="10%" alt="Eyedeea Photos Logo"
                                 style="vertical-align: middle;" />
-                            <h1 style="display: inline;vertical-align: middle;">Eyedeea Photos</h1>
+                            <h2 style="display: inline;vertical-align: middle;">Eyedeea Photos - Player Settings</h2>
                         </a>
                     </div>
                     <ul class="icons">
@@ -38,12 +105,12 @@
                 <div class="col-12">
                     <h3 id="system_summary"></h3>
                     <a href="#" onclick="window.dialog.showModal();" class="button primary icon"
-                        style="vertical-align: middle;">Add New</a>
+                        style="vertical-align: middle;">Add New Filter</a>
 
                 </div>
                 <table>
                     <thead>
-                        <tr>                            
+                        <tr>
                             <th>Name</th>
                             <th>Keywords</th>
                             <th>Total Photos</th>
@@ -56,53 +123,20 @@
                     </ul>
                 </table>
 
-                <dialog id="dialog">
-                    <section>
-                        <header class="main">
-                            <h2 id="title">Add New Photo Source</h2>
-                        </header>
-                        <div class="erow">
-                            <label for="name">Name:</label>
-                            <input type="text" id="source_name" name="source_name" oninput="validate_fields()">
+                <!-- Add New Filter -->
+                <button onclick="openModal()">Open Search</button>
+                <div id="searchModal" class="modal">
+                    <div class="modal-content">
+                        <div class="header">
+                            <input type="text" id="searchInput" class="search-box" placeholder="Search images...">
+                            <div id="thumbnail-container"></div>
+                            <button id="load-more" data-page="1">Load More</button>
+                            <button onclick="closeModal()" class="close-btn">X</button>
                         </div>
-                        <div class="erow">
-                            <label for="type">Type:</label>
-                            <select id="source_type" name="source_type" onchange="toggleFields()">
-                                <option value="">Select</option>
-                                <option value="nas">NAS</option>
-                                <option value="fs">FS</option>
-                            </select>
-                        </div>
-
-                        <div id="nasFields" class="hidden">
-                            <div class="erow">
-                                <label for="url">URL:</label>
-                                <input type="text" id="url" name="url" oninput="validate_fields()">
-                            </div>
-                            <div class="erow">
-                                <label for="username">Username:</label>
-                                <input type="text" id="username" name="username" oninput="validate_fields()">
-                                <label for="password">Password:</label>
-                                <input type="password" id="password" name="password" oninput="validate_fields()">
-                            </div>
-                        </div>
-
-                        <div id="fsFields" class="hidden">
-                            <div class="erow">
-                                <label for="directory">Directory:</label>
-                                <input type="text" id="directory" name="directory" oninput="validate_fields()">
-                            </div>
-                            <div class="erow">
-                                <label for="apiKey">API Key:</label>
-                                <input type="text" id="apiKey" name="apiKey">
-                            </div>
-                        </div>
-                        <input id="add" name="add" type="submit" value="Save" class="primary" disabled />
-                        <div id="message" class="message hidden"></div>
-                    </section>
-
-                    <button onclick="window.dialog.close();" aria-label="close" class="x">❌</button>
-                </dialog>
+                        <div id="gallery" class="gallery"></div>
+                    </div>
+                </div>
+                <!-- Add New Filter -->
             </div>
         </div>
 
@@ -120,7 +154,7 @@
                 <!-- Menu -->
                 <nav id="menu">
                     <header class="major">
-                        <h2>Eyedeea Photos</h2>
+                        <h2>Eyedeea Photos - Settings</h2>
                     </header>
                     <ul>
                         <li><a href="index.html">Home</a></li>
@@ -150,6 +184,65 @@
     <script src="assets/js/util.js"></script>
     <script src="assets/js/manage_main.js"></script>
     <script src="assets/js/eyedeea_manage.js"></script>
+    <script>
+        let page = 1, totalResults = 0, loadedResults = 0;
+        let loading = false;
+
+        function openModal() { document.getElementById('searchModal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('searchModal').style.display = 'none'; }
+
+        document.getElementById('searchInput').addEventListener('keypress', function (event) {
+            if (event.key === 'Enter') {
+                console.log("xx")
+                page = 1;
+                document.getElementById('gallery').innerHTML = '';
+                fetchImages();
+            }
+        });
+
+        async function fetchImages() {
+            if (loading) return;
+            loading = true;
+            let query = document.getElementById('searchInput').value;
+            async function fetchThumbnails(pageNumber = 1, limit = 10) {
+                try {
+                    let response = await fetch(`/api/system/search?keywords=${query}&page=${page}`);
+                    let data = await response.json();
+                    const container = document.getElementById("thumbnail-container");
+                    container.innerHTML = ""; // Clear previous images
+
+                    data.forEach(item => {
+                        console.log(item["photo-data"]);
+                        if (item["photo-data"] && item["photo-data"].data) {
+                            const bufferArray = new Uint8Array(item["photo-data"].data);
+                            const blob = new Blob([bufferArray], { type: "image/jpeg" });
+                            const imageUrl = URL.createObjectURL(blob);
+
+                            const img = document.createElement("img");
+                            img.src = imageUrl;
+                            //console.log(imageUrl)
+                            img.alt = "Thumbnail";
+
+                            container.appendChild(img);
+                        }
+                    });
+                } catch (error) {
+                    console.error("Error fetching thumbnails:", error);
+                }
+            }
+
+            // Initial call to load the first page
+            fetchThumbnails(1);
+
+            // Load more button functionality
+            document.getElementById("load-more").addEventListener("click", () => {
+                let currentPage = Number(document.getElementById("load-more").getAttribute("data-page")) || 1;
+                currentPage++;
+                document.getElementById("load-more").setAttribute("data-page", currentPage);
+                fetchThumbnails(currentPage);
+            });
+        }
+    </script>
 </body>
 
 </html>

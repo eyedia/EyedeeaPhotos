@@ -9,9 +9,9 @@ export function search_init(callback) {
     const create_search_indexes = [
         `DELETE FROM fts`,
         `INSERT INTO fts 
-            (photo_id, folder_name, tags, address) 
+            (photo_id, source_id, folder_name, tags, address) 
             SELECT 
-            photo_id, folder_name, tags, address 
+            photo_id, source_id, folder_name, tags, address 
             FROM photo`
     ];
 

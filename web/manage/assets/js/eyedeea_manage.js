@@ -1,40 +1,37 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const add = document.getElementById('add');
-    add.addEventListener('click', function (event) {
-        const data = (() => {
-            const source_type = document.getElementById("source_type").value;
-            const source_name = document.getElementById("source_name");
-            const url = document.getElementById("url");
-            const username = document.getElementById("username");
-            const password = document.getElementById("password");
-            const directory = document.getElementById("directory");
-
-            if (source_type === "nas") {
-                return {
-                    "name": source_name.value,
-                    "type": source_type,
-                    "url": url.value,
-                    "user": username.value,
-                    "password": password.value
-                };
-            } else {
-                return {
-                    "name": source_name.value,
-                    "type": source_type,
-                    "url": directory.value
-                };
-            }
-        })();
-        save_source('/api/sources', data);
-    });
-
     let pathArray = window.location.pathname.split("/");
     const documentName = pathArray[pathArray.length - 1];
-
-    get_sources();
     switch (documentName) {
         case "":
         case "index.html":
+            const add = document.getElementById('add');
+            add.addEventListener('click', function (event) {
+                const data = (() => {
+                    const source_type = document.getElementById("source_type").value;
+                    const source_name = document.getElementById("source_name");
+                    const url = document.getElementById("url");
+                    const username = document.getElementById("username");
+                    const password = document.getElementById("password");
+                    const directory = document.getElementById("directory");
+
+                    if (source_type === "nas") {
+                        return {
+                            "name": source_name.value,
+                            "type": source_type,
+                            "url": url.value,
+                            "user": username.value,
+                            "password": password.value
+                        };
+                    } else {
+                        return {
+                            "name": source_name.value,
+                            "type": source_type,
+                            "url": directory.value
+                        };
+                    }
+                })();
+                save_source('/api/sources', data);
+            });
             get_system_summary();
             break;
         case "player.html":
@@ -46,8 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
         default:
             break;
     }
-    
-    
+    get_sources();
     
 });
 
@@ -498,7 +494,11 @@ function renderTableSummary(data) {
     tableBody.innerHTML = '';
 
     const system_summary = document.getElementById("system_summary");
-    system_summary.innerHTML = `${data.summary.total_sources} Photo sources are configured with ${data.summary.total_photos} photos.`;
+    if (data.summary.total_sources == 1){
+        system_summary.innerHTML = `${data.summary.total_sources} Photo source is configured with ${data.summary.total_photos} photos.`;
+    }else if (data.summary.total_sources > 1){
+        system_summary.innerHTML = `${data.summary.total_sources} Photo sources are configured with ${data.summary.total_photos} photos.`;
+    }
 
     data.details.forEach(item => {
         const row = `<tr>            

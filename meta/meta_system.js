@@ -49,7 +49,7 @@ export function global_search(keywords, limit, offset, callback) {
         let total_records = row.count;
         let total_pages = Math.ceil(total_records / limit);
 
-        meta_db.all("SELECT photo_id, source_id FROM fts WHERE fts MATCH ?", 
+        meta_db.all("SELECT photo_id, cache_key, source_id FROM fts WHERE fts MATCH ? limit 10", 
             [keywords],
             (err, rows) => {
                 if (err) {

@@ -51,7 +51,7 @@ const fetchSources = () => {
 /**
  * Fetch photo data from Synology
  */
-const get_photo_from_synology = (photo_data) => {
+const get_photo_from_synology = (photo_data) => {  
   return new Promise((resolve, reject) => {
     syno_get_photo(photo_data, "sm", (err, response) => {
       if (err || !response || !response.headers) {
@@ -68,7 +68,7 @@ const get_photo_from_synology = (photo_data) => {
             'photo-data': data
           });
         });
-      } else {
+      } else {       
         resolve({
           'Content-Type': response.headers.get('content-type'),
           'Content-Length': response.data.length,

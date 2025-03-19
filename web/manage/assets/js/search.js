@@ -108,6 +108,7 @@ openModal.addEventListener('click', () => {
     modal.style.display = 'flex';
     keywords = ''; // Reset search term
     searchBox.value = ''; // Clear search box
+    searchBox.focus();
     nameBox.value = ''; // Clear name box
     gallery.innerHTML = ''; // Clear gallery
     offset = 0; // Reset offset
@@ -129,8 +130,8 @@ window.addEventListener('keydown', (event) => {
     }
 });
 
-window.onclick = (event) => {
-    if (event.target === modal) {
-        closeModal.click();
-    }
-};
+// window.onclick = (event) => {
+//     if (event.target === modal) {
+//         closeModal.click();
+//     }
+// };

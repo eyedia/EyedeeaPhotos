@@ -6,73 +6,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
     <link rel="stylesheet" href="assets/css/main.css" />
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-        }
+    <link rel="stylesheet" href="assets/css/search.css" />
 
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background: white;
-            width: 80%;
-            height: 80%;
-            padding: 10px;
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .header {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .search-box {
-            flex: 1;
-            padding: 8px;
-        }
-
-        .close-btn {
-            cursor: pointer;
-        }
-
-        .gallery {
-            flex: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .thumbnail {
-            width: 100px;
-            height: 56px;
-            object-fit: cover;
-        }
-        #thumbnail-container {
-            display: flex;
-            flex-wrap: wrap;
-        }
-        img {
-            width: 100px;
-            height: 56px;
-            margin: 5px;
-        }
-    </style>
 </head>
 
 <body class="is-preload">
@@ -124,18 +59,22 @@
                 </table>
 
                 <!-- Add New Filter -->
-                <button onclick="openModal()">Open Search</button>
-                <div id="searchModal" class="modal">
+                <button id="openModal">Open Gallery</button>
+                <div id="modal" class="modal">
                     <div class="modal-content">
-                        <div class="header">
-                            <input type="text" id="searchInput" class="search-box" placeholder="Search images...">
-                            <div id="thumbnail-container"></div>
-                            <button id="load-more" data-offset="0">Load More</button>
-                            <button onclick="closeModal()" class="close-btn">X</button>
+                        <span id="closeModal" class="close">&times;</span>
+                        <div class="search-bar">
+                            <input type="text" id="searchBox" placeholder="Search images...">
+                            <button id="searchButton">Search</button>
+                            <input type="text" id="nameBox" placeholder="Name your filter...">    
+                            <button id="saveButton">Save</button>
                         </div>
                         <div id="gallery" class="gallery"></div>
+                        <div id="footer" class="footer"></div>
                     </div>
                 </div>
+
+                
                 <!-- Add New Filter -->
             </div>
         </div>
@@ -184,64 +123,8 @@
     <script src="assets/js/util.js"></script>
     <script src="assets/js/manage_main.js"></script>
     <script src="assets/js/eyedeea_manage.js"></script>
-    <script>
-        let limit = 30, offset = 0;
-        let loading = false;
-
-        function openModal() { document.getElementById('searchModal').style.display = 'flex'; }
-        function closeModal() { document.getElementById('searchModal').style.display = 'none'; }
-
-        document.getElementById('searchInput').addEventListener('keypress', function (event) {
-            if (event.key === 'Enter') {                
-                offset = 0;
-                document.getElementById('gallery').innerHTML = '';
-                fetchImages();
-            }
-        });
-
-        async function fetchImages() {
-            if (loading) return;
-            loading = true;
-            let keywords = document.getElementById('searchInput').value;
-            async function fetchThumbnails(offset) {
-                try {
-                    let response = await fetch(`/api/system/search?keywords=${keywords}&limit=${limit}&offset=${offset}`);
-                    let data = await response.json();
-                    const container = document.getElementById("thumbnail-container");
-                    container.innerHTML = ""; // Clear previous images
-
-                    data.forEach(item => {
-                        const photo_meta_data = JSON.parse(item["photo-meta-data"]);                        
-                        if (item["photo-data"] && item["photo-data"].data) {
-                            const bufferArray = new Uint8Array(item["photo-data"].data);
-                            const blob = new Blob([bufferArray], { type: "image/jpeg" });
-                            const imageUrl = URL.createObjectURL(blob);
-
-                            const img = document.createElement("img");
-                            img.src = imageUrl;
-                            img.title = photo_meta_data.cache_key;
-                            img.alt = "Thumbnail";
-
-                            container.appendChild(img);
-                        }
-                    });
-                } catch (error) {
-                    console.error("Error fetching thumbnails:", error);
-                }
-            }
-
-            // Initial call to load the first offset
-            fetchThumbnails(0);
-
-            // Load more button functionality
-            document.getElementById("load-more").addEventListener("click", () => {
-                let offset = Number(document.getElementById("load-more").getAttribute("data-offset")) || 0;
-                offset = offset + limit + 1;
-                document.getElementById("load-more").setAttribute("data-offset", offset);
-                fetchThumbnails(offset);
-            });
-        }
-    </script>
+    <script src="assets/js/search.js"></script>
+    
 </body>
 
 </html>

@@ -3,9 +3,10 @@ const modal = document.getElementById('modal');
 const closeModal = document.getElementById('closeModal');
 const gallery = document.getElementById('gallery');
 const searchBox = document.getElementById('searchBox');
+const g_searchBox = document.getElementById('g-search-searchBox');
 const nameBox = document.getElementById('nameBox');
 const searchButton = document.getElementById('searchButton');
-const saveButton = document.getElementById('saveButton');
+//const saveButton = document.getElementById('saveButton');
 const footer = document.getElementById('footer');
 const load_more = document.getElementById("load-more");
 
@@ -14,21 +15,26 @@ const limit = 40;
 let keywords = '';
 let totalPhotos = 0;
 
-const fetchImages = async () => {
+const fetchImages = async () => {    
     try {
+        // if(keywords == ""){
+        //     return [];
+        // }
         let response = await fetch(`/api/system/search?keywords=${keywords}&limit=${limit}&offset=${offset}`);
         let data = await response.json();
         let thumbnails = [];
-        data.thumbnails.forEach(item => {                                
-            if (item["photo-data"] && item["photo-data"].data) {
-                const bufferArray = new Uint8Array(item["photo-data"].data);
-                const blob = new Blob([bufferArray], { type: "image/jpeg" });
-                const imageUrl = URL.createObjectURL(blob);
-                thumbnails.push({"imageUrl": imageUrl, "folderName": item["photo-meta-data"].folder_name + "/" + item["photo-meta-data"].filename});
-            }
-        });
-        totalPhotos = data.total_records;
-        updateFooter();
+        if (data.thumbnails){
+            data.thumbnails.forEach(item => {                                
+                if (item["photo-data"] && item["photo-data"].data) {
+                    const bufferArray = new Uint8Array(item["photo-data"].data);
+                    const blob = new Blob([bufferArray], { type: "image/jpeg" });
+                    const imageUrl = URL.createObjectURL(blob);
+                    thumbnails.push({"imageUrl": imageUrl, "folderName": item["photo-meta-data"].folder_name + "/" + item["photo-meta-data"].filename});
+                }
+            });
+            totalPhotos = data.total_records;
+            updateFooter();
+        }
         return thumbnails; // assuming API returns { images: [url1, url2, ...] }
     } catch (error) {
         console.error('Error fetching images:', error);
@@ -94,31 +100,49 @@ const loadMoreImagesOnScroll = () => {
     }
 };
 
-searchBox.addEventListener("keydown", function (event) {
-    if (event.key === "Enter") {
-        search();
-    }
-});
+if (searchBox){
+    searchBox.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+            search();
+        }
+    });
+}
 
-searchButton.addEventListener('click', () => {
-    search();
-});
+if (g_searchBox){
+    g_searchBox.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+            search();
+        }
+    });
+}
+
+
+if(searchButton){
+    searchButton.addEventListener('click', () => {
+        search();
+    });
+}
 
 function search(){
-    keywords = searchBox.value.trim();
+    keywords = searchBox? searchBox.value.trim() : g_searchBox.value.trim();
     gallery.innerHTML = '';
     offset = 0;
     load_more.classList.remove("show");
     loadImages();
 }
 
-nameBox.addEventListener("keydown", function (event) {
-    if (event.key === "Enter") {
-        saveSearch();
-    }
-});
+if(nameBox){
+    nameBox.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+            saveSearch();
+        }
+    });
+}
 
-saveButton.addEventListener('click', saveSearch);
+// if(saveButton){
+//     console.log(saveButton);
+//     saveButton.addEentListener('click', saveSearch);
+// }
 
 function openModal(){
     modal.style.display = 'flex';
@@ -132,17 +156,20 @@ function openModal(){
     gallery.addEventListener('scroll', loadMoreImagesOnScroll);
 }
 
-closeModal.addEventListener('click', () => {
-    modal.style.display = 'none';
-    gallery.innerHTML = '';
-    offset = 0;
-    gallery.removeEventListener('scroll', loadMoreImagesOnScroll);
-    footer.textContent = '';
-});
+if(closeModal){
+    closeModal.addEventListener('click', () => {
+        modal.style.display = 'none';
+        gallery.innerHTML = '';
+        offset = 0;
+        gallery.removeEventListener('scroll', loadMoreImagesOnScroll);
+        footer.textContent = '';
+    });
+}
 
 window.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
-        closeModal.click();
+        if(closeModal)
+            closeModal.click();
     }
 });
 

@@ -25,7 +25,7 @@
                         <a href="index.html" class="logo">
                             <img src="../images/Eyedeea_Photos_m_logo.png" width="10%" alt="Eyedeea Photos Logo"
                                 style="vertical-align: middle;" />
-                            <h2 style="display: inline;vertical-align: middle;">Eyedeea Photos - Player Settings</h2>
+                            <h2 style="display: inline;vertical-align: middle;">Eyedeea Photos - Search</h2>
                         </a>
                     </div>
                     <ul class="icons">
@@ -39,36 +39,15 @@
                 <div style="height: 10px;"></div>
                 <div class="col-12">
                     <h3 id="system_summary"></h3>
-                    <a onclick="openModal()" class="button primary icon"
-                        style="vertical-align: middle;">Add New Filter</a>
-                    <div id="notification" class="notification-container">This is a notification message!</div>
+                    <div id="notification" class="notification-container">message!</div>
 
-                </div>                
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Keywords</th>
-                            <th>Total Photos</th>
-                        </tr>
-                    </thead>
-                    <tbody id="player-filter-table-body">
-                    </tbody>
-                    <ul id="pagination" class="pagination">
-
-                    </ul>
-                </table>
-
-                <!-- Add New Filter -->                
-                <div id="modal" class="modal">
-                    <div class="modal-content">
-                        <span id="closeModal" class="close" title="Escape key works too!">&times;</span>
-                        <div class="search-bar">
-                            <input type="text" id="searchBox" autofocus placeholder="Search images...">
-                            <button id="searchButton">Search</button>
-                            <input type="text" id="nameBox" placeholder="Name your filter...">    
-                            <button id="saveButton" onclick="saveSearch()">Save</button>
-                        </div>                        
+                </div>
+                <!-- Search -->
+                <div id="g-search">
+                    <div class="g-search-content">                        
+                        <div class="g-search-search-bar">
+                            <input type="text" id="g-search-searchBox" autofocus placeholder="Search images...">
+                        </div>
                         <div id="gallery" class="gallery"></div>
                         <div class="footer-container">
                             <div id="footer" class="footer"></div>
@@ -77,8 +56,8 @@
                     </div>
                 </div>
 
-                
-                <!-- Add New Filter -->
+
+                <!-- Search -->
             </div>
         </div>
 
@@ -98,7 +77,7 @@
                     <header class="major">
                         <h2><a href="../">Eyedeea Photos</a></h2>
                     </header>
-                    <ul>                        
+                    <ul>
                         <li><a href="index.html">System</a></li>
                         <li><a href="player.html">Player Settings</a></li>
                         <li><a href="search.html">Search</a></li>
@@ -129,7 +108,7 @@
     <script src="assets/js/manage_main.js"></script>
     <script src="assets/js/eyedeea_manage.js"></script>
     <script src="assets/js/search.js"></script>
-    
+
 </body>
 
 </html>

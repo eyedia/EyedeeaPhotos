@@ -502,7 +502,7 @@ function renderTableSummary(data) {
 
     data.details.forEach(item => {
         const row = `<tr>            
-            <td>${item.name}</td>
+            <td><a href='/manage/source.html?id=${item.source_id}'>${item.name}</a></td>
             <td>${item.total_photos}</td>
             <td>${item.last_scanned_at}</td>
         </tr>`;

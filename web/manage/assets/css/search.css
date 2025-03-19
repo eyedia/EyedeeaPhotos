@@ -57,6 +57,7 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 10px;
+    padding-bottom: 10px;
 }
 
 .thumbnail {
@@ -112,4 +113,43 @@
     display: none;
     opacity: 1;
     transition: opacity 1s ease-out;
+}
+
+
+.g-search {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+    
+}
+
+.g-search-content {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    
+    max-height: 90%;
+    overflow-y: auto;
+    position: relative;
+}
+
+.g-search-search-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.g-search-search-bar input {
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    flex: 1;
+    
 }

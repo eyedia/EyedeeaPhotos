@@ -93,8 +93,6 @@ export function delete_filter(id, callback) {
 }
 
 
-
-
 export function make_active(id, callback) {    
     const try_id = parseInt(id);
     let query = `select * from view_filter where id = ?`;

@@ -36,34 +36,3 @@ export function get_source_summary(callback) {
         }
     });
 }
-
-export function global_search(keywords, offset, limit, callback) {
-    limit = parseInt(limit) || 10;
-    offset = parseInt(offset) || 0;
-
-    meta_db.get("SELECT COUNT(*) as count FROM fts WHERE fts MATCH ?",
-        [keywords], (err, row) => {
-        if (err) {
-            callback(err, null);
-        }
-        let total_records = row.count;
-        let total_pages = Math.ceil(total_records / limit);
-
-        meta_db.all("SELECT photo_id, cache_key, source_id, folder_name FROM fts WHERE fts MATCH ? LIMIT ? OFFSET ?", 
-            [keywords, limit, offset],
-            (err, rows) => {
-                if (err) {
-                    logger.error(err.message);
-                    callback(err, null);
-                } else {
-                    callback(null, {
-                        total_records: total_records,
-                        total_pages: total_pages,
-                        current_offset: offset,
-                        limit: limit,
-                        records: rows
-                    });
-                }
-        });
-    });
-}

@@ -2,7 +2,8 @@ import { create_or_update as meta_create_or_update,
   get as meta_get,
   list as meta_list,
   make_active as meta_make_active,
-  make_inactive as meta_make_inactive
+  make_inactive as meta_make_inactive,
+  delete_filter as meta_delete_filter
  } from "../../meta/meta_view_filter.mjs";
 import config_log from "../../config_log.js";
 
@@ -82,6 +83,21 @@ export const set_active_default = async (req, res) => {
         logger.error(err.message);
       } else {
           res.json(item);        
+      }
+    });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+};
+
+export const delete_filter = async (req, res) => {
+  try {  
+    meta_delete_filter(req.params.id, (err, status) => {      
+      if (err) {
+        logger.error(err.message);
+      } else {
+          res.json({"message": `${req.params.id} deleted.`});        
       }
     });
   } catch (error) {

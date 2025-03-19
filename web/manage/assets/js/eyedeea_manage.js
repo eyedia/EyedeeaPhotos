@@ -543,10 +543,11 @@ function renderTableFilters(data) {
         const row = `<tr>       
             <td>
                 <input type="radio" id="demo-priority-${item.id}" name="demo-priority" ${item.current == 1? "checked": ""}>
-                <label for="demo-priority-${item.id}">${item.name}</label>
+                <label for="demo-priority-${item.id}">${item.name}</label>                
             </td>
             <td>${item.keyword}</td>
-            <td>${item.total_photos}</td>
+            <td>${item.total_photos}</td>            
+            <td>${item.id ==0? '': `<a href='#' onclick=deleteFilter(this) data-id=${item.id}>delete</a>`}</td>
         </tr>`;
 
         tableBody.innerHTML += row;
@@ -565,8 +566,21 @@ function renderTableFilters(data) {
                 }
             })
             .then(response => response.json())
-            .then(data => console.log("Success:", data))
+            .then(data => show_notification(`You have activated a filter. These changes will take effect within a few minutes.`))
             .catch(error => console.error("Error:", error));
         });
     });
 }
+
+const deleteFilter = async (a_element) => {
+    try {
+        const filter_id = a_element.getAttribute("data-id");
+        await fetch(`/api/view/filters/${filter_id}`, {
+            method: 'DELETE'
+        });
+        get_filters(undefined, 0);
+        show_notification("Filter deleted!");
+    } catch (error) {
+        console.error('Error deleting filter:', error);
+    }
+};

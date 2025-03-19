@@ -1,3 +1,4 @@
+const sidebar = document.getElementById('sidebar');
 const modal = document.getElementById('modal');
 const closeModal = document.getElementById('closeModal');
 const gallery = document.getElementById('gallery');
@@ -18,13 +19,12 @@ const fetchImages = async () => {
         let response = await fetch(`/api/system/search?keywords=${keywords}&limit=${limit}&offset=${offset}`);
         let data = await response.json();
         let thumbnails = [];
-        data.thumbnails.forEach(item => {
-            const photo_meta_data = JSON.parse(item["photo-meta-data"]);                        
+        data.thumbnails.forEach(item => {                                
             if (item["photo-data"] && item["photo-data"].data) {
                 const bufferArray = new Uint8Array(item["photo-data"].data);
                 const blob = new Blob([bufferArray], { type: "image/jpeg" });
                 const imageUrl = URL.createObjectURL(blob);
-                thumbnails.push({"imageUrl": imageUrl, "folderName": photo_meta_data.folder_name});
+                thumbnails.push({"imageUrl": imageUrl, "folderName": item["photo-meta-data"].folder_name + "/" + item["photo-meta-data"].filename});
             }
         });
         totalPhotos = data.total_records;
@@ -46,15 +46,16 @@ const saveSearch = async () => {
     }
 
     try {
-        await fetch('https://example.com/api/save-search', {
+        await fetch(`/api/view/filters`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, search })
+            body: JSON.stringify({ "name": name, "filter_must": search })
         });
-        alert('Search saved successfully!');
+        get_filters(undefined, 0);
+        closeModal.click();
+        
     } catch (error) {
         console.error('Error saving search:', error);
-        alert('Failed to save search.');
     }
 };
 
@@ -127,6 +128,7 @@ function openModal(){
     nameBox.value = '';
     gallery.innerHTML = '';
     offset = 0;
+    sidebar.classList.add("inactive");
     gallery.addEventListener('scroll', loadMoreImagesOnScroll);
 }
 
@@ -151,3 +153,17 @@ load_more.addEventListener("click", () => {
     }, 500);
     
 });
+
+function show_notification(message){
+    console.log(message);
+    const notification = document.getElementById("notification");
+    notification.innerText = message;
+    notification.style.display = "block";
+            setTimeout(() => {
+                notification.style.opacity = "0";
+                setTimeout(() => {
+                    notification.style.display = "none";
+                    notification.style.opacity = "1";
+                }, 1000);
+            }, 2000);
+}

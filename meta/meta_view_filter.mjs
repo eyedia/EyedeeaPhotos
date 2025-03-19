@@ -26,7 +26,7 @@ export function create_or_update(view_filter, callback) {
             } else {
                 meta_db.run(
                     `UPDATE view_filter set filter_must = ?, filter_option = ?, current = ?, updated_at = strftime('%Y-%m-%d %H:%M:%S', 'now') where name = ?`,
-                    [view_filter.filter_must, view_filter.filter_option, view_filter.current, source.name],
+                    [view_filter.filter_must, view_filter.filter_option, view_filter.current, meta_view_filter.name],
                     function (err) {
                         if (err) {
                             logger.error('Error updating data:', err);
@@ -47,7 +47,7 @@ export function list(callback) {
         current_timestamp created_at
         UNION
         select id, current, name, filter_must keyword,
-        (select count(*) from fts where fts match 'belize')total_photos,
+        (select count(*) from fts where fts match filter_must)total_photos,
         created_at
         from view_filter
         order by created_at desc`;
@@ -78,6 +78,21 @@ export function get(id, callback) {
         }
     });
 }
+
+
+export function delete_filter(id, callback) {
+    meta_db.run("delete from view_filter where id = ?", [id],
+        (err) => {
+        if (err) {
+            logger.error(err.message);
+            callback(err, null);
+        } else {
+            callback(null, true);
+        }
+    });
+}
+
+
 
 
 export function make_active(id, callback) {    

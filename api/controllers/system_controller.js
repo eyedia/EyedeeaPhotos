@@ -1,7 +1,9 @@
 import {
-  get_source_summary as meta_get_source_summary,
-  global_search as meta_global_search
+  get_source_summary as meta_get_source_summary
 } from "../../meta/meta_system.js";
+import {
+  global_search as meta_global_search
+} from "../../meta/meta_search.mjs";
 import { list as meta_get_sources } from "../../meta/meta_source.mjs";
 import { list_geo, get_photo as syno_get_photo, add_tag as syno_add_tag } from "../../sources/synology/syno_client.mjs";
 
@@ -61,7 +63,7 @@ const get_photo_from_synology = (photo_data) => {
         resolve({
           'Content-Type': response.headers.get('content-type'),
           'Content-Length': response.data.length,
-          'photo-meta-data': JSON.stringify(photo_data),
+          'photo-meta-data': photo_data,
           'photo-data': response.data
         });
       }

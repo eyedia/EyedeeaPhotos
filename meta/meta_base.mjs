@@ -108,7 +108,7 @@ function create_tables(callback) {
             );`,
 
         `CREATE VIRTUAL TABLE fts 
-            USING FTS5(photo_id, cache_key, source_id, folder_name,tags,address);`,
+            USING FTS5(photo_id,tags,address);`,
 
         `CREATE TABLE view_filter (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -116,7 +116,8 @@ function create_tables(callback) {
             filter_must TEXT NOT NULL,
 			filter_option TEXT,
 			current BOOL DEFAULT 1,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT
             );`,
 
         `CREATE TABLE tag (

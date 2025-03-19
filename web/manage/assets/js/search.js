@@ -18,16 +18,16 @@ const fetchImages = async () => {
         let response = await fetch(`/api/system/search?keywords=${keywords}&limit=${limit}&offset=${offset}`);
         let data = await response.json();
         let thumbnails = [];
-        data.forEach(item => {
+        data.thumbnails.forEach(item => {
             const photo_meta_data = JSON.parse(item["photo-meta-data"]);                        
             if (item["photo-data"] && item["photo-data"].data) {
                 const bufferArray = new Uint8Array(item["photo-data"].data);
                 const blob = new Blob([bufferArray], { type: "image/jpeg" });
                 const imageUrl = URL.createObjectURL(blob);
-                thumbnails.push(imageUrl);
+                thumbnails.push({"imageUrl": imageUrl, "folderName": photo_meta_data.folder_name});
             }
         });
-        totalPhotos = 314;
+        totalPhotos = data.total_records;
         updateFooter();
         return thumbnails; // assuming API returns { images: [url1, url2, ...] }
     } catch (error) {
@@ -59,12 +59,13 @@ const saveSearch = async () => {
 };
 
 const loadImages = async () => {
-    const images = await fetchImages();
-    images.forEach(url => {
+    const thumbnails = await fetchImages();
+    thumbnails.forEach(thumbnail => {
         const img = document.createElement('img');
-        img.src = url;
+        img.src = thumbnail.imageUrl;
         img.alt = 'Thumbnail';
         img.className = 'thumbnail';
+        img.title = thumbnail.folderName;
         gallery.appendChild(img);
     });
     offset += limit;
@@ -72,9 +73,18 @@ const loadImages = async () => {
 };
 
 const updateFooter = () => {
-    const displayedPhotos = Math.min(offset, totalPhotos);
-    footer.textContent = `Showing ${displayedPhotos} out of ${totalPhotos} photos`;
-    load_more.classList.add("show");
+    if (totalPhotos > 0){
+        const displayedPhotos = Math.min(offset, totalPhotos);
+        footer.textContent = `Showing ${displayedPhotos} out of ${totalPhotos} photos`;
+        if(displayedPhotos != totalPhotos){
+            load_more.classList.add("show");         
+        }else{
+            load_more.classList.remove("show");
+        }
+    }else{
+        footer.textContent = "No photos found!";
+        load_more.classList.remove("show");
+    }
 };
 
 const loadMoreImagesOnScroll = () => {
@@ -135,8 +145,9 @@ window.addEventListener('keydown', (event) => {
 });
 
 load_more.addEventListener("click", () => {
-    // let offset = Number(document.getElementById("load-more").getAttribute("data-offset")) || 0;
-    // offset = offset + limit + 1;
-    // document.getElementById("load-more").setAttribute("data-offset", offset);
     loadImages();
+    setTimeout(() => {
+        gallery.scrollIntoView(false);
+    }, 500);
+    
 });

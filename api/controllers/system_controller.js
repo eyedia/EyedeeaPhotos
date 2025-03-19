@@ -103,6 +103,7 @@ export const global_search = async (req, res) => {
       photos.records.map(async (photo) => {
         const source = sources[photo.source_id];
         photo["source_type"] = source.type;
+        photo["folder_name"] = photo.folder_name;
 
         if (photo.source_type === constants.SOURCE_TYPE_NAS) {
           return await get_photo_from_synology(photo);
@@ -113,7 +114,15 @@ export const global_search = async (req, res) => {
       })
     );
 
-    res.json(photoDataArray); // Send the complete array once processing is done
+    const return_data = {
+      "total_records": photos.total_records,
+      "total_pages": photos.total_pages,
+      "current_offset": photos.current_offset,
+      "limit":photos.limit,
+      "thumbnails": photoDataArray
+    }
+
+    res.json(return_data); // Send the complete array once processing is done
 
   } catch (error) {
     logger.error(`Unexpected error: ${error.message}`, { stack: error.stack });

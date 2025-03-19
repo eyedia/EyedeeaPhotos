@@ -41,7 +41,7 @@ body {
 
 .search-bar {
     display: flex;
-    gap: 5px;
+    gap: 10px;
     margin-bottom: 10px;
 }
 
@@ -51,6 +51,16 @@ body {
     border: 1px solid #ccc;
     border-radius: 4px;
     flex: 1;
+}
+
+#searchBox {
+    flex: 1; /* Takes the remaining space */
+    min-width: 0; /* Prevents overflow */
+}
+
+#nameBox {
+    flex: 0.3; /* Takes 30% of the space */
+    min-width: 100px; /* Ensures it doesn't become too small */
 }
 
 
@@ -74,10 +84,29 @@ body {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
+.footer-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
 .footer {
+    flex: 1;
     text-align: center;
     padding: 10px 0;
     font-size: 14px;
     color: #555;
     border-top: 1px solid #ddd;
+}
+
+.footer-container p {
+    margin-left: 10px;
+}
+
+#load-more {
+    display: none;
+}
+
+#load-more.show {
+    display: block;
 }

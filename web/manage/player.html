@@ -39,7 +39,7 @@
                 <div style="height: 10px;"></div>
                 <div class="col-12">
                     <h3 id="system_summary"></h3>
-                    <a href="#" onclick="window.dialog.showModal();" class="button primary icon"
+                    <a onclick="openModal()" class="button primary icon"
                         style="vertical-align: middle;">Add New Filter</a>
 
                 </div>
@@ -58,8 +58,7 @@
                     </ul>
                 </table>
 
-                <!-- Add New Filter -->
-                <button id="openModal">Open Gallery</button>
+                <!-- Add New Filter -->                
                 <div id="modal" class="modal">
                     <div class="modal-content">
                         <span id="closeModal" class="close" title="Escape key works too!">&times;</span>
@@ -68,9 +67,12 @@
                             <button id="searchButton">Search</button>
                             <input type="text" id="nameBox" placeholder="Name your filter...">    
                             <button id="saveButton">Save</button>
-                        </div>
+                        </div>                        
                         <div id="gallery" class="gallery"></div>
-                        <div id="footer" class="footer"></div>
+                        <div class="footer-container">
+                            <div id="footer" class="footer"></div>
+                            <p><a id="load-more" href="#">More</a></p>
+                        </div>
                     </div>
                 </div>
 

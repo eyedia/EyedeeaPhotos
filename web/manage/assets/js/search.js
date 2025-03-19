@@ -1,5 +1,4 @@
 const modal = document.getElementById('modal');
-const openModal = document.getElementById('openModal');
 const closeModal = document.getElementById('closeModal');
 const gallery = document.getElementById('gallery');
 const searchBox = document.getElementById('searchBox');
@@ -7,17 +6,15 @@ const nameBox = document.getElementById('nameBox');
 const searchButton = document.getElementById('searchButton');
 const saveButton = document.getElementById('saveButton');
 const footer = document.getElementById('footer');
+const load_more = document.getElementById("load-more");
 
 let offset = 0;
-const limit = 20;
+const limit = 40;
 let keywords = '';
 let totalPhotos = 0;
 
 const fetchImages = async () => {
     try {
-        let offset = 0;
-        let limit = 40;
-        //let keywords = 'belize';
         let response = await fetch(`/api/system/search?keywords=${keywords}&limit=${limit}&offset=${offset}`);
         let data = await response.json();
         let thumbnails = [];
@@ -77,6 +74,7 @@ const loadImages = async () => {
 const updateFooter = () => {
     const displayedPhotos = Math.min(offset, totalPhotos);
     footer.textContent = `Showing ${displayedPhotos} out of ${totalPhotos} photos`;
+    load_more.classList.add("show");
 };
 
 const loadMoreImagesOnScroll = () => {
@@ -97,31 +95,37 @@ searchButton.addEventListener('click', () => {
 
 function search(){
     keywords = searchBox.value.trim();
-    gallery.innerHTML = ''; // Clear existing thumbnails
-    offset = 0; // Reset offset
-    loadImages(); // Load images based on new search term
+    gallery.innerHTML = '';
+    offset = 0;
+    load_more.classList.remove("show");
+    loadImages();
 }
+
+nameBox.addEventListener("keydown", function (event) {
+    if (event.key === "Enter") {
+        saveSearch();
+    }
+});
 
 saveButton.addEventListener('click', saveSearch);
 
-openModal.addEventListener('click', () => {
+function openModal(){
     modal.style.display = 'flex';
-    keywords = ''; // Reset search term
-    searchBox.value = ''; // Clear search box
+    keywords = '';
+    searchBox.value = '';
     searchBox.focus();
-    nameBox.value = ''; // Clear name box
-    gallery.innerHTML = ''; // Clear gallery
-    offset = 0; // Reset offset
-    //loadImages();
+    nameBox.value = '';
+    gallery.innerHTML = '';
+    offset = 0;
     gallery.addEventListener('scroll', loadMoreImagesOnScroll);
-});
+}
 
 closeModal.addEventListener('click', () => {
     modal.style.display = 'none';
     gallery.innerHTML = '';
     offset = 0;
     gallery.removeEventListener('scroll', loadMoreImagesOnScroll);
-    footer.textContent = ''; // Clear footer
+    footer.textContent = '';
 });
 
 window.addEventListener('keydown', (event) => {
@@ -130,8 +134,9 @@ window.addEventListener('keydown', (event) => {
     }
 });
 
-// window.onclick = (event) => {
-//     if (event.target === modal) {
-//         closeModal.click();
-//     }
-// };
+load_more.addEventListener("click", () => {
+    // let offset = Number(document.getElementById("load-more").getAttribute("data-offset")) || 0;
+    // offset = offset + limit + 1;
+    // document.getElementById("load-more").setAttribute("data-offset", offset);
+    loadImages();
+});

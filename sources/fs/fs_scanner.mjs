@@ -6,10 +6,10 @@ import { meta_db } from '../../meta/meta_base.mjs';
 import { save_item as meta_save_item, 
   stop_scan as meta_stop_scan } from "../../meta/meta_scan.mjs"
 import {generate_short_GUID} from "../../meta/encrypt.js"
-import config_log from "../../config_log.js";
+import logger from "../../config_log.js";
 import { start_scanning} from '../scanner.js';
 import { get_exif_data, total_geo_apis, reset_fs_client } from "./fs_client.mjs";
-const logger = config_log.logger;
+
 
 let total_photos = 0;
 let total_dirs = 0;

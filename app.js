@@ -2,7 +2,7 @@ import express from "express";
 import helmet from "helmet";
 import cron from "node-cron";
 import cors from 'cors';
-import config_log from "./config_log.js";
+import logger from "./config_log.js";
 import { set_random_photo, get_config } from "./meta/meta_view.mjs";
 import { scan as syno_scan } from "./sources/synology/syno_scanner.mjs";
 import { scan as fs_scan } from "./sources/fs/fs_scanner.mjs";
@@ -16,7 +16,7 @@ import { list as meta_list_sources } from "./meta/meta_source.mjs";
 import { encrypt, decrypt } from "./meta/encrypt.js";
 import constants from "./constants.js";
 
-const logger = config_log.logger;
+//
 
 process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err);
@@ -68,17 +68,15 @@ if (!is_jest_running) {
             );
             }
             else {
-              logger.info(`Auto scanning FS type ${source.name}...`);
-              new Promise((resolve, reject) => {
-              fs_scan(source, (err, scan_log_details) => {
-                logger.info(scan_log_details);
-              },
-                (scan_finished => {
-                  logger.info(scan_finished);
-                  resolve();
-                })
-              );
-            })
+              logger.info(`Auto scanning FS type ${source.name}...`);              
+              fs_scan_service(source, (err, scan_log_details) => {
+                if (err) {
+                  logger.error(err);
+                } else {
+                  logger.info(scan_log_details);
+                }
+              });
+            
             }
           });
         }

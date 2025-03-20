@@ -5,10 +5,10 @@ import {
 } from "../../meta/meta_source.mjs";
 import { authenticate as syno_authenticate, create_eyedeea_tags } from "../../sources/synology/syno_client.mjs";
 import { authenticate as fs_authenticate } from "../../sources/fs/fs_client.mjs";
-import config_log from "../../config_log.js";
+import logger from "../../config_log.js";
 import constants from "../../constants.js";
 
-const logger = config_log.logger;
+
 
 export const create_or_update = async (req, res) => {
   try {

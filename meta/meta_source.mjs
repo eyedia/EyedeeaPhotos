@@ -1,8 +1,8 @@
-import config_log from "../config_log.js";
+import logger from "../config_log.js";
 import { meta_db } from "./meta_base.mjs";
 import { encrypt, decrypt } from "./encrypt.js";
 
-const logger = config_log.logger;
+
 
 export function create_or_update(source, callback) {
     let query = `select * from source where name = ? COLLATE NOCASE`;

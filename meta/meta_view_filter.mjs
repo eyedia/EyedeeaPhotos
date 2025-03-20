@@ -1,8 +1,8 @@
-import config_log from "../config_log.js";
+import logger from "../config_log.js";
 import { meta_db } from "./meta_base.mjs";
 import {set_random_photo} from "./meta_view.mjs";
 
-const logger = config_log.logger;
+
 
 export function create_or_update(view_filter, callback) {
     let query = `select * from view_filter where name = ? COLLATE NOCASE`;

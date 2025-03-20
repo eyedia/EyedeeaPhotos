@@ -5,10 +5,10 @@ import {
     stop_scan as meta_stop_scan
 } from "../../meta/meta_scan.mjs";
 import { start_scanning } from '../scanner.js';
-import config_log from "../../config_log.js";
+import logger from "../../config_log.js";
 import { get as meta_get_scan_log } from '../../meta/meta_scan_log.mjs';
 
-const logger = config_log.logger;
+
 let _failed_folders_tried = false;
 
 let _offset = 0;

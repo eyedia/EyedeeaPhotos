@@ -1,11 +1,10 @@
 import sqlite3 from "sqlite3";
 import fs from "fs";
-import config_log from "../config_log.js";
+import logger from "../config_log.js";
 
 process.on('SIGINT', close_database);
 process.on('SIGTERM', close_database);
 
-const logger = config_log.logger;
 const dbFile = './meta/eyedeea_photos.db';
 
 const dbExists = fs.existsSync(dbFile);

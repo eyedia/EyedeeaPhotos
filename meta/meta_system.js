@@ -1,7 +1,7 @@
-import config_log from "../config_log.js";
+import logger from "../config_log.js";
 import { meta_db } from "./meta_base.mjs";
 
-const logger = config_log.logger;
+
 
 
 export function get_source_summary(callback) {

@@ -2,7 +2,7 @@ import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import https from 'https';
 import fs from 'fs';
-import config_log from "../../config_log.js";
+import logger from "../../config_log.js";
 import {
   get as meta_get_source,
   update_cache as meta_update_cache,
@@ -12,7 +12,7 @@ import {
 } from "../../meta/meta_source.mjs"
 import { meta_db } from '../../meta/meta_base.mjs';
 
-const logger = config_log.logger;
+
 const httpsAgent = new https.Agent({ rejectUnauthorized: false })
 export let nas_auth_token = {}
 

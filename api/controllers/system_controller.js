@@ -7,11 +7,11 @@ import {
 import { list as meta_get_sources } from "../../meta/meta_source.mjs";
 import { list_geo, get_photo as syno_get_photo, add_tag as syno_add_tag } from "../../sources/synology/syno_client.mjs";
 
-import config_log from "../../config_log.js";
+import logger from "../../config_log.js";
 import constants from "../../constants.js";
 import fs from "fs";
 
-const logger = config_log.logger;
+
 export let sources = {};
 
 
@@ -105,7 +105,6 @@ export const global_search = async (req, res) => {
       photos.records.map(async (photo) => {
         const source = sources[photo.source_id];
         photo["source_type"] = source.type;
-        photo["folder_name"] = photo.folder_name;
 
         if (photo.source_type === constants.SOURCE_TYPE_NAS) {
           return await get_photo_from_synology(photo);

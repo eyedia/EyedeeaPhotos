@@ -1,10 +1,10 @@
 import sqlite3 from "sqlite3";
 import fs from "fs";
-import config_log from "../config_log.js";
+import logger from "../config_log.js";
 import { meta_db } from "./meta_base.mjs";
 import { get_scan_log_summary } from "./meta_scan_log.mjs";
 
-const logger = config_log.logger;
+
 
 
 export function clear_scan(source_id, clean_photos, callback) {

@@ -12,9 +12,9 @@ import {
 import {is_active_scan as meta_is_active_scan} from "../../meta/meta_scan.mjs";
 
 import constants from "../../constants.js";
-import config_log from "../../config_log.js";
+import logger from "../../config_log.js";
 
-const logger = config_log.logger;
+
 
 export const scan = async (req, res) => {
   meta_get_source(req.params.id, true, (err, source) => {

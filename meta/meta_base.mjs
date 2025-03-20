@@ -1,11 +1,12 @@
 import sqlite3 from "sqlite3";
 import fs from "fs";
 import logger from "../config_log.js";
+import constants from "../constants.js";
 
 process.on('SIGINT', close_database);
 process.on('SIGTERM', close_database);
 
-const dbFile = './meta/eyedeea_photos.db';
+const dbFile = constants.app_db_file;
 
 const dbExists = fs.existsSync(dbFile);
 export const meta_db = new sqlite3.Database(dbFile,

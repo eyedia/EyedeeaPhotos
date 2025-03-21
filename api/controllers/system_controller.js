@@ -10,7 +10,7 @@ import { list_geo, get_photo as syno_get_photo, add_tag as syno_add_tag } from "
 import logger from "../../config_log.js";
 import constants from "../../constants.js";
 import fs from "fs";
-
+import path from 'path';
 
 export let sources = {};
 
@@ -131,7 +131,6 @@ export const global_search = async (req, res) => {
   }
 }
 
-
 const get_default_photo = (photo_data) => {
   return new Promise((resolve, reject) => {
     fs.readFile('web/eyedeea_photos.jpg', (fsErr, data) => {
@@ -146,5 +145,23 @@ const get_default_photo = (photo_data) => {
         'photo-data': data
       });
     });
+  });
+}
+
+
+export const status = async (req, res) => {
+  res.json({ status: 'up' });
+}
+
+export const logs = async (req, res) => {
+  var previous_day = new Date();
+  previous_day.setDate(previous_day.getDate() - 1);
+  const log_file = previous_day.toISOString().split('T')[0]
+  fs.readFile(path.join(constants.app_log_dir,`info-${log_file}.log`), 'utf8', (err, data) => {
+      if (err) {
+          return res.status(500).json({ error: 'Error reading log file', details: err.message });
+      }
+      res.setHeader('Content-Type', 'text/plain');
+      res.send(data);
   });
 }

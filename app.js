@@ -86,12 +86,6 @@ if (!is_jest_running) {
   });
 }
 
-app.get('/status', async (req, res) => {
-  res.json({ status: 'up' });
-
-});
-
-
 const server = app.listen(PORT, () => {
   logger.info(`Server listening on port ${PORT}`);
 });

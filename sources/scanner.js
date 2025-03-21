@@ -7,10 +7,10 @@ import {
 } from "../meta/meta_scan.mjs"
 
 import { meta_db } from "../meta/meta_base.mjs";
-import config_log from "../config_log.js";
+import logger from "../config_log.js";
 import { search_init } from '../meta/meta_search.mjs';
 
-const logger = config_log.logger;
+
 let _interval_id = 0;
 let _timeout_id = 0;
 let _scan_log_id = 0;

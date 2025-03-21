@@ -5,9 +5,9 @@ import { create_or_update as meta_create_or_update,
   make_inactive as meta_make_inactive,
   delete_filter as meta_delete_filter
  } from "../../meta/meta_view_filter.mjs";
-import config_log from "../../config_log.js";
+import logger from "../../config_log.js";
 
-const logger = config_log.logger;
+
 
 export const create_or_update = async (req, res) => {
   try {

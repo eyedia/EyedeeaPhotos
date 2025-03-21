@@ -1,7 +1,7 @@
 import crypto from "crypto";
 const algorithm = 'aes-256-gcm';
-import config_log from "../config_log.js";
-const logger = config_log.logger;
+import logger from "../config_log.js";
+
 
 export function encrypt(text) {
   const iv = crypto.randomBytes(12); // 96-bit IV

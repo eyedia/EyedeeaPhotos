@@ -1,9 +1,9 @@
 import sqlite3 from "sqlite3";
 import fs from "fs";
-import config_log from "../config_log.js";
+import logger from "../config_log.js";
 import { meta_db } from "./meta_base.mjs";
 
-const logger = config_log.logger;
+
 
 export function search_init(callback) {
     const create_search_indexes = [

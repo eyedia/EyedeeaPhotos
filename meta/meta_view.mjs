@@ -1,10 +1,9 @@
 import sqlite3 from "sqlite3";
 import fs from "fs";
-import config_log from "../config_log.js";
+import logger from "../config_log.js";
 import { meta_db } from "./meta_base.mjs";
 import { search } from "./meta_search.mjs";
 
-const logger = config_log.logger;
 
 export function get_photo(photo_id, callback) {
     let query = `select p.id, p.source_id, p.photo_id, p.filename, p.folder_id, p.folder_name, 

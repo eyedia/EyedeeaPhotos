@@ -1,57 +1,43 @@
-import winston from 'winston';
-import moment from 'moment-timezone';
-import getAppDataPath from 'appdata-path';
+import winston from "winston";
+import "winston-daily-rotate-file";
+import moment from "moment-timezone";
 import path from 'path';
-import fs from 'fs';
-import os from 'os';
+import constants from "./constants.js";
 
-const platform = os.platform();
+const log_dir = constants.app_log_dir;
+console.log('Logs dir:', log_dir);
 
-const org = 'EyediaTech';
-const app_name = 'EyedeeaPhotos';
+const getTimestamp = () => moment().tz("America/New_York").format("YYYY-MM-DD HH:mm:ss");
 
-const is_jest_running = process.env.JEST_WORKER_ID !== undefined
+const logFormat = winston.format.combine(
+  winston.format.printf(({ level, message }) => `${getTimestamp()} [${level.toUpperCase()}]: ${message}`)
+);
 
-const log_path = (() => {
-  if (is_jest_running){
-    return "./logs"
-  }
-  else if (platform.startsWith("win")) {
-    return path.join(getAppDataPath(org), app_name, 'logs');
-  } else {
-    return "/var/log/EyediaTech/EyedeeaPhotos/logs";
-  }
-})();
-
-console.log('Logs folder path:', log_path);
-
-if (!fs.existsSync(log_path)){
-    fs.mkdirSync(log_path, { recursive: true });
-}
-
-
-const logger = winston.createLogger({
-  level: 'info', // Log level (e.g., error, warn, info, debug)
-  format: winston.format.combine(
-    winston.format.errors({ stack: true }),
-    winston.format.timestamp({
-      format: () => moment().tz('America/New_York').format('YYYY-MM-DD HH:mm:ss z') 
-    }),
-    winston.format.printf(({ timestamp, level, message, stack }) => {
-      // const formatted_msg = `${timestamp} [${level}]: ${message}`;
-      // return stack ? formatted_msg + '\n' + stack : formatted_msg;
-      return `${timestamp} [${level}]: ${message}`;
-    })
-  ),
-  transports: [
-    new winston.transports.File({ filename: path.join(log_path, 'logs.log')}),
-    //new winston.transports.Console(),
-    new winston.transports.File({ filename: path.join(log_path, 'errors.log'), level: 'error' })
-  ]
+const errorTransport = new winston.transports.DailyRotateFile({
+  filename: path.join(log_dir,"error-%DATE%.log"),
+  datePattern: "YYYY-MM-DD",
+  level: "error",
+  maxSize: "20m",
+  maxFiles: "14d",
+  zippedArchive: true,
 });
 
-export default {
-  logger
-}
+const infoTransport = new winston.transports.DailyRotateFile({
+  filename: path.join(log_dir,"info-%DATE%.log"),
+  datePattern: "YYYY-MM-DD",
+  level: "info",
+  maxSize: "20m",
+  maxFiles: "14d",
+  zippedArchive: true,
+});
 
-logger.info('Logger started.');
+const consoleTransport = new winston.transports.Console({
+  format: winston.format.combine(winston.format.colorize(), logFormat),
+});
+
+const logger = winston.createLogger({
+  format: logFormat,
+  transports: [errorTransport, infoTransport, consoleTransport],
+});
+
+export default logger;

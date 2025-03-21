@@ -1,7 +1,7 @@
 import { list_dir, list_dir_items, get_dir_details, list_geo, get_photo } from "../../sources/synology/syno_client.mjs";
-import config_log from "../../config_log.js";
+import logger from "../../config_log.js";
 
-const logger = config_log.logger;
+
 
 export const get_root_folders = async (req, res) => {
     let offset = undefined;

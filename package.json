@@ -1,6 +1,6 @@
 {
   "name": "eyedeeaphotos",
-  "version": "1.0.0-beta.6",
+  "version": "1.0.0-beta.7",
   "description": "Eyedeea Photos is an app designed to bring forgotten memories back to life. It integrates with Synology Photos & any USB, HDD, SDD to display random photos from the collection",
   "main": "app.js",
   "scripts": {
@@ -18,7 +18,7 @@
   "bugs": {
     "url": "https://github.com/eyedia/eyedeeaphotos/issues"
   },
-  "homepage": "https://github.com/eyedia/eyedeeaphotos#readme",
+  "homepage": "https://eyedeeaphotos.eyediatech.com/",
   "dependencies": {
     "@googlemaps/google-maps-services-js": "^3.4.0",
     "appdata-path": "^1.0.0",
@@ -32,8 +32,8 @@
     "moment-timezone": "^0.5.47",
     "node-cron": "^3.0.3",
     "sqlite3": "^5.1.7",
-    "useragent": "^2.3.0",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "winston-daily-rotate-file": "^5.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.26.9",

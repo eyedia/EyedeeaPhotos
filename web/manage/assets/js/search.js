@@ -66,6 +66,9 @@ const saveSearch = async () => {
 };
 
 const loadImages = async () => {
+    const loader = document.getElementById("loader-container");
+    loader.style.display = "flex";
+
     const thumbnails = await fetchImages();
     thumbnails.forEach(thumbnail => {
         const img = document.createElement('img');
@@ -77,6 +80,7 @@ const loadImages = async () => {
     });
     offset += limit;
     updateFooter();
+    loader.style.display = "none";
 };
 
 const updateFooter = () => {

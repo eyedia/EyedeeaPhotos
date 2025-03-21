@@ -1100,7 +1100,8 @@ textarea {
   outline: 0;
   padding: 0 1em;
   text-decoration: none;
-  width: 100%; }
+  width: 100%; 
+  height: 65vh;}
   input[type="text"]:invalid,
   input[type="password"]:invalid,
   input[type="email"]:invalid,
@@ -1942,10 +1943,10 @@ button,
         padding: 3em 0 1em 0 ; } }
 
 /* Sidebar */
-#search form {
+#search searchbox {
   text-decoration: none;
   position: relative; }
-  #search form:before {
+  #search searchbox:before {
     -moz-osx-font-smoothing: grayscale;
     -webkit-font-smoothing: antialiased;
     display: inline-block;
@@ -1956,7 +1957,7 @@ button,
     text-transform: none !important;
     font-family: 'Font Awesome 5 Free';
     font-weight: 900; }
-  #search form:before {
+  #search searchbox:before {
     -moz-transform: scaleX(-1);
     -webkit-transform: scaleX(-1);
     -ms-transform: scaleX(-1);
@@ -1974,7 +1975,7 @@ button,
     text-align: center;
     top: 0;
     width: 2em; }
-  #search form input[type="text"] {
+  #search searchbox input[type="text"] {
     padding-right: 2.75em; }
 
 #sidebar {

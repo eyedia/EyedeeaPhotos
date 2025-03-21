@@ -2,49 +2,15 @@
 <html>
 
 <head>
-    <title>Eyedeea Photos - Player</title>
+    <title>Eyedeea Photos</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
     <link rel="stylesheet" href="assets/css/main.css" />
-    <link rel="stylesheet" href="assets/css/search.css" />
-    <style>
-        #loader-container {
-            position: fixed;
-            bottom: 10%;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .loader-wrapper {
-            position: relative;
-            width: 489px; /* Adjust based on your GIF size */
-            height: 279px;
-        }
-
-        .loader-logo {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 0; /* Behind the GIF */
-        }
-
-        .loader-gif {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1; /* On top */
-        }
-
-
-    </style>
-
+    <style> .header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }</style>
 </head>
 
 <body class="is-preload">
@@ -62,10 +28,10 @@
                         <a href="index.html" class="logo">
                             <img src="../images/Eyedeea_Photos_m_logo.png" width="10%" alt="Eyedeea Photos Logo"
                                 style="vertical-align: middle;" />
-                            <h2 style="display: inline;vertical-align: middle;">Eyedeea Photos - Search</h2>
+                            <h2 style="display: inline;vertical-align: middle;">Eyedeea Photos - System</h2>
                         </a>
                     </div>
-                    <ul class="icons">
+                    <ul class="icons" style="width:30%;">
                         <li><a href="https://github.com/eyedia/EyedeeaPhotos" target="_blank"
                                 class="icon brands fa fa-github"><span class="label">Git Hub</span></a></li>
                         <li><a href="https://eyedeeaphotos.eyediatech.com/" target="_blank"
@@ -75,35 +41,15 @@
                 <!-- Content -->
                 <div style="height: 10px;"></div>
                 <div class="col-12">
-                    <h3 id="system_summary"></h3>
-                    <div id="notification" class="notification-container">message!</div>
-
-                </div>
-                <!-- Search -->
-                <div id="g-search">
-                    <div class="g-search-content">
-                        <div class="g-search-search-bar">
-                            <input type="text" id="g-search-searchBox" autofocus placeholder="Search images...">
-                        </div>
-                        <div id="loader" style="display: none;">
-                            <img src="../images/sliding_square_loader_view.gif" alt="Loading..." />
-                        </div>
-                        <div id="loader-container" style="display: none;">
-                            <div class="loader-wrapper">
-                                <img src="../images/Eyedeea_Photos_m_logo.png" class="loader-logo" alt="Logo" />
-                                <img src="../images/sliding_square_loader_view.gif" class="loader-gif" alt="Loading..." />                                
-                            </div>
-                        </div>
-                        <div id="gallery" class="gallery"></div>
-                        <div class="footer-container">
-                            <div id="footer" class="footer"></div>
-                            <p><a id="load-more" href="#">More</a></p>
-                        </div>
+                    <div class="header">
+                        <h3 style="margin: 0;">System Logs</h3>
+                        <p id="system_summary" style="margin: 0;font-weight:bold;">System Logs</p>
                     </div>
+
                 </div>
-
-
-                <!-- Search -->
+                <div style="height: 10px;"></div>
+                <textarea id="logBox" readonly></textarea>
+               
             </div>
         </div>
 
@@ -114,8 +60,7 @@
                 <!-- Search -->
                 <section id="search" class="alt">
                     <searchbox method="post" action="#">
-                        <input type="text" id="g_search_keywords" onkeypress="g_search_entery_key(event)"
-                            placeholder="Search" />
+                        <input type="text" id="g_search_keywords" onkeypress="g_search_entery_key(event)" placeholder="Search" />
                     </searchbox>
                 </section>
 
@@ -124,7 +69,7 @@
                     <header class="major">
                         <h2><a href="../">Eyedeea Photos</a></h2>
                     </header>
-                    <ul>
+                    <ul>                        
                         <li><a href="index.html">System</a></li>
                         <li><a href="player.html">Player Settings</a></li>
                         <li><a href="search.html">Search</a></li>
@@ -155,8 +100,26 @@
     <script src="assets/js/util.js"></script>
     <script src="assets/js/manage_main.js"></script>
     <script src="assets/js/eyedeea_manage.js"></script>
-    <script src="assets/js/search.js"></script>
 
+    <script>
+        async function fetchLogs() {
+            try {
+                const response = await fetch('/api/system/logs');
+                if (!response.ok) throw new Error('Network response was not ok');
+                const logs = await response.text();
+                const logBox = document.getElementById('logBox');
+                logBox.value = logs;
+                logBox.scrollTop = logBox.scrollHeight; 
+                const system_summary = document.getElementById('system_summary');
+                const formattedTime = new Date().toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' });
+                system_summary.innerText = `Last Updated ${formattedTime}`;
+            } catch (error) {
+                console.error('Error fetching logs:', error);
+            }
+        }
+        fetchLogs(); // Initial fetch
+        setInterval(fetchLogs, 60000); // Refresh every 60 seconds
+    </script>
 </body>
 
 </html>

@@ -112,11 +112,11 @@
 
                 <!-- Search -->
                 <section id="search" class="alt">
-                    <form method="post" action="#">
-                        <input type="text" name="query" id="query" placeholder="Search" />
-                    </form>
+                    <searchbox method="post" action="#">
+                        <input type="text" id="g_search_keywords" onkeypress="g_search_entery_key(event)"
+                            placeholder="Search" />
+                    </searchbox>
                 </section>
-
                 <!-- Menu -->
                 <nav id="menu">
                     <header class="major">
@@ -132,6 +132,7 @@
                                 <!-- Dynamically filled-->
                             </ul>
                         </li>
+                        <li><a href="logs.html">Logs</a></li>
                         <li><a href="../">Back</a></li>
                     </ul>
                 </nav>

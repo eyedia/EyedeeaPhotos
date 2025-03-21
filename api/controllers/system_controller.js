@@ -154,10 +154,18 @@ export const status = async (req, res) => {
 }
 
 export const logs = async (req, res) => {
-  var previous_day = new Date();
-  previous_day.setDate(previous_day.getDate() - 1);
-  const log_file = previous_day.toISOString().split('T')[0]
-  fs.readFile(path.join(constants.app_log_dir,`info-${log_file}.log`), 'utf8', (err, data) => {
+  
+  
+  var current_day = new Date();
+  const log_file_curr = current_day.toISOString().split('T')[0]
+  let log_file = path.join(constants.app_log_dir,`info-${log_file_curr}.log`);
+
+  if (!fs.existsSync(log_file)){
+    current_day.setDate(current_day.getDate() - 1);
+    const log_file_prev = current_day.toISOString().split('T')[0]
+    log_file = path.join(constants.app_log_dir,`info-${log_file_prev}.log`);
+  }
+  fs.readFile(log_file, 'utf8', (err, data) => {
       if (err) {
           return res.status(500).json({ error: 'Error reading log file', details: err.message });
       }

@@ -40,6 +40,9 @@ document.addEventListener('DOMContentLoaded', function () {
         case "source.html":
             get_source();
             break;
+        case "search.html":
+            init_search();
+            break;
         default:
             break;
     }
@@ -441,7 +444,7 @@ function formatDuration(seconds) {
 
 
 async function any_active_scan() {
-    const id = getQueryParam('id'); // Get 'id' from the URL query string    
+    const id = getQueryParam('id');
     if (!id) {
         return;
     }
@@ -584,3 +587,26 @@ const deleteFilter = async (a_element) => {
         console.error('Error deleting filter:', error);
     }
 };
+
+function g_search_entery_key(event) {
+    if (event.key === "Enter") {
+        let g_search = document.getElementById("g_search_keywords").value;
+        if (g_search.trim() !== "") {
+            window.location.href = "search.html?keywords=" + encodeURIComponent(g_search);
+        }
+    }
+}
+
+function init_search(){
+    const keywords = getQueryParam('keywords');
+    let g_search_text = document.getElementById("g_search_keywords");
+    if(g_search_text)
+        g_search_text.value = keywords;
+
+    const g_searchBox = document.getElementById('g-search-searchBox');
+    if(g_searchBox)
+        g_searchBox.value = keywords;
+
+    search();
+    console.log(keywords);
+}

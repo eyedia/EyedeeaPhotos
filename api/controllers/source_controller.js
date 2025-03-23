@@ -1,7 +1,8 @@
 import {
   create_or_update as meta_create_or_update,
   get as meta_get,
-  list as meta_list
+  list as meta_list,
+  get_dirs as meta_get_dirs
 } from "../../meta/meta_source.mjs";
 import { authenticate as syno_authenticate, create_eyedeea_tags } from "../../sources/synology/syno_client.mjs";
 import { authenticate as fs_authenticate } from "../../sources/fs/fs_client.mjs";
@@ -93,3 +94,15 @@ function authenticate_source(source, callback) {
     });
   }
 }
+
+
+export const get_dirs = async (req, res) => {
+  meta_get_dirs(req.params.id, req.query.limit, req.query.offset, (err, rows) => {
+    if (err) {
+      logger.error(err.message);
+    } else {
+      res.json(rows);
+    }
+  });
+  
+};

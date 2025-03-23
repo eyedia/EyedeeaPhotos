@@ -203,3 +203,36 @@ export function get_source_dir(dir_id, callback) {
             }
         });
 }
+
+export function get_dirs(source_id, limit, offset, callback) {
+    limit = parseInt(limit) || 30;
+    offset = parseInt(offset) || 0;
+    
+    meta_db.get("select count(DISTINCT folder_name) as count from photo where source_id = ?",
+        [source_id], (err, row) => {
+            if (err) {
+                callback(err, null);
+            }
+            let total_records = row.count;
+            let total_pages = Math.ceil(total_records / limit);
+            let query = `select folder_name as dir, count(photo_id) as photos 
+                from photo
+                where source_id = ?
+                group by folder_name
+                ORDER BY folder_name DESC LIMIT ? OFFSET ?`;
+            meta_db.all(query, [source_id, limit, offset], (err, rows) => {
+                if (err) {
+                    logger.error(err.message);
+                    callback(err, null);
+                } else {
+                    callback(null, {
+                        total_records: total_records,
+                        total_pages: total_pages,
+                        current_offset: offset,
+                        limit: limit,
+                        records: rows
+                    });
+                }
+            });
+        });
+}

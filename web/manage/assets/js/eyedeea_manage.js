@@ -232,6 +232,7 @@ async function get_source() {
         get_source_latest_scan_data();
         get_scan_logs();
         any_active_scan();
+        get_source_dirs();
     } catch (error) {
         console.error("Error fetching data:", error);
     }
@@ -275,8 +276,8 @@ async function get_scan_logs(triggered_by_page_a, offset) {
         fetch(`${apiUrl}?limit=${limit}&offset=${offset}`)
             .then(response => response.json())
             .then(data => {
-                renderTable(data.records);
-                renderPagination(data.total_records, data.total_pages, data.current_offset, limit, triggered_by_page_a);
+                renderTableScanLog(data.records);
+                renderPaginationScanLog(data.total_pages, limit, triggered_by_page_a, "pagination_scan_log");
             })
             .catch(error => console.error("Error fetching data:", error));
 
@@ -286,7 +287,7 @@ async function get_scan_logs(triggered_by_page_a, offset) {
     }
 }
 
-function renderTable(records) {
+function renderTableScanLog(records) {
     const tableBody = document.getElementById("scan-logs-table-body");
     tableBody.innerHTML = '';
 
@@ -313,8 +314,8 @@ function renderTable(records) {
     });
 }
 
-function renderPagination(total_records, total_pages, current_offset, limit, triggered_by_page_a) {
-    let page_ul = document.getElementById("pagination");
+function renderPaginationScanLog(total_pages, limit, triggered_by_page_a, e_page_ul) {
+    let page_ul = document.getElementById(e_page_ul);
     page_ul.innerHTML = "";
     for (let i = 0; i < total_pages; i++) {
         let new_li = document.createElement("li");
@@ -338,7 +339,7 @@ function renderPagination(total_records, total_pages, current_offset, limit, tri
 
 
 function set_active_page_no(page_no) {
-    let page_ul = document.getElementById("pagination");
+    let page_ul = document.getElementById("pagination_scan_log");
     const listItems = page_ul.getElementsByTagName("li");
     for (let item of listItems) {
         if (item.textContent == page_no)
@@ -347,6 +348,45 @@ function set_active_page_no(page_no) {
             item.childNodes[0].classList.remove("active");
     }
 
+}
+
+
+async function get_source_dirs(triggered_by_page_a, offset) {
+    if (g_source == null) {
+        console.log("retr")
+        return;
+    }
+    try {
+        const apiUrl = `/api/sources/${g_source.id}/dirs`
+        let limit = 30;
+        if (!offset)
+            offset = 0;
+        fetch(`${apiUrl}?limit=${limit}&offset=${offset}`)
+            .then(response => response.json())
+            .then(data => {
+                renderTableDirs(data.records);
+                renderPaginationScanLog(data.total_pages, limit, triggered_by_page_a, "pagination_dir");
+            })
+            .catch(error => console.error("Error fetching data:", error));
+
+
+    } catch (error) {
+        console.error('Error fetching data:', error);
+    }
+}
+
+function renderTableDirs(records) {
+    const tableBody = document.getElementById("dirs-table-body");
+    tableBody.innerHTML = '';
+
+    records.forEach(item => {
+        const row = `<tr>            
+            <td>${item.dir}</td>
+            <td>${item.photos}</td>
+        </tr>`;
+
+        tableBody.innerHTML += row;
+    });
 }
 
 async function scan() {

@@ -8,40 +8,62 @@
     <link rel="stylesheet" href="assets/css/main.css" />
     <link rel="stylesheet" href="assets/css/search.css" />
     <style>
-        #loader-container {
+        
+
+        .viewer {
+            display: none;
             position: fixed;
-            bottom: 10%;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
             justify-content: center;
             align-items: center;
+            flex-direction: column;
         }
-
-        .loader-wrapper {
-            position: relative;
-            width: 489px; /* Adjust based on your GIF size */
-            height: 279px;
+        .viewer img {
+            max-width: 90%;
+            max-height: 90%;
+            display: none;
         }
-
-        .loader-logo {
-            width: 100%;
-            height: 100%;
+        .viewer.show {
+            display: flex;
+        }
+        .arrow, .close {
             position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 0; /* Behind the GIF */
+            font-size: 30px;
+            color: white;
+            padding: 10px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+            opacity: 0;
+            background: none;
+            border: none;
         }
-
-        .loader-gif {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1; /* On top */
+        .viewer:hover .arrow, .viewer:hover .close {
+            opacity: 1;
         }
-
+        .left {
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+        }
+        .right {
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+        }
+        .loading {
+            color: white;
+            font-size: 18px;
+            margin-bottom: 10px;
+            display: none;
+        }
+        .close {
+            top: 20px;
+            right: 20px;
+        }
 
     </style>
 
@@ -95,6 +117,13 @@
                             </div>
                         </div>
                         <div id="gallery" class="gallery"></div>
+                        <div class="viewer" id="viewer">
+                            <span class="close" onclick="closeViewer()">&times;</span>
+                            <span class="arrow left" onclick="changeImage(-1)">&#10094;</span>
+                            <div class="loading" id="loading">Loading...</div>
+                            <img id="viewer-img" src="" alt="Fullscreen Image">
+                            <span class="arrow right" onclick="changeImage(1)">&#10095;</span>
+                        </div>
                         <div class="footer-container">
                             <div id="footer" class="footer"></div>
                             <p><a id="load-more" href="#">More</a></p>

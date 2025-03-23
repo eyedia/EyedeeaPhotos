@@ -15,7 +15,7 @@ export function get_photo(photo_id, callback) {
         if (err) {
             callback(err, null);
         } else {            
-            if(photo.address)
+            if(photo && photo.address)
                 photo.address = JSON.parse(JSON.stringify(photo.address));                             
             callback(null, photo);
         }

@@ -24,7 +24,6 @@ export async function authenticate(source_id, callback) {
       if (nas_config) {
         if (nas_config.cache && Object.keys(nas_config.cache).length != 0) {
           nas_auth_token[source_id] = JSON.parse(nas_config.cache);
-          logger.info("NAS Auth initiated from cache!");
           if (callback)
             callback({ "auth_status": true, "error": {} });
           return;

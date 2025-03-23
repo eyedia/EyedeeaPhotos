@@ -10,6 +10,10 @@ const searchButton = document.getElementById('searchButton');
 const footer = document.getElementById('footer');
 const load_more = document.getElementById("load-more");
 
+const viewer = document.getElementById("viewer");
+const viewerImg = document.getElementById('viewer-img');
+const loadingText = document.getElementById('loading');
+
 let offset = 0;
 const limit = 40;
 let keywords = '';
@@ -31,7 +35,13 @@ const fetchImages = async () => {
                     const bufferArray = new Uint8Array(item["photo-data"].data);
                     const blob = new Blob([bufferArray], { type: "image/jpeg" });
                     const imageUrl = URL.createObjectURL(blob);
-                    thumbnails.push({"imageUrl": imageUrl, "folderName": item["photo-meta-data"].folder_name + "/" + item["photo-meta-data"].filename});
+                    const thumbnail = {
+                        "photo_id": item["photo-meta-data"].photo_id,
+                        "cache_key": item["photo-meta-data"].cache_key,
+                        "imageUrl": imageUrl,
+                        "folderName": item["photo-meta-data"].folder_name + "/" + item["photo-meta-data"].filename
+                    }
+                    thumbnails.push(thumbnail);
                 }
             });
             totalPhotos = data.total_records;            
@@ -81,6 +91,8 @@ const loadImages = async () => {
         img.alt = 'Thumbnail';
         img.className = 'thumbnail';
         img.title = thumbnail.folderName;
+        img.setAttribute('photo-data', JSON.stringify(thumbnail));
+        img.onclick = this.viewImage;
         gallery.appendChild(img);
     });
     offset += limit;
@@ -184,6 +196,14 @@ window.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
         if(closeModal)
             closeModal.click();
+
+        if(viewer){
+            viewer.style.display = 'none';
+        }
+    }else if (event.key === 'ArrowRight') {
+        changeImage(true);
+    } else if (event.key === 'ArrowLeft') {
+        changeImage();
     }
 });
 
@@ -206,4 +226,44 @@ function show_notification(message){
                     notification.style.opacity = "1";
                 }, 1000);
             }, 2000);
+}
+
+let currently_viewing = null;
+function viewImage(event) {
+    viewer.style.display = 'flex';
+    const photo_data = JSON.parse(event.target.getAttribute('photo-data'));
+    currently_viewing = event.target;
+    updateImage(photo_data.photo_id);
+}
+
+function changeImage(next){
+    if(currently_viewing){
+        try_next_node = next?currently_viewing.nextSibling: currently_viewing.previousSibling;
+        if(try_next_node){
+            currently_viewing = try_next_node;
+            const photo_data = JSON.parse(currently_viewing.getAttribute('photo-data'));
+            updateImage(photo_data.photo_id);
+        }
+    }
+}
+
+function updateImage(photo_id) {
+    viewerImg.style.display = 'none';
+    loadingText.style.display = 'block';
+    viewerImg.src = `/api/view/photos/${photo_id}`;
+    viewerImg.onload = function() {
+        loadingText.style.display = 'none';
+        viewerImg.style.display = 'block';
+        if (viewerImg.naturalWidth > viewerImg.naturalHeight) {
+            viewerImg.style.width = '80%';
+            viewerImg.style.height = 'auto';
+        } else {
+            viewerImg.style.width = 'auto';
+            viewerImg.style.height = '80%';
+        }
+    };
+}
+
+function closeViewer() {
+    viewer.style.display = 'none';
 }

@@ -153,3 +153,37 @@
     flex: 1;
     
 }
+
+#loader-container {
+    position: fixed;
+    bottom: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.loader-wrapper {
+    position: relative;
+    width: 489px; /* Adjust based on your GIF size */
+    height: 279px;
+}
+
+.loader-logo {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0; /* Behind the GIF */
+}
+
+.loader-gif {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1; /* On top */
+}

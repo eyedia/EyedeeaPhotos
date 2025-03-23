@@ -6,6 +6,7 @@ import {
 } from "../../meta/meta_search.mjs";
 import { list as meta_get_sources } from "../../meta/meta_source.mjs";
 import { list_geo, get_photo as syno_get_photo, add_tag as syno_add_tag } from "../../sources/synology/syno_client.mjs";
+import { get_photo_thumbnail as fs_get_photo_thumbnail } from "../../sources/fs/fs_client.mjs";
 
 import logger from "../../config_log.js";
 import constants from "../../constants.js";
@@ -71,6 +72,27 @@ const get_photo_from_synology = (photo_data) => {
   });
 };
 
+/**
+ * Fetch photo data from Synology
+ */
+const get_photo_from_fs = (source_root_dir, photo_data) => {
+  return new Promise((resolve, reject) => {
+    fs_get_photo_thumbnail(source_root_dir, photo_data, (err, data) => {
+      if (err) {
+        // If FS fails, return a default image
+        return get_default_photo(photo_data);
+      } else {
+        resolve({
+          'Content-Type': 'image/jpeg',
+          'Content-Length': data.length,
+          'photo-meta-data': photo_data,
+          'photo-data': data.data
+        });
+      }
+    });
+  });
+};
+
 export const global_search = async (req, res) => {
   try {
     const { keywords, limit, offset } = req.query;
@@ -108,6 +130,9 @@ export const global_search = async (req, res) => {
 
         if (photo.source_type === constants.SOURCE_TYPE_NAS) {
           return await get_photo_from_synology(photo);
+        }
+        else if (photo.source_type === constants.SOURCE_TYPE_FS) {
+          return await get_photo_from_fs(source.url, photo);
         } else {
           logger.error(`The source type ${photo.source_id} was not configured, returning default photo.`);
           return await get_default_photo(photo);

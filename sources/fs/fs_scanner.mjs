@@ -9,6 +9,7 @@ import {generate_short_GUID} from "../../meta/encrypt.js"
 import logger from "../../config_log.js";
 import { start_scanning} from '../scanner.js';
 import { get_exif_data, total_geo_apis, reset_fs_client } from "./fs_client.mjs";
+import {generate_thumbnail} from "./fs_thumbnails.mjs";
 
 
 let total_photos = 0;
@@ -75,6 +76,7 @@ async function internal_scan(source, dir) {
               "tags": exif_data.tags,
               "address": JSON.stringify(exif_data.address)
             }
+            generate_thumbnail(source.url, photo_path);
             meta_save_item(one_record);
           });
 

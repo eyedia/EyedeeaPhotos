@@ -44,12 +44,30 @@ const app_db_file = (() => {
     return db_file;
 })();
 
+const app_thumbnail_dir = (() => {
+    let thumbnail_dir = ""
+    if (is_jest_running) {
+        thumbnail_dir = "./thumbnails"
+    }
+    else if (platform.startsWith("win")) {
+        let app_dir = getAppDataPath(ORG).replace("Roaming", "Local")   //dirty hack
+        thumbnail_dir = path.join(app_dir, APP_NAME, 'data', 'thumbnails');
+    } else {
+        thumbnail_dir = "/var/lib/EyedeeaPhotos/data/thumbnails";
+    }
+    if (!fs.existsSync(thumbnail_dir)){
+        fs.mkdirSync(thumbnail_dir, { recursive: true });
+    }
+    return thumbnail_dir;
+})();
+
 export default {
     ORG,
     APP_NAME,
     SOURCE_TYPE_NAS,
     SOURCE_TYPE_FS,
     app_log_dir,
-    app_db_file
+    app_db_file,
+    app_thumbnail_dir
 };
 

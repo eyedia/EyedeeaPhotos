@@ -9,6 +9,7 @@ import {
     save_geo_address as meta_save_geo_address
 } from "../../meta//meta_scan.mjs"
 
+import constants from '../../constants.js';
 
 export let fs_config = {};
 export let total_geo_apis = 0;
@@ -210,6 +211,22 @@ export async function get_photo(photo_data, res) {
         });
         res.end(data);
     });
+}
+
+export async function get_photo_thumbnail(source_root_dir, photo_data, callback) {
+    const thumbnail_file = getThumbnailPath(source_root_dir, photo_data.filename);
+    fs.readFile(thumbnail_file, (err, data) => {
+        if (err) {
+            callback('Error reading image file.', null);
+        }
+        photo_data.filename = path.basename(photo_data.filename);
+        callback(null, { data: data, length: data.length });
+    });
+}
+
+function getThumbnailPath(source_root_dir, inputPath) {
+    const relativePath = path.relative(source_root_dir, inputPath);
+    return path.join(constants.app_thumbnail_dir, relativePath);
 }
 
 async function authenticate_if_required(source_id, callback) {

@@ -325,21 +325,24 @@ function renderPaginationScanLog(total_pages, limit, triggered_by_page_a, e_page
         new_a.classList.add("page");
         new_a.onclick = (event) => {
             event.preventDefault();
-            get_scan_logs(event.currentTarget, i * limit);
+            if(e_page_ul == "pagination_scan_log")
+                get_scan_logs(event.currentTarget, i * limit);
+            else
+                get_source_dirs(event.currentTarget, i * limit);
         }
         new_li.appendChild(new_a);
         page_ul.appendChild(new_li);
 
     }
     if (triggered_by_page_a)
-        set_active_page_no(triggered_by_page_a.parentElement.textContent)
+        set_active_page_no(triggered_by_page_a.parentElement.textContent, e_page_ul)
     else
-        set_active_page_no("1");
+        set_active_page_no("1", e_page_ul);
 }
 
 
-function set_active_page_no(page_no) {
-    let page_ul = document.getElementById("pagination_scan_log");
+function set_active_page_no(page_no, e_page_ul) {
+    let page_ul = document.getElementById(e_page_ul);
     const listItems = page_ul.getElementsByTagName("li");
     for (let item of listItems) {
         if (item.textContent == page_no)
@@ -382,7 +385,9 @@ function renderTableDirs(records) {
     records.forEach(item => {
         const row = `<tr>            
             <td>${item.dir}</td>
-            <td>${item.photos}</td>
+            <td><a href='search.html?dir=${item.dir}'>${item.photos}</a></td>
+            <td><a href='#' onclick=scanDir(this) data-id=${item.dir}>Rescan</a></td>
+            <td><a href='#' onclick=scanDir(this, true) data-id=${item.dir}>Rescan Parent</a></td>
         </tr>`;
 
         tableBody.innerHTML += row;

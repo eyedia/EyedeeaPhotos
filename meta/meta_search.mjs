@@ -9,9 +9,9 @@ export function search_init(callback) {
     const create_search_indexes = [
         `DELETE FROM fts`,
         `INSERT INTO fts 
-            (photo_id, tags, address) 
+            (photo_id, folder_name, tags, address) 
             SELECT 
-            photo_id, tags, address 
+            photo_id, folder_name, tags, address 
             FROM photo`
     ];
 
@@ -62,8 +62,13 @@ export function search(callback) {
     });
 }
 
+function wrapInQuotes(str) {
+    return str.replace(/\b(AND|OR)\b/gi, (match) => match.toUpperCase())
+              .replace(/\b(?!AND\b|OR\b)(\w+)\b/gi, '"$1"');
+}
 
 export function global_search(keywords, offset, limit, callback) {
+    keywords = wrapInQuotes(keywords);
     limit = parseInt(limit) || 10;
     offset = parseInt(offset) || 0;
 
@@ -75,7 +80,7 @@ export function global_search(keywords, offset, limit, callback) {
         let total_records = row.count;
         let total_pages = Math.ceil(total_records / limit);
 
-        meta_db.all(`SELECT fts.photo_id, source_id, filename, folder_name, cache_key FROM fts 
+        meta_db.all(`SELECT fts.photo_id, source_id, filename, p.folder_name, cache_key FROM fts 
             inner join photo p on p.photo_id = fts.photo_id
             WHERE fts MATCH ? LIMIT ? OFFSET ?`, 
             [keywords, limit, offset],

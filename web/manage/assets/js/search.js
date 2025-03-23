@@ -15,11 +15,13 @@ const limit = 40;
 let keywords = '';
 let totalPhotos = 0;
 
+
 const fetchImages = async () => {    
     try {
-        // if(keywords == ""){
-        //     return [];
-        // }
+        if(keywords == ""){
+            footer.textContent = '';
+            return [];
+        }
         let response = await fetch(`/api/system/search?keywords=${keywords}&limit=${limit}&offset=${offset}`);
         let data = await response.json();
         let thumbnails = [];
@@ -32,9 +34,11 @@ const fetchImages = async () => {
                     thumbnails.push({"imageUrl": imageUrl, "folderName": item["photo-meta-data"].folder_name + "/" + item["photo-meta-data"].filename});
                 }
             });
-            totalPhotos = data.total_records;
-            updateFooter();
+            totalPhotos = data.total_records;            
+        }else{
+            totalPhotos = 0;
         }
+        updateFooter();
         return thumbnails; // assuming API returns { images: [url1, url2, ...] }
     } catch (error) {
         console.error('Error fetching images:', error);
@@ -66,6 +70,7 @@ const saveSearch = async () => {
 };
 
 const loadImages = async () => {
+    updateFooter(true);
     const loader = document.getElementById("loader-container");
     loader.style.display = "flex";
 
@@ -83,7 +88,11 @@ const loadImages = async () => {
     loader.style.display = "none";
 };
 
-const updateFooter = () => {
+const updateFooter = (loading) => {
+    if(loading){
+        footer.textContent = "Searching...";
+        return;
+    }
     if (totalPhotos > 0){
         const displayedPhotos = Math.min(offset, totalPhotos);
         footer.textContent = `Showing ${displayedPhotos} out of ${totalPhotos} photos`;
@@ -132,7 +141,8 @@ function search(){
     gallery.innerHTML = '';
     offset = 0;
     load_more.classList.remove("show");
-    loadImages();
+    if(keywords != "")
+        loadImages();
 }
 
 if(nameBox){
@@ -186,7 +196,6 @@ load_more.addEventListener("click", () => {
 });
 
 function show_notification(message){
-    console.log(message);
     const notification = document.getElementById("notification");
     notification.innerText = message;
     notification.style.display = "block";

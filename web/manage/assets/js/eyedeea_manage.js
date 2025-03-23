@@ -608,5 +608,4 @@ function init_search(){
         g_searchBox.value = keywords;
 
     search();
-    console.log(keywords);
 }

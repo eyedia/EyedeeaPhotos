@@ -84,7 +84,7 @@
                         <a href="index.html" class="logo">
                             <img src="../images/Eyedeea_Photos_m_logo.png" width="10%" alt="Eyedeea Photos Logo"
                                 style="vertical-align: middle;" />
-                            <h2 style="display: inline;vertical-align: middle;">Eyedeea Photos - Search</h2>
+                            <h2 style="display: inline;vertical-align: middle;">Eyedeea Photos - Browse</h2>
                         </a>
                     </div>
                     <ul class="icons">
@@ -106,6 +106,10 @@
                     <div class="g-search-content">
                         <div class="g-search-search-bar">
                             <input type="text" id="g-search-searchBox" autofocus placeholder="Search images...">
+                            <h3 id="g-search-dir" style="display: none;">
+                                <span>Showing photos from</span> 
+                                <span id="showing_dir_caption" style="color: #DD44F7;font-weight: bold;">Right Text</span>
+                            </h3>
                         </div>
                         <div id="loader" style="display: none;">
                             <img src="../images/sliding_square_loader_view.gif" alt="Loading..." />
@@ -156,7 +160,7 @@
                     <ul>
                         <li><a href="index.html">System</a></li>
                         <li><a href="player.html">Player Settings</a></li>
-                        <li><a href="search.html">Search</a></li>
+                        <li><a href="photos.html">Photos</a></li>
                         <li>
                             <span id="nav_sources_ctr" class="opener active">Sources</span>
                             <ul id="nav_sources">

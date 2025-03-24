@@ -20,15 +20,19 @@ let keywords = '';
 let totalPhotos = 0;
 
 
-const fetchImages = async () => {    
+const fetchImages = async (dir) => {    
+    
     try {
-        if(keywords == ""){
+        if ((keywords == "") && !(dir)) {
             footer.textContent = '';
             return [];
         }
-        //let response = await fetch(`/api/system/search?keywords=${keywords}&limit=${limit}&offset=${offset}`);
-        let response = await fetch(`/api/sources/1/dirs/538&limit=${limit}&offset=${offset}`);
-        console.log("111")
+        let response = null;
+        if(dir)
+            response = await fetch(`/api/sources/${dir.source_id}/dirs/${dir.dir_id}?limit=${limit}&offset=${offset}`);
+        else
+            response = await fetch(`/api/system/search?keywords=${keywords}&limit=${limit}&offset=${offset}`);
+        
         let data = await response.json();
         let thumbnails = [];
         if (data.thumbnails){
@@ -81,12 +85,11 @@ const saveSearch = async () => {
     }
 };
 
-const loadImages = async () => {
+const loadImages = async (dir) => {
     updateFooter(true);
     const loader = document.getElementById("loader-container");
-    loader.style.display = "flex";
-
-    const thumbnails = await fetchImages();
+    loader.style.display = "flex";    
+    const thumbnails = await fetchImages(dir);
     thumbnails.forEach(thumbnail => {
         const img = document.createElement('img');
         img.src = thumbnail.imageUrl;
@@ -150,13 +153,24 @@ if(searchButton){
     });
 }
 
-function search(){
+function search(dir){
+     /* Can be triggered from:
+
+    player.html > searchBox
+    photos.html > g_searchBox
+    global search top left > photos.html > g_searchBox
+    source.html > show dir photos > g-search-dir
+    */
+    
+    //from global search or photos.html search    
     keywords = searchBox? searchBox.value.trim() : g_searchBox.value.trim();
     gallery.innerHTML = '';
     offset = 0;
     load_more.classList.remove("show");
     if(keywords != "")
         loadImages();
+    else
+        loadImages(dir);
 }
 
 if(nameBox){

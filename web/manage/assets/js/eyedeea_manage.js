@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
         case "source.html":
             get_source();
             break;
-        case "search.html":
+        case "photos.html":
             init_search();
             break;
         default:
@@ -385,7 +385,7 @@ function renderTableDirs(records) {
     records.forEach(item => {
         const row = `<tr>            
             <td>${item.dir}</td>
-            <td><a href='search.html?dir=${item.dir}'>${item.photos}</a></td>
+            <td><a href='photos.html?source-id=${g_source.id}&source-name=${g_source.name}&dir-id=${item.dir_id}&dir-name=${item.dir}'>${item.photos}</a></td>
             <td><a href='#' onclick=scanDir(this) data-id=${item.dir}>Rescan</a></td>
             <td><a href='#' onclick=scanDir(this, true) data-id=${item.dir}>Rescan Parent</a></td>
         </tr>`;
@@ -637,20 +637,58 @@ function g_search_entery_key(event) {
     if (event.key === "Enter") {
         let g_search = document.getElementById("g_search_keywords").value;
         if (g_search.trim() !== "") {
-            window.location.href = "search.html?keywords=" + encodeURIComponent(g_search);
+            window.location.href = "photos.html?keywords=" + encodeURIComponent(g_search);
         }
     }
 }
 
 function init_search(){
+    /* Can be triggered from:
+
+    player.html > searchBox
+    photos.html > g_searchBox
+    global search top left > photos.html > g_searchBox
+    source.html > show dir photos > g-search-dir
+    */
+    
+    //from global search
     const keywords = getQueryParam('keywords');
-    let g_search_text = document.getElementById("g_search_keywords");
-    if(g_search_text)
-        g_search_text.value = keywords;
+    const source_id = getQueryParam('source-id');
+    const source_name = getQueryParam('source-name');
+    const dir_id = getQueryParam('dir-id');
+    const dir_name = getQueryParam('dir-name');
+    if(keywords != null){
+        let g_search_text = document.getElementById("g_search_keywords");
+        if(g_search_text)
+            g_search_text.value = keywords;
+
+        const g_searchBox = document.getElementById('g-search-searchBox');
+        if(g_searchBox)
+            g_searchBox.value = keywords;
+    }
+
+    toggleSearchBox(dir_name, source_name);
+    const dir = {
+        source_id: source_id,
+        dir_id: dir_id
+    }
+    search(dir);    
+}
+
+function toggleSearchBox(dir_name, source_name) {
+    if(source_name == null)
+        source_name = "";
 
     const g_searchBox = document.getElementById('g-search-searchBox');
-    if(g_searchBox)
-        g_searchBox.value = keywords;
+    const g_searchDir = document.getElementById('g-search-dir');
+    const showing_dir_caption = document.getElementById('showing_dir_caption');
 
-    search();
+    if (dir_name) {
+        g_searchBox.style.display = 'none';
+        g_searchDir.style.display = 'block';
+        showing_dir_caption.textContent = `${source_name}:${dir_name}`;
+    } else {        
+        g_searchBox.style.display = 'block';
+        g_searchDir.style.display = 'none';
+    }
 }

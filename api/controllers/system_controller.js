@@ -54,7 +54,7 @@ const fetchSources = () => {
 /**
  * Fetch photo data from Synology
  */
-const get_photo_from_synology = (photo_data) => {
+export const get_photo_from_synology = (photo_data) => {
   return new Promise((resolve, reject) => {
     syno_get_photo(photo_data, "sm", (err, response) => {
       if (err || !response || !response.headers) {
@@ -75,7 +75,7 @@ const get_photo_from_synology = (photo_data) => {
 /**
  * Fetch photo data from Synology
  */
-const get_photo_from_fs = (source_root_dir, photo_data) => {
+export const get_photo_from_fs = (source_root_dir, photo_data) => {
   return new Promise((resolve, reject) => {
     fs_get_photo_thumbnail(source_root_dir, photo_data, (err, data) => {
       if (err) {
@@ -127,7 +127,6 @@ export const global_search = async (req, res) => {
       photos.records.map(async (photo) => {
         const source = sources[photo.source_id];
         photo["source_type"] = source.type;
-
         if (photo.source_type === constants.SOURCE_TYPE_NAS) {
           return await get_photo_from_synology(photo);
         }
@@ -156,7 +155,7 @@ export const global_search = async (req, res) => {
   }
 }
 
-const get_default_photo = (photo_data) => {
+export const get_default_photo = (photo_data) => {
   return new Promise((resolve, reject) => {
     fs.readFile('web/eyedeea_photos.jpg', (fsErr, data) => {
       if (fsErr) {
@@ -173,14 +172,11 @@ const get_default_photo = (photo_data) => {
   });
 }
 
-
 export const status = async (req, res) => {
   res.json({ status: 'up' });
 }
 
 export const logs = async (req, res) => {
-  
-  
   var current_day = new Date();
   const log_file_curr = current_day.toISOString().split('T')[0]
   let log_file = path.join(constants.app_log_dir,`info-${log_file_curr}.log`);

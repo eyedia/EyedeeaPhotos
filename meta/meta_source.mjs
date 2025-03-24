@@ -215,7 +215,7 @@ export function get_dirs(source_id, limit, offset, callback) {
             }
             let total_records = row.count;
             let total_pages = Math.ceil(total_records / limit);
-            let query = `select folder_name as dir, count(photo_id) as photos 
+            let query = `select folder_id as dir_id, folder_name as dir, count(photo_id) as photos 
                 from photo
                 where source_id = ?
                 group by folder_name
@@ -235,4 +235,38 @@ export function get_dirs(source_id, limit, offset, callback) {
                 }
             });
         });
+}
+
+export function get_photos_of_a_dir(source_id, dir_id, offset, limit, callback) {
+    limit = parseInt(limit) || 10;
+    offset = parseInt(offset) || 0;
+
+    meta_db.get("SELECT COUNT(*) as count from photo where folder_id = ? and source_id = ?",
+        [dir_id, source_id], (err, row) => {
+        if (err) {
+            callback(err, null);
+        }
+        let total_records = row.count;
+        let total_pages = Math.ceil(total_records / limit);
+
+        meta_db.all(`SELECT photo_id, source_id, s.type as source_type, s.url, filename, folder_name, cache_key 
+            FROM photo p
+            inner join source s on s.id = p.source_id 
+            WHERE folder_id = ? and source_id = ? LIMIT ? OFFSET ?`, 
+            [dir_id, source_id, limit, offset],
+            (err, rows) => {
+                if (err) {
+                    logger.error(err.message);
+                    callback(err, null);
+                } else {
+                    callback(null, {
+                        total_records: total_records,
+                        total_pages: total_pages,
+                        current_offset: offset,
+                        limit: limit,
+                        records: rows
+                    });
+                }
+        });
+    });
 }

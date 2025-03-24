@@ -26,7 +26,9 @@ const fetchImages = async () => {
             footer.textContent = '';
             return [];
         }
-        let response = await fetch(`/api/system/search?keywords=${keywords}&limit=${limit}&offset=${offset}`);
+        //let response = await fetch(`/api/system/search?keywords=${keywords}&limit=${limit}&offset=${offset}`);
+        let response = await fetch(`/api/sources/1/dirs/538&limit=${limit}&offset=${offset}`);
+        console.log("111")
         let data = await response.json();
         let thumbnails = [];
         if (data.thumbnails){

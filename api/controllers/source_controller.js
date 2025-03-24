@@ -2,8 +2,13 @@ import {
   create_or_update as meta_create_or_update,
   get as meta_get,
   list as meta_list,
-  get_dirs as meta_get_dirs
+  get_dirs as meta_get_dirs,
+  get_photos_of_a_dir as meta_get_photos_of_a_dir
 } from "../../meta/meta_source.mjs";
+import {get_photo_from_synology,
+  get_photo_from_fs,
+  get_default_photo
+} from "./system_controller.js";
 import { authenticate as syno_authenticate, create_eyedeea_tags } from "../../sources/synology/syno_client.mjs";
 import { authenticate as fs_authenticate } from "../../sources/fs/fs_client.mjs";
 import logger from "../../config_log.js";
@@ -88,8 +93,8 @@ function authenticate_source(source, callback) {
         create_eyedeea_tags(source.id);
       callback(auth_result);
     });
-  } else if (source.type == constants.SOURCE_TYPE_FS) {    
-    fs_authenticate(source.id, auth_result => {      
+  } else if (source.type == constants.SOURCE_TYPE_FS) {
+    fs_authenticate(source.id, auth_result => {
       callback(auth_result);
     });
   }
@@ -104,5 +109,56 @@ export const get_dirs = async (req, res) => {
       res.json(rows);
     }
   });
-  
+};
+
+
+export const get_photos_from_a_dir = async (req, res) => {
+  try {
+    const {limit, offset } = req.query;
+    const source_id = req.params.id;
+    const dir_id = req.params.dir_id;
+
+    const getPhotosOfaDir = (source_id, dir_id, offset, limit) => {
+      return new Promise((resolve, reject) => {
+        meta_get_photos_of_a_dir(source_id, dir_id, offset, limit, (err, photos) => {
+          if (err) return reject(err);
+          resolve(photos);
+        });
+      });
+    };
+
+    const photos = await getPhotosOfaDir(source_id, dir_id, offset, limit);
+
+    if (!photos.records || photos.records.length === 0) {
+      return res.json([]); // Return an empty array if no results
+    }
+
+    let photoDataArray = await Promise.all(
+      photos.records.map(async (photo) => {
+        if (photo.source_type === constants.SOURCE_TYPE_NAS) {
+          return await get_photo_from_synology(photo);
+        }
+        else if (photo.source_type === constants.SOURCE_TYPE_FS) {
+          return await get_photo_from_fs(photo.url, photo);
+        } else {
+          logger.error(`The source type ${photo.source_id} was not configured, returning default photo.`);
+          return await get_default_photo(photo);
+        }
+      })
+    );
+
+    const return_data = {
+      "total_records": photos.total_records,
+      "total_pages": photos.total_pages,
+      "current_offset": photos.current_offset,
+      "limit": photos.limit,
+      "thumbnails": photoDataArray
+    }
+
+    res.json(return_data); // Send the complete array once processing is done
+
+  } catch (error) {
+    logger.error(`Unexpected error: ${error.message}`, { stack: error.stack });
+    res.status(500).json({ message: "Internal Server Error" });
+  }
 };

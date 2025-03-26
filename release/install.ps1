@@ -1,17 +1,12 @@
-$node_url = "https://nodejs.org/dist/v22.11.0/node-v22.11.0-x64.msi"
-$node_file = "node.msi"
-$current_dir = Get-Item $PSScriptRoot
+param (
+    [string]$Action = "install" # Default action is "install"
+)
+
+$app_path = Join-Path -Path $env:LOCALAPPDATA -ChildPath "EyediaTech\EyedeeaPhotos\app"
 $appdataRoaming = [Environment]::GetFolderPath("ApplicationData")
 $node_path = "C:\Program Files\nodejs\npm.cmd"
-$app_path = Join-Path -Path $env:LOCALAPPDATA -ChildPath "EyediaTech\EyedeeaPhotos\app"
-
-Function Set-Key () {
-    $key = [System.Security.Cryptography.RandomNumberGenerator]::Create()
-    $bytes = New-Object byte[] 32
-    $key.GetBytes($bytes)
-    $keyHex = ([BitConverter]::ToString($bytes)) -replace '-', ''
-    [System.Environment]::SetEnvironmentVariable("EYEDEEA_KEY", $keyHex, [System.EnvironmentVariableTarget]::User)
-}
+$node_url = "https://nodejs.org/dist/v22.11.0/node-v22.11.0-x64.msi"
+$node_file = "node.msi"
 
 Function Execute-Command ($cmd, $arg, $working_dir) {
     $pinfo = New-Object System.Diagnostics.ProcessStartInfo
@@ -32,65 +27,102 @@ Function Execute-Command ($cmd, $arg, $working_dir) {
     }
 }
 
-Set-Key
+Function Install-EyedeeaPhotos {
+    Write-Host "Installing Eyedeea Photos..."
 
-# Check if Node.js is installed
-Write-Host -NoNewline "Checking Node.js installation..."
-$output = Execute-Command -cmd "node" -arg "-v" -working_dir $current_dir
-$node_ver = $output.stdout.ToString().Trim()
-
-if ($node_ver -eq "") {
-    Write-Host " not found! Installing Node.js..."
-    if (!(Test-Path -Path $node_file)) {        
-        Invoke-WebRequest -Uri $node_url -OutFile $node_file
+    # Check if Node.js is installed
+    $output = Execute-Command -cmd "node" -arg "-v" -working_dir $app_path
+    if (-not $output.stdout) {
+        Write-Host "Node.js not found, installing..."
+        Invoke-WebRequest $node_url -OutFile $node_file
+        Start-Process "msiexec.exe" -ArgumentList "/i $node_file /qn" -Wait
+        Write-Host "Node.js installed."
+    } else {
+        Write-Host "Node.js found, version: $($output.stdout.Trim())"
     }
-    Start-Process "msiexec.exe" -ArgumentList "/i $node_file TARGETDIR=""C:\Program Files\nodejs\"" ADDLOCAL=ALL /qn" -Wait
-    Write-Host "Node.js installed successfully!"
+
+    # Check and install PM2
+    if (!(Test-Path "$appdataRoaming\npm\pm2.cmd")) {
+        Write-Host "Installing pm2..."
+        Execute-Command -cmd $node_path -arg "install pm2 -g" -working_dir $app_path | Out-Null
+        Write-Host "PM2 installed."
+    } else {
+        Write-Host "PM2 already installed."
+    }
+
+    # Create application directory if not exists
+    if (!(Test-Path $app_path)) {
+        New-Item -ItemType Directory -Path $app_path -Force | Out-Null
+        Write-Host "Created application directory: $app_path"
+    }
+
+    # Install Eyedeea Photos
+    Write-Host "Installing Eyedeea Photos package..."
+    $output = Execute-Command -cmd $node_path -arg "install eyedeeaphotos" -working_dir $app_path
+    if ($output.ExitCode -ne 0) {
+        Write-Host "Installation failed: $($output.stderr.Trim())"
+        exit 100
+    }
+    Write-Host "Eyedeea Photos installed."
+
+    # Start the application
+    Write-Host "Starting Eyedeea Photos server..."
+    $eyedeea_dir = "$app_path\node_modules\eyedeeaphotos"
+    Execute-Command -cmd "$appdataRoaming\npm\pm2.cmd" -arg "start app.js --name ""Eyedeea Photos""" -working_dir $eyedeea_dir | Out-Null
+    Write-Host "Eyedeea Photos started."
+
+    # Open the application in the browser
+    Start-Process "http://127.0.0.1:8080/manage"
+    Write-Host "Eyedeea Photos setup complete!"
+}
+
+Function Uninstall-EyedeeaPhotos {
+    Write-Host "Uninstalling Eyedeea Photos..."
+
+    # Stop PM2 process
+    if (Test-Path "$appdataRoaming\npm\pm2.cmd") {
+        Write-Host "Stopping PM2 process..."
+        Execute-Command -cmd "$appdataRoaming\npm\pm2.cmd" -arg "stop Eyedeea Photos" -working_dir $app_path | Out-Null
+        Execute-Command -cmd "$appdataRoaming\npm\pm2.cmd" -arg "delete Eyedeea Photos" -working_dir $app_path | Out-Null
+        Write-Host "PM2 process stopped."
+    }
+
+    # Kill all Node.js processes
+    Write-Host "Killing Node.js processes..."
+    Get-Process "node" -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.Id -Force }
+    Write-Host "Node.js processes killed."
+
+    # Uninstall Eyedeea Photos
+    if (Test-Path $node_path) {
+        Write-Host "Uninstalling Eyedeea Photos package..."
+        Execute-Command -cmd $node_path -arg "uninstall eyedeeaphotos -g" -working_dir $app_path | Out-Null
+        Write-Host "Eyedeea Photos uninstalled."
+    }
+
+    # Remove PM2 if not needed
+    $pm2_apps = Execute-Command -cmd "$appdataRoaming\npm\pm2.cmd" -arg "list" -working_dir $app_path
+    if ($pm2_apps.stdout -match "No processes") {
+        Write-Host "No PM2 apps found, uninstalling PM2..."
+        Execute-Command -cmd $node_path -arg "uninstall pm2 -g" -working_dir $app_path | Out-Null
+        Write-Host "PM2 removed."
+    }
+
+    # Remove application directory
+    if (Test-Path $app_path) {
+        Write-Host "Removing Eyedeea Photos directory..."
+        Remove-Item -Path $app_path -Recurse -Force
+        Write-Host "Application directory deleted."
+    }
+
+    Write-Host "Uninstallation complete!"
+}
+
+# Execute based on command-line parameter
+if ($Action -eq "install") {
+    Install-EyedeeaPhotos
+} elseif ($Action -eq "uninstall") {
+    Uninstall-EyedeeaPhotos
 } else {
-    Write-Host " found! Version: $node_ver"
+    Write-Host "Invalid argument! Use 'install' or 'uninstall'."
+    exit 1
 }
-
-# Install PM2 globally
-Write-Host -NoNewline "Checking PM2 installation..."
-if (!(Test-Path -Path "$appdataRoaming\npm\pm2.cmd")) {    
-    Execute-Command -cmd $node_path -arg "install pm2 -g" -working_dir $current_dir | Out-Null
-    Write-Host "done!"
-} else {
-    Write-Host "already installed."
-}
-
-# Ensure App Directory Exists
-if (!(Test-Path $app_path)) {
-    New-Item -ItemType Directory -Path $app_path -Force | Out-Null
-    Write-Output "Directory created: $app_path"
-} 
-
-# Install Eyedeea Photos
-Write-Host -NoNewline "Installing Eyedeea Photos..."
-$output = Execute-Command -cmd $node_path -arg "install --prefix $app_path eyedeeaphotos" -working_dir $app_path
-$install_error = $output.stderr.ToString().Trim()
-$exit_code = $output.ExitCode.ToString().Trim()
-if ($exit_code -ne "0") {
-    Write-Host "Error: $install_error"
-    exit 100
-}
-Write-Host "done!"
-
-# Start the server
-Write-Host -NoNewline "Starting Eyedeea Photos server..."
-$eyedeea_dir = "$app_path\node_modules\eyedeeaphotos"
-$output = Execute-Command -cmd "$appdataRoaming\npm\pm2.cmd" -arg "start app.js --name ""Eyedeea Photos""" -working_dir $eyedeea_dir
-$pm2_result = $output.stdout.ToString().Trim()
-
-if (($pm2_result -like "*Done*") -or ($pm2_result -eq "")) {
-    Write-Host "done!"
-} else {
-    Write-Host "Something went wrong! Try re-running the installer."
-}
-
-# Open Browser
-Write-Host "Opening Eyedeea Photos: http://127.0.0.1:8080/manage"
-Start-Process "http://127.0.0.1:8080"
-Start-Process "http://127.0.0.1:8080/manage"
-
-Write-Host "Setup complete! Enjoy Eyedeea Photos!"

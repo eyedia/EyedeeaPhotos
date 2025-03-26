@@ -8,8 +8,6 @@
     <link rel="stylesheet" href="assets/css/main.css" />
     <link rel="stylesheet" href="assets/css/search.css" />
     <style>
-        
-
         .viewer {
             display: none;
             position: fixed;
@@ -22,15 +20,19 @@
             align-items: center;
             flex-direction: column;
         }
+
         .viewer img {
             max-width: 90%;
             max-height: 90%;
             display: none;
         }
+
         .viewer.show {
             display: flex;
         }
-        .arrow, .close {
+
+        .arrow,
+        .close {
             position: absolute;
             font-size: 30px;
             color: white;
@@ -41,30 +43,52 @@
             background: none;
             border: none;
         }
-        .viewer:hover .arrow, .viewer:hover .close {
+
+        .viewer:hover .arrow,
+        .viewer:hover .close {
             opacity: 1;
         }
+
         .left {
             top: 50%;
             left: 20px;
             transform: translateY(-50%);
         }
+
         .right {
             top: 50%;
             right: 20px;
             transform: translateY(-50%);
         }
+
         .loading {
             color: white;
             font-size: 18px;
             margin-bottom: 10px;
             display: none;
         }
+
         .close {
             top: 20px;
             right: 20px;
         }
 
+
+        .search-container {
+            padding-top: 10px;
+        }
+
+        .browse-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            height: fit-content;
+            padding-top: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
     </style>
 
 </head>
@@ -104,20 +128,36 @@
                 <!-- Search -->
                 <div id="g-search">
                     <div class="g-search-content">
-                        <div class="g-search-search-bar">
-                            <input type="text" id="g-search-searchBox" autofocus placeholder="Search images...">
-                            <h3 id="g-search-dir" style="display: none;">
-                                <span>Showing photos from</span> 
-                                <span id="showing_dir_caption" style="color: #DD44F7;font-weight: bold;">Right Text</span>
-                            </h3>
-                        </div>
+                        <form id="actionForm">
+                            <input type="radio" id="demo-priority-search" name="option" value="search" checked>
+                            <label for="demo-priority-search">Search</label>
+                            <input type="radio" id="demo-priority-browse" name="option" value="browse">
+                            <label for="demo-priority-browse">Browse</label>
+
+                            <div id="searchBox2" class="search-container">
+                                <input type="text" id="g-search-searchBox" placeholder="Search photos..." autofocus>
+                            </div>
+
+                            <div id="browseOptions" class="hidden browse-container">
+                                <label for="sourceSelect">Source:</label>
+                                <select id="sourceSelect">
+                                    
+                                </select>
+
+                                <label for="directorySelect">Directory:</label>
+                                <select id="directorySelect" disabled>
+                                    
+                                </select>
+                            </div>
+                        </form>
                         <div id="loader" style="display: none;">
                             <img src="../images/sliding_square_loader_view.gif" alt="Loading..." />
                         </div>
                         <div id="loader-container" style="display: none;">
                             <div class="loader-wrapper">
                                 <img src="../images/Eyedeea_Photos_m_logo.png" class="loader-logo" alt="Logo" />
-                                <img src="../images/sliding_square_loader_view.gif" class="loader-gif" alt="Loading..." />                                
+                                <img src="../images/sliding_square_loader_view.gif" class="loader-gif"
+                                    alt="Loading..." />
                             </div>
                         </div>
                         <div id="gallery" class="gallery"></div>
@@ -189,6 +229,41 @@
     <script src="assets/js/manage_main.js"></script>
     <script src="assets/js/eyedeea_manage.js"></script>
     <script src="assets/js/search.js"></script>
+    <script>
+        const actionForm = document.getElementById('actionForm');
+        const searchBox2 = document.getElementById('searchBox2');
+        const browseOptions = document.getElementById('browseOptions');
+        const searchInput = document.getElementById('searchInput');
+        const sourceSelect = document.getElementById('sourceSelect');
+        const directorySelect = document.getElementById('directorySelect');
+
+        actionForm.addEventListener('change', (event) => {
+            if (event.target.name === 'option') {
+                if (event.target.value === 'search') {
+                    searchBox2.classList.remove('hidden');
+                    browseOptions.classList.add('hidden');
+                    searchInput.focus();
+                } else if (event.target.value === 'browse') {
+                    searchBox2.classList.add('hidden');
+                    browseOptions.classList.remove('hidden');
+                }
+            }
+        });
+
+        sourceSelect.addEventListener('change', () => {
+            get_source_dirs_and_load_to_drop_down(sourceSelect.value);
+        });
+
+        directorySelect.addEventListener('change', () => {
+            const dir = { 
+                source_id: sourceSelect.value, 
+                source_name: sourceSelect.options[sourceSelect.selectedIndex].text, 
+                dir_id: directorySelect.value, 
+                dir_name: directorySelect.options[directorySelect.selectedIndex].text
+            }; 
+            search(dir);
+        });
+    </script>
 
 </body>
 

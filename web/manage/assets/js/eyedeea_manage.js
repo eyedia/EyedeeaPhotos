@@ -1,8 +1,8 @@
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
     let pathArray = window.location.pathname.split("/");
     const documentName = pathArray[pathArray.length - 1];
-    switch (documentName) {
-        case "":
+    await get_sources();
+    switch (documentName) {       
         case "index.html":
             const add = document.getElementById('add');
             add.addEventListener('click', function (event) {
@@ -46,8 +46,8 @@ document.addEventListener('DOMContentLoaded', function () {
         default:
             break;
     }
-    get_sources();
     
+
 });
 
 async function save_source(url, data) {
@@ -177,6 +177,10 @@ function add_source_to_nav_menu(source) {
 async function get_sources() {
     try {
         let ul_nav_sources = document.getElementById("nav_sources");
+        const sourceSelect = document.getElementById("sourceSelect");
+        if (sourceSelect)
+            sourceSelect.innerHTML = '<option value="" disabled selected>Select Source</option>';
+
         ul_nav_sources.innerHTML = "";
         const response = await fetch("/api/sources");
         if (!response.ok) {
@@ -186,6 +190,14 @@ async function get_sources() {
         if (Array.isArray(data)) {
             data.forEach((item, index) => {
                 add_source_to_nav_menu(item);
+
+                if (sourceSelect) {
+                    const option = document.createElement("option");
+                    option.value = item.id;
+                    option.textContent = item.name;
+                    sourceSelect.appendChild(option);
+                }
+
             });
         } else {
             console.log("Received data is not an array:", data);
@@ -193,7 +205,9 @@ async function get_sources() {
     } catch (error) {
         console.error("Error fetching data:", error);
     }
+
 }
+
 
 function getQueryParam(param) {
     const urlParams = new URLSearchParams(window.location.search);
@@ -325,7 +339,7 @@ function renderPaginationScanLog(total_pages, limit, triggered_by_page_a, e_page
         new_a.classList.add("page");
         new_a.onclick = (event) => {
             event.preventDefault();
-            if(e_page_ul == "pagination_scan_log")
+            if (e_page_ul == "pagination_scan_log")
                 get_scan_logs(event.currentTarget, i * limit);
             else
                 get_source_dirs(event.currentTarget, i * limit);
@@ -371,6 +385,38 @@ async function get_source_dirs(triggered_by_page_a, offset) {
                 renderPaginationScanLog(data.total_pages, limit, triggered_by_page_a, "pagination_dir");
             })
             .catch(error => console.error("Error fetching data:", error));
+
+
+    } catch (error) {
+        console.error('Error fetching data:', error);
+    }
+}
+
+async function get_source_dirs_and_load_to_drop_down(source_id) {
+    if (!source_id) {
+        console.log("retr")
+        return;
+    }
+    const directorySelect = document.getElementById("directorySelect");
+    directorySelect.innerHTML = "";
+    try {
+        directorySelect.disabled = true;
+        const apiUrl = `/api/sources/${source_id}/dirs`
+        let limit = 1000;
+        if (!offset)
+            offset = 0;
+        fetch(`${apiUrl}?limit=${limit}&offset=${offset}`)
+            .then(response => response.json())
+            .then(data => {
+                data.records.forEach(directory => {
+                    const option = document.createElement("option");
+                    option.value = directory.dir_id;
+                    option.textContent = directory.dir;
+                    directorySelect.appendChild(option);
+                });
+                directorySelect.disabled = false;
+            })
+            .catch(error => { directorySelect.disabled = true; console.error("Error fetching data:", error) });
 
 
     } catch (error) {
@@ -542,9 +588,9 @@ function renderTableSummary(data) {
     tableBody.innerHTML = '';
 
     const system_summary = document.getElementById("system_summary");
-    if (data.summary.total_sources == 1){
+    if (data.summary.total_sources == 1) {
         system_summary.innerHTML = `${data.summary.total_sources} Photo source is configured with ${data.summary.total_photos} photos.`;
-    }else if (data.summary.total_sources > 1){
+    } else if (data.summary.total_sources > 1) {
         system_summary.innerHTML = `${data.summary.total_sources} Photo sources are configured with ${data.summary.total_photos} photos.`;
     }
 
@@ -590,12 +636,12 @@ function renderTableFilters(data) {
     data.forEach(item => {
         const row = `<tr>       
             <td>
-                <input type="radio" id="demo-priority-${item.id}" name="demo-priority" ${item.current == 1? "checked": ""}>
+                <input type="radio" id="demo-priority-${item.id}" name="demo-priority" ${item.current == 1 ? "checked" : ""}>
                 <label for="demo-priority-${item.id}">${item.name}</label>                
             </td>
             <td>${item.keyword}</td>
             <td>${item.total_photos}</td>            
-            <td>${item.id ==0? '': `<a href='#' onclick=deleteFilter(this) data-id=${item.id}>delete</a>`}</td>
+            <td>${item.id == 0 ? '' : `<a href='#' onclick=deleteFilter(this) data-id=${item.id}>delete</a>`}</td>
         </tr>`;
 
         tableBody.innerHTML += row;
@@ -606,16 +652,16 @@ function renderTableFilters(data) {
             const selectedValue = this.value;
             const rad_id = this.id.replace("demo-priority-", "")
             console.log(rad_id);
-            const url = rad_id == "0"? "/api/view/filters/active" : `/api/view/filters/${rad_id}/active`
+            const url = rad_id == "0" ? "/api/view/filters/active" : `/api/view/filters/${rad_id}/active`
             fetch(url, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 }
             })
-            .then(response => response.json())
-            .then(data => show_notification(`You have activated a filter. These changes will take effect within a few minutes.`))
-            .catch(error => console.error("Error:", error));
+                .then(response => response.json())
+                .then(data => show_notification(`You have activated a filter. These changes will take effect within a few minutes.`))
+                .catch(error => console.error("Error:", error));
         });
     });
 }
@@ -642,53 +688,55 @@ function g_search_entery_key(event) {
     }
 }
 
-function init_search(){
+function init_search() {
     /* Can be triggered from:
 
     player.html > searchBox
     photos.html > g_searchBox
+    photos.html > browse directory
     global search top left > photos.html > g_searchBox
     source.html > show dir photos > g-search-dir
     */
-    
+
     //from global search
     const keywords = getQueryParam('keywords');
     const source_id = getQueryParam('source-id');
     const source_name = getQueryParam('source-name');
     const dir_id = getQueryParam('dir-id');
     const dir_name = getQueryParam('dir-name');
-    if(keywords != null){
+    if (keywords != null) {
         let g_search_text = document.getElementById("g_search_keywords");
-        if(g_search_text)
+        if (g_search_text)
             g_search_text.value = keywords;
 
         const g_searchBox = document.getElementById('g-search-searchBox');
-        if(g_searchBox)
+        if (g_searchBox)
             g_searchBox.value = keywords;
     }
 
-    toggleSearchBox(dir_name, source_name);
-    const dir = {
-        source_id: source_id,
-        dir_id: dir_id
-    }
-    search(dir);    
+    //toggleSearchBox(dir_name, source_name);
+    const dir = dir_id ? { source_id: source_id, source_name: source_name, dir_id: dir_id, dir_name: dir_name } : undefined;   
+    toggleSearchBox(dir);
+    search(dir);
 }
 
-function toggleSearchBox(dir_name, source_name) {
-    if(source_name == null)
-        source_name = "";
+function toggleSearchBox(dir) {
 
-    const g_searchBox = document.getElementById('g-search-searchBox');
-    const g_searchDir = document.getElementById('g-search-dir');
-    const showing_dir_caption = document.getElementById('showing_dir_caption');
+    if (dir) {
+        const radio = document.getElementById("demo-priority-browse")
+        radio.checked = true;        
 
-    if (dir_name) {
-        g_searchBox.style.display = 'none';
-        g_searchDir.style.display = 'block';
-        showing_dir_caption.textContent = `${source_name}:${dir_name}`;
-    } else {        
-        g_searchBox.style.display = 'block';
-        g_searchDir.style.display = 'none';
+        const sourceSelect = document.getElementById('sourceSelect');
+        sourceSelect.value = dir.source_id;
+
+        const directorySelect = document.getElementById('directorySelect');
+        directorySelect.value = dir.dir_id;
+
+        const event = new Event('change', { bubbles: true });
+        radio.dispatchEvent(event);
+        sourceSelect.dispatchEvent(event);
+    } else {
+        const radio = document.getElementById("demo-priority-search")
+        radio.checked = true;
     }
 }

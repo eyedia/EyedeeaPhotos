@@ -1,7 +1,0 @@
-{
-    "name": "nas",
-    "type": "nas",
-    "url": "https://192.168.111.218:5001/webapi",
-    "user": "xxxxxx",
-    "password" : "xxxxxx"
-}

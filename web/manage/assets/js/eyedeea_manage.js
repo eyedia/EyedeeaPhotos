@@ -1,37 +1,12 @@
 document.addEventListener('DOMContentLoaded', async function () {
     let pathArray = window.location.pathname.split("/");
     const documentName = pathArray[pathArray.length - 1];
-    await get_sources();
-    switch (documentName) {       
+    await get_sources();    
+    switch (documentName) {
+        case "":
         case "index.html":
-            const add = document.getElementById('add');
-            add.addEventListener('click', function (event) {
-                const data = (() => {
-                    const source_type = document.getElementById("source_type").value;
-                    const source_name = document.getElementById("source_name");
-                    const url = document.getElementById("url");
-                    const username = document.getElementById("username");
-                    const password = document.getElementById("password");
-                    const directory = document.getElementById("directory");
-
-                    if (source_type === "nas") {
-                        return {
-                            "name": source_name.value,
-                            "type": source_type,
-                            "url": url.value,
-                            "user": username.value,
-                            "password": password.value
-                        };
-                    } else {
-                        return {
-                            "name": source_name.value,
-                            "type": source_type,
-                            "url": directory.value
-                        };
-                    }
-                })();
-                save_source('/api/sources', data);
-            });
+            console.log("here")
+            save_button_listener();
             get_system_summary();
             break;
         case "player.html":
@@ -39,6 +14,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             break;
         case "source.html":
             get_source();
+            save_button_listener();
             break;
         case "photos.html":
             init_search();
@@ -46,9 +22,43 @@ document.addEventListener('DOMContentLoaded', async function () {
         default:
             break;
     }
-    
+
 
 });
+
+function save_button_listener() {
+    const add = document.getElementById('add');   
+    if (!add)
+        return;
+    add.addEventListener('click', function (event) {
+        console.log("here")
+        const data = (() => {
+            const source_type = document.getElementById("source_type").value;
+            const source_name = document.getElementById("source_name");
+            const url = document.getElementById("url");
+            const username = document.getElementById("username");
+            const password = document.getElementById("password");
+            const directory = document.getElementById("directory");
+
+            if (source_type === "nas") {
+                return {
+                    "name": source_name.value,
+                    "type": source_type,
+                    "url": url.value,
+                    "user": username.value,
+                    "password": password.value
+                };
+            } else {
+                return {
+                    "name": source_name.value,
+                    "type": source_type,
+                    "url": directory.value
+                };
+            }
+        })();
+        save_source('/api/sources', data);
+    });
+}
 
 async function save_source(url, data) {
     const messageDiv = document.getElementById("message");
@@ -392,19 +402,21 @@ async function get_source_dirs(triggered_by_page_a, offset) {
     }
 }
 
-async function get_source_dirs_and_load_to_drop_down(source_id) {
+async function get_source_dirs_and_load_to_drop_down(source_id, offset) {
     if (!source_id) {
         console.log("retr")
         return;
     }
     const directorySelect = document.getElementById("directorySelect");
-    directorySelect.innerHTML = "";
+    directorySelect.innerHTML = '<option value="" disabled selected>Select Directory</option>';
     try {
         directorySelect.disabled = true;
         const apiUrl = `/api/sources/${source_id}/dirs`
+
         let limit = 1000;
         if (!offset)
             offset = 0;
+
         fetch(`${apiUrl}?limit=${limit}&offset=${offset}`)
             .then(response => response.json())
             .then(data => {
@@ -459,9 +471,9 @@ async function scan() {
 
         const data = await response.json();
         if (data.message) {
-            console.error(data.message);
+            console.error(data);
             error_message = ""
-            if (data.message && data.message.error.code) {
+            if (data.message && data.message.error && data.message.error.code) {
                 error_message = `Saved successfully! But check your config. Eyedeea Photos could not communicate with the server. <br>${data.message.error.code}: ${data.message.error.code}`;
             } else if (data.message) {
                 error_message = data.message;
@@ -715,7 +727,7 @@ function init_search() {
     }
 
     //toggleSearchBox(dir_name, source_name);
-    const dir = dir_id ? { source_id: source_id, source_name: source_name, dir_id: dir_id, dir_name: dir_name } : undefined;   
+    const dir = dir_id ? { source_id: source_id, source_name: source_name, dir_id: dir_id, dir_name: dir_name } : undefined;
     toggleSearchBox(dir);
     search(dir);
 }
@@ -724,7 +736,7 @@ function toggleSearchBox(dir) {
 
     if (dir) {
         const radio = document.getElementById("demo-priority-browse")
-        radio.checked = true;        
+        radio.checked = true;
 
         const sourceSelect = document.getElementById('sourceSelect');
         sourceSelect.value = dir.source_id;

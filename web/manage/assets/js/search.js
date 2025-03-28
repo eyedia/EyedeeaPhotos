@@ -14,7 +14,7 @@ const viewer = document.getElementById("viewer");
 const viewerImg = document.getElementById('viewer-img');
 const loadingText = document.getElementById('loading');
 
-let offset = 0;
+let offset_search = 0;
 const limit = 40;
 let keywords = '';
 let totalPhotos = 0;
@@ -29,15 +29,15 @@ const fetchImages = async (dir) => {
         }
         let response = null;
         if(dir)
-            response = await fetch(`/api/sources/${dir.source_id}/dirs/${dir.dir_id}?limit=${limit}&offset=${offset}`);
+            response = await fetch(`/api/sources/${dir.source_id}/dirs/${dir.dir_id}?limit=${limit}&offset=${offset_search}`);
         else
-            response = await fetch(`/api/system/search?keywords=${keywords}&limit=${limit}&offset=${offset}`);
+            response = await fetch(`/api/system/search?keywords=${keywords}&limit=${limit}&offset=${offset_search}`);
         
-        let data = await response.json();
+        let data = await response.json();        
         let thumbnails = [];
         if (data.thumbnails){
             data.thumbnails.forEach(item => {                                
-                if (item["photo-data"] && item["photo-data"].data) {
+                if (item["photo-data"] && item["photo-data"].data) {                    
                     const bufferArray = new Uint8Array(item["photo-data"].data);
                     const blob = new Blob([bufferArray], { type: "image/jpeg" });
                     const imageUrl = URL.createObjectURL(blob);
@@ -100,7 +100,7 @@ const loadImages = async (dir) => {
         img.onclick = this.viewImage;
         gallery.appendChild(img);
     });
-    offset += limit;
+    offset_search += limit;
     updateFooter();
     loader.style.display = "none";
 };
@@ -111,7 +111,7 @@ const updateFooter = (loading) => {
         return;
     }
     if (totalPhotos > 0){
-        const displayedPhotos = Math.min(offset, totalPhotos);
+        const displayedPhotos = Math.min(offset_search, totalPhotos);
         footer.textContent = `Showing ${displayedPhotos} out of ${totalPhotos} photos`;
         if(displayedPhotos != totalPhotos){
             load_more.classList.add("show");         
@@ -165,7 +165,7 @@ function search(dir){
     //from global search or photos.html search    
     keywords = searchBox? searchBox.value.trim() : g_searchBox.value.trim();
     gallery.innerHTML = '';
-    offset = 0;
+    offset_search = 0;
     load_more.classList.remove("show");
     if(keywords != "")
         loadImages();
@@ -193,7 +193,7 @@ function openModal(){
     searchBox.focus();
     nameBox.value = '';
     gallery.innerHTML = '';
-    offset = 0;
+    offset_search = 0;
     sidebar.classList.add("inactive");
     gallery.addEventListener('scroll', loadMoreImagesOnScroll);
 }
@@ -202,7 +202,7 @@ if(closeModal){
     closeModal.addEventListener('click', () => {
         modal.style.display = 'none';
         gallery.innerHTML = '';
-        offset = 0;
+        offset_search = 0;
         gallery.removeEventListener('scroll', loadMoreImagesOnScroll);
         footer.textContent = '';
     });

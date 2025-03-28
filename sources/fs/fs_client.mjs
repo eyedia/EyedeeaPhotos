@@ -36,7 +36,7 @@ export async function authenticate(source_id, callback) {
                 callback({ "auth_status": false, "error": { "message": message } });
                 logger.error(message);
                 return;
-              }
+            }
             if (callback)
                 callback({ "auth_status": true, "error": {} });
         }
@@ -67,7 +67,7 @@ export function get_exif_data(source_id, photo_path, callback) {
 
                 if (exif_data.hasOwnProperty("XPKeywords"))
                     extracted_exif_data.tags = exif_data.XPKeywords;
-                
+
                 //geo reverse coding starts
                 if (!exif_data.latitude || !exif_data.longitude) {
                     callback(null, extracted_exif_data);
@@ -165,35 +165,35 @@ function get_address_using_geo_reverse(source_id, lat, lng, callback) {
 
 async function get_geo_reverse(source_id, lat, lng, callback) {
     authenticate_if_required(source_id, auth_result => {
-    if (!fs_config || !fs_config[source_id].config || !fs_config[source_id].config.GOOGLE_MAPS_API_KEY) {
-        callback("FS source was not configured or GOOGLE_MAPS_API_KEY was not set! Cannot use Google map API.", null);
-        return;
-    }
+        if (!fs_config || !fs_config[source_id].config || !fs_config[source_id].config.GOOGLE_MAPS_API_KEY) {
+            callback("FS source was not configured or GOOGLE_MAPS_API_KEY was not set! Cannot use Google map API.", null);
+            return;
+        }
 
-    if (!lat || !lng) {
-        callback(null, null);
-        return;
-    }
-    total_geo_apis++;
-    const m_client = new google_client({});
-    m_client
-        .reverseGeocode({
-            params:
-            {
-                latlng: { lat, lng },
-                key: fs_config[source_id].config.GOOGLE_MAPS_API_KEY,
-            },
+        if (!lat || !lng) {
+            callback(null, null);
+            return;
+        }
+        total_geo_apis++;
+        const m_client = new google_client({});
+        m_client
+            .reverseGeocode({
+                params:
+                {
+                    latlng: { lat, lng },
+                    key: fs_config[source_id].config.GOOGLE_MAPS_API_KEY,
+                },
 
-        })
-        .then((response) => {
-            if (response.data)
-                callback(null, response.data.results);
-            else
-                logger.error(null, { "lat": lat, "lng": lng });
-        })
-        .catch((err) => {
-            logger.error(err);
-        });
+            })
+            .then((response) => {
+                if (response.data)
+                    callback(null, response.data.results);
+                else
+                    logger.error(null, { "lat": lat, "lng": lng });
+            })
+            .catch((err) => {
+                logger.error(err);
+            });
     });
 }
 
@@ -205,7 +205,7 @@ export async function get_photo(photo_data, res) {
             return;
         }
         photo_data.filename = path.basename(photo_data.filename);
-        res.writeHead(200, { 
+        res.writeHead(200, {
             'Content-Type': 'image/jpeg',
             'photo-data': JSON.stringify(photo_data)
         });
@@ -215,13 +215,16 @@ export async function get_photo(photo_data, res) {
 
 export async function get_photo_thumbnail(source_root_dir, photo_data, callback) {
     const thumbnail_file = getThumbnailPath(source_root_dir, photo_data.filename);
-    fs.readFile(thumbnail_file, (err, data) => {
-        if (err) {
-            callback('Error reading image file.', null);
-        }
+    if (fs.existsSync(thumbnail_file)) {
+        const data = fs.readFileSync(thumbnail_file)
         photo_data.filename = path.basename(photo_data.filename);
         callback(null, { data: data, length: data.length });
-    });
+    }else{
+        const error_message = `Thumbnail not found ${thumbnail_file}. Rescanning ${source_root_dir} may fix the issue.`;
+        logger.error(error_message);
+        callback(error_message);
+    }
+
 }
 
 function getThumbnailPath(source_root_dir, inputPath) {
@@ -230,11 +233,11 @@ function getThumbnailPath(source_root_dir, inputPath) {
 }
 
 async function authenticate_if_required(source_id, callback) {
-  if (!fs_config[source_id]) {
-    authenticate(source_id, auth_result => {
-      callback(auth_result);
-    });
-  } else {
-    callback({ "auth_status": true, "error": {} });
-  }
+    if (!fs_config[source_id]) {
+        authenticate(source_id, auth_result => {
+            callback(auth_result);
+        });
+    } else {
+        callback({ "auth_status": true, "error": {} });
+    }
 }

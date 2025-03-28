@@ -283,3 +283,12 @@ function updateImage(photo_id) {
 function closeViewer() {
     viewer.style.display = 'none';
 }
+
+function clearSearch(){
+    //g_dir_id = 0;
+    if(gallery)
+        gallery.innerHTML = '';
+
+    if(footer)
+        footer.textContent = '';
+}

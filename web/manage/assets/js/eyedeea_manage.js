@@ -402,15 +402,16 @@ async function get_source_dirs(triggered_by_page_a, offset) {
     }
 }
 
+let g_dir_id = 0;
 async function get_source_dirs_and_load_to_drop_down(source_id, offset) {
     if (!source_id) {
         console.log("retr")
         return;
     }
     const directorySelect = document.getElementById("directorySelect");
-    directorySelect.innerHTML = '<option value="" disabled selected>Select Directory</option>';
+    directorySelect.innerHTML = '<option value="" selected>Select Directory</option>';
     try {
-        directorySelect.disabled = true;
+        //directorySelect.disabled = true;
         const apiUrl = `/api/sources/${source_id}/dirs`
 
         let limit = 1000;
@@ -419,11 +420,15 @@ async function get_source_dirs_and_load_to_drop_down(source_id, offset) {
 
         fetch(`${apiUrl}?limit=${limit}&offset=${offset}`)
             .then(response => response.json())
-            .then(data => {
+            .then(data => {                
                 data.records.forEach(directory => {
                     const option = document.createElement("option");
                     option.value = directory.dir_id;
                     option.textContent = directory.dir;
+
+                    if((g_dir_id >0) && (g_dir_id == directory.dir_id)){
+                        option.selected = true;
+                    }
                     directorySelect.appendChild(option);
                 });
                 directorySelect.disabled = false;
@@ -470,8 +475,7 @@ async function scan() {
         });
 
         const data = await response.json();
-        if (data.message) {
-            console.error(data);
+        if (data.message) {           
             error_message = ""
             if (data.message && data.message.error && data.message.error.code) {
                 error_message = `Saved successfully! But check your config. Eyedeea Photos could not communicate with the server. <br>${data.message.error.code}: ${data.message.error.code}`;
@@ -485,6 +489,9 @@ async function scan() {
         } else {
             scan_caption.style.removeProperty("color");
             scan_caption.style.visibility = 'visible';
+            const tableBody = document.getElementById("dirs-table-body");
+            if(tableBody)
+                tableBody.innerHTML = '';
             show_count_down_refresh_timer(data, btn_scan, scan_caption);
             btn_scan.classList.add("disabled");
             get_scan_logs();
@@ -515,9 +522,10 @@ function show_count_down_refresh_timer(data, btn_scan, scan_caption) {
                 if (current_scan_log && current_scan_log.updated_at) {
                     btn_scan.classList.remove("disabled");
                     scan_caption.style.visibility = 'hidden';
-                    scan_caption.innerText = "";
+                    scan_caption.innerText = "";                    
                     get_scan_logs();
                     get_source_latest_scan_data();
+                    get_source_dirs();
                 } else {
                     show_count_down_refresh_timer(data, btn_scan, scan_caption);
                 }
@@ -735,18 +743,18 @@ function init_search() {
 function toggleSearchBox(dir) {
 
     if (dir) {
+        g_dir_id = dir.dir_id;
+
         const radio = document.getElementById("demo-priority-browse")
         radio.checked = true;
 
         const sourceSelect = document.getElementById('sourceSelect');
         sourceSelect.value = dir.source_id;
 
-        const directorySelect = document.getElementById('directorySelect');
-        directorySelect.value = dir.dir_id;
-
         const event = new Event('change', { bubbles: true });
         radio.dispatchEvent(event);
         sourceSelect.dispatchEvent(event);
+        
     } else {
         const radio = document.getElementById("demo-priority-search")
         radio.checked = true;

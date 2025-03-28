@@ -145,7 +145,7 @@
                                 </select>
 
                                 <label for="directorySelect">Directory:</label>
-                                <select id="directorySelect" disabled>
+                                <select id="directorySelect">
                                     
                                 </select>
                             </div>
@@ -247,10 +247,15 @@
                     searchBox2.classList.add('hidden');
                     browseOptions.classList.remove('hidden');
                 }
+                // g_dir_id = 0;
+                // console.log(gallery);
+              
             }
         });
 
-        sourceSelect.addEventListener('change', () => {           
+        sourceSelect.addEventListener('change', () => {          
+            console.log("loading list..."); 
+            clearSearch();
             get_source_dirs_and_load_to_drop_down(sourceSelect.value);
         });
 

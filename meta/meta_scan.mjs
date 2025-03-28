@@ -39,17 +39,24 @@ export function clear_scan(source_id, clean_photos, callback) {
 
 
 export function save_item(json_data) {
-    const insert_query = `INSERT or IGNORE INTO photo (source_id, photo_id, filename, folder_id, folder_name, time, type, orientation, cache_key, unit_id, geocoding_id, tags, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    return new Promise((resolve, reject) => {
+        const insert_query = `INSERT or IGNORE INTO photo (source_id, photo_id, filename, folder_id, folder_name, time, type, orientation, cache_key, unit_id, geocoding_id, tags, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-    meta_db.run(
-        insert_query,
-        [json_data.source_id, json_data.photo_id, json_data.filename, json_data.folder_id, json_data.folder_name, json_data.time, json_data.type, json_data.orientation, json_data.cache_key, json_data.unit_id, json_data.geocoding_id, json_data.tags, json_data.address],
-        function (err) {
-            if (err) {
-                logger.error('Error inserting data:', err);
+        meta_db.run(
+            insert_query,
+            [json_data.source_id, json_data.photo_id, json_data.filename, json_data.folder_id, json_data.folder_name, json_data.time, json_data.type, json_data.orientation, json_data.cache_key, json_data.unit_id, json_data.geocoding_id, json_data.tags, json_data.address],
+            function (err) {
+                if (err) {
+                    logger.error('Error inserting data:', err);
+                    reject(err);
+                } else {
+                    resolve(); // Resolve when the query is successful
+                }
             }
-        });
+        );
+    });
 }
+
 
 
 export function start_scan(json_data, callback) {

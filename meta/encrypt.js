@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { execSync } from 'child_process';
 import os from 'os';
 const algorithm = 'aes-256-gcm';
 import logger from "../config_log.js";

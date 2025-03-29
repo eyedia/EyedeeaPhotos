@@ -19,7 +19,6 @@ const app_log_dir = (() => {
     else if (platform.startsWith("win")) {
         log_dir = path.join(getAppDataPath(ORG), APP_NAME, 'logs');
     } else {
-        checkAndSetEnvKey();
         log_dir = "/var/log/EyedeeaPhotos/logs";
     }
     if (!fs.existsSync(log_dir)){

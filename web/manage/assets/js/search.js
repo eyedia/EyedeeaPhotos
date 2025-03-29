@@ -87,7 +87,7 @@ const saveSearch = async () => {
 
 const loadImages = async (dir) => {
     updateFooter(true);
-    const loader = document.getElementById("loader-container");
+    const loader = document.getElementById("loader");
     loader.style.display = "flex";    
     const thumbnails = await fetchImages(dir);
     thumbnails.forEach(thumbnail => {

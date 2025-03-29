@@ -86,6 +86,29 @@
             padding-top: 10px;
         }
 
+        .loader-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none; /* Hidden by default */
+            justify-content: center;
+            align-items: center;            
+            background: rgba(255, 255, 255, 0.8); /* Optional: Adds a semi-transparent overlay */
+        }
+
+        .loader {
+            width: 10vw;
+            height: 10vw;
+            max-width: 100px;
+            max-height: 100px;
+            min-width: 50px;
+            min-height: 50px;
+            background: url('../images/eyedeea_loading.gif') no-repeat center center;
+            background-size: contain;
+        }
+
+
         .hidden {
             display: none;
         }
@@ -128,38 +151,31 @@
                 <!-- Search -->
                 <div id="g-search">
                     <div class="g-search-content">
-                        <form id="actionForm">
-                            <input type="radio" id="demo-priority-search" name="option" value="search" checked>
-                            <label for="demo-priority-search">Search</label>
-                            <input type="radio" id="demo-priority-browse" name="option" value="browse">
-                            <label for="demo-priority-browse">Browse</label>
+                        <input type="radio" id="demo-priority-search" name="option" value="search"
+                            onchange="handleSearchOrBrowse()" checked>
+                        <label for="demo-priority-search">Search</label>
+                        <input type="radio" id="demo-priority-browse" name="option" value="browse"
+                            onchange="handleSearchOrBrowse()">
+                        <label for="demo-priority-browse">Browse</label>
 
-                            <div id="searchBox2" class="search-container">
-                                <input type="text" id="g-search-searchBox" placeholder="Search photos..." autofocus>
-                            </div>
-
-                            <div id="browseOptions" class="hidden browse-container">
-                                <label for="sourceSelect">Source:</label>
-                                <select id="sourceSelect">
-                                    
-                                </select>
-
-                                <label for="directorySelect">Directory:</label>
-                                <select id="directorySelect">
-                                    
-                                </select>
-                            </div>
-                        </form>
-                        <div id="loader" style="display: none;">
-                            <img src="../images/sliding_square_loader_view.gif" alt="Loading..." />
+                        <div id="gSearchContainer" class="search-container">
+                            <input type="text" id="g-search-searchBox" placeholder="Search photos..." autofocus>
                         </div>
-                        <div id="loader-container" style="display: none;">
-                            <div class="loader-wrapper">
-                                <img src="../images/Eyedeea_Photos_m_logo.png" class="loader-logo" alt="Logo" />
-                                <img src="../images/sliding_square_loader_view.gif" class="loader-gif"
-                                    alt="Loading..." />
-                            </div>
+
+                        <div id="browseOptions" class="hidden browse-container">
+                            <label for="sourceSelect">Source:</label>
+                            <select id="sourceSelect">
+                            </select>
+
+                            <label for="directorySelect">Directory:</label>
+                            <select id="directorySelect">
+
+                            </select>
                         </div>
+                        <div id="loader" class="loader-container">
+                            <div class="loader"></div>
+                        </div>
+                        <div style="height: 10px;"></div>
                         <div id="gallery" class="gallery"></div>
                         <div class="viewer" id="viewer">
                             <span class="close" onclick="closeViewer()">&times;</span>
@@ -230,42 +246,41 @@
     <script src="assets/js/eyedeea_manage.js"></script>
     <script src="assets/js/search.js"></script>
     <script>
-        const actionForm = document.getElementById('actionForm');
-        const searchBox2 = document.getElementById('searchBox2');
+        //const actionForm = document.getElementById('actionForm');
+        const gSearchContainer = document.getElementById('gSearchContainer');
         const browseOptions = document.getElementById('browseOptions');
-        const searchInput = document.getElementById('searchInput');
+        const searchInput = document.getElementById('g-search-searchBox');
         const sourceSelect = document.getElementById('sourceSelect');
         const directorySelect = document.getElementById('directorySelect');
 
-        actionForm.addEventListener('change', (event) => {
-            if (event.target.name === 'option') {
-                if (event.target.value === 'search') {
-                    searchBox2.classList.remove('hidden');
-                    browseOptions.classList.add('hidden');
-                    searchInput.focus();
-                } else if (event.target.value === 'browse') {
-                    searchBox2.classList.add('hidden');
-                    browseOptions.classList.remove('hidden');
-                }
-                // g_dir_id = 0;
-                // console.log(gallery);
-              
-            }
-        });
+        function handleSearchOrBrowse() {
+            const selectedValue = document.querySelector('input[name="option"]:checked').value;
+            console.log("Selected: " + selectedValue);
 
-        sourceSelect.addEventListener('change', () => {          
-            console.log("loading list..."); 
+            if (selectedValue === 'search') {
+                gSearchContainer.classList.remove('hidden');
+                browseOptions.classList.add('hidden');
+                searchInput.focus();
+            } else if (selectedValue === 'browse') {
+                gSearchContainer.classList.add('hidden');
+                browseOptions.classList.remove('hidden');
+            }
+
+        }
+
+        sourceSelect.addEventListener('change', () => {
+            console.log("loading list...");
             clearSearch();
             get_source_dirs_and_load_to_drop_down(sourceSelect.value);
         });
 
         directorySelect.addEventListener('change', () => {
-            const dir = { 
-                source_id: sourceSelect.value, 
-                source_name: sourceSelect.options[sourceSelect.selectedIndex].text, 
-                dir_id: directorySelect.value, 
+            const dir = {
+                source_id: sourceSelect.value,
+                source_name: sourceSelect.options[sourceSelect.selectedIndex].text,
+                dir_id: directorySelect.value,
                 dir_name: directorySelect.options[directorySelect.selectedIndex].text
-            }; 
+            };
             search(dir);
         });
     </script>

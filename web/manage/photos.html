@@ -255,8 +255,6 @@
 
         function handleSearchOrBrowse() {
             const selectedValue = document.querySelector('input[name="option"]:checked').value;
-            console.log("Selected: " + selectedValue);
-
             if (selectedValue === 'search') {
                 gSearchContainer.classList.remove('hidden');
                 browseOptions.classList.add('hidden');
@@ -265,11 +263,9 @@
                 gSearchContainer.classList.add('hidden');
                 browseOptions.classList.remove('hidden');
             }
-
         }
 
         sourceSelect.addEventListener('change', () => {
-            console.log("loading list...");
             clearSearch();
             get_source_dirs_and_load_to_drop_down(sourceSelect.value);
         });
@@ -281,6 +277,13 @@
                 dir_id: directorySelect.value,
                 dir_name: directorySelect.options[directorySelect.selectedIndex].text
             };
+            const searchBox = document.getElementById('searchBox');
+            if(searchBox)
+                searchBox.value = "";
+            const g_searchBox = document.getElementById('g-search-searchBox');
+            if(g_searchBox)
+                g_searchBox.value = "";
+
             search(dir);
         });
     </script>

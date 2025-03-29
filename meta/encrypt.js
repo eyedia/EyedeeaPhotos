@@ -47,7 +47,7 @@ function en_to_string(iv, auth_tag, encrypted){
 function get_key(){
   let keyHex = process.env.EYEDEEA_KEY;
   if (!keyHex) {
-      logger.error("'EYEDEEA_KEY' environment variable was not found! Please resinstall or contact support.");
+      logger.error("'EYEDEEA_KEY' environment variable was not found! Try restarting Eyedeea Photos!");
       return;
   }
   const key = Buffer.from(keyHex, 'hex');

@@ -67,7 +67,10 @@ export const get_random_photo = async (req, res) => {
           return get_default_photo(res);
       } else {
         if(req.query.photo_id_only){          
-          res.json({"photo_id": rows[req.query.photo_index].photo_id});
+          if(rows.length > 0)
+            res.json({"photo_id": rows[req.query.photo_index].photo_id});
+          else
+            res.json({"photo_id": 0})
         }
         else{
           return return_photo_from_rows(req, res, rows);

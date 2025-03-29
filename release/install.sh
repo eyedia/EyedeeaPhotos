@@ -140,3 +140,12 @@ if [[ "$source_id" != "null" && -n "$source_id" ]]; then
 else
     echo "Error: Failed to register source."
 fi
+
+
+sudo mkdir -p /var/log/EyedeeaPhotos/logs
+sudo chown -R $USER:$USER /var/log/EyedeeaPhotos
+sudo chmod -R 777 /var/log/EyedeeaPhotos
+
+sudo mkdir -p /var/lib/EyedeeaPhotos/data
+sudo chown -R $USER:$USER /var/lib/EyedeeaPhotos/data
+sudo chmod -R 777 /var/lib/EyedeeaPhotos

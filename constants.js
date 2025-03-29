@@ -63,21 +63,6 @@ const app_thumbnail_dir = (() => {
     return thumbnail_dir;
 })();
 
-
-const checkAndSetEnvKey = async () => {
-  if (!process.env.EYEDEEA_KEY) {
-      console.log("EYEDEEA_KEY not found. Generating and setting it...");
-      try {
-          execSync('bash set_env.sh', { stdio: 'inherit' });
-      } catch (error) {
-          console.error("Error setting EYEDEEA_KEY:", error.message);
-      }
-  } else {
-      console.log("EYEDEEA_KEY is already set.");
-  }
-};
-
-
 export default {
     ORG,
     APP_NAME,

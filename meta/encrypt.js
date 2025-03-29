@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import os from 'os';
 const algorithm = 'aes-256-gcm';
 import logger from "../config_log.js";
 
@@ -47,6 +48,14 @@ function en_to_string(iv, auth_tag, encrypted){
 function get_key(){
   let keyHex = process.env.EYEDEEA_KEY;
   if (!keyHex) {
+    const platform = os.platform();
+    if (platform.startsWith("win")) {
+    }else{
+      checkAndSetEnvKey();
+    }
+  }
+  keyHex = process.env.EYEDEEA_KEY;
+  if (!keyHex) {
       logger.error("'EYEDEEA_KEY' environment variable was not found! Try restarting Eyedeea Photos!");
       return;
   }
@@ -57,3 +66,16 @@ function get_key(){
 export function generate_short_GUID() {
   return crypto.randomBytes(8).toString("hex");
 }
+
+const checkAndSetEnvKey = async () => {
+  if (!process.env.EYEDEEA_KEY) {
+      console.log("EYEDEEA_KEY not found. Generating and setting it...");
+      try {
+          execSync('bash set_env.sh', { stdio: 'inherit' });
+      } catch (error) {
+          console.error("Error setting EYEDEEA_KEY:", error.message);
+      }
+  } else {
+      console.log("EYEDEEA_KEY is already set.");
+  }
+};

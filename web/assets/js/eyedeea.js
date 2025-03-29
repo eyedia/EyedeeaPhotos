@@ -43,6 +43,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 function refresh_pic() {
+    console.time("refresh_pic");
+
     var total = 12;
     var count = 0;
 
@@ -101,6 +103,8 @@ function refresh_pic() {
                 });
         }(i));
     }
+
+    console.timeEnd("refresh_pic");
 }
 
 

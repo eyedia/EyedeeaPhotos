@@ -2,7 +2,7 @@ const photo_url_server = window.location.protocol + "//" + window.location.host 
 //const photo_url_server = "http://192.168.86.101/api/view"
 
 async function cache_incoming_photos() {
-    console.log("caching incoming photos...");
+    console.time("cache_photos");
     var total = 13;
     
     const response = await fetch(photo_url_server + `/photos?photo_id_only=true&limit=${total}`);
@@ -17,6 +17,8 @@ async function cache_incoming_photos() {
         await save_photo_from_respose(response);
             
       });
+
+      console.timeEnd("cache_photos");
 }
 
 async function save_photo_from_respose(response){

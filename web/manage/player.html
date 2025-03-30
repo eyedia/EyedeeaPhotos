@@ -8,8 +8,6 @@
     <link rel="stylesheet" href="assets/css/main.css" />
     <link rel="stylesheet" href="assets/css/search.css" />
     <style>
-        
-
         .viewer {
             display: none;
             position: fixed;
@@ -22,15 +20,19 @@
             align-items: center;
             flex-direction: column;
         }
+
         .viewer img {
             max-width: 90%;
             max-height: 90%;
             display: none;
         }
+
         .viewer.show {
             display: flex;
         }
-        .arrow, .close {
+
+        .arrow,
+        .close {
             position: absolute;
             font-size: 30px;
             color: white;
@@ -41,25 +43,31 @@
             background: none;
             border: none;
         }
-        .viewer:hover .arrow, .viewer:hover .close {
+
+        .viewer:hover .arrow,
+        .viewer:hover .close {
             opacity: 1;
         }
+
         .left {
             top: 50%;
             left: 20px;
             transform: translateY(-50%);
         }
+
         .right {
             top: 50%;
             right: 20px;
             transform: translateY(-50%);
         }
+
         .loading {
             color: white;
             font-size: 18px;
             margin-bottom: 10px;
             display: none;
         }
+
         .close {
             top: 20px;
             right: 20px;
@@ -96,11 +104,11 @@
                 <div style="height: 10px;"></div>
                 <div class="col-12">
                     <h3 id="system_summary"></h3>
-                    <a onclick="openModal()" class="button primary icon"
+                    <a id="btn_add_filter" onclick="openModal()" class="button primary icon"
                         style="vertical-align: middle;">Add New Filter</a>
                     <div id="notification" class="notification-container">This is a notification message!</div>
 
-                </div>                
+                </div>
                 <table>
                     <thead>
                         <tr>
@@ -116,22 +124,23 @@
                     </ul>
                 </table>
 
-                <!-- Add New Filter -->                
+                <!-- Add New Filter -->
                 <div id="modal" class="modal">
                     <div class="modal-content">
                         <span id="closeModal" class="close" title="Escape key works too!">&times;</span>
                         <div class="search-bar">
                             <input type="text" id="searchBox" autofocus placeholder="Search images...">
                             <button id="searchButton">Search</button>
-                            <input type="text" id="nameBox" placeholder="Name your filter...">    
+                            <input type="text" id="nameBox" placeholder="Name your filter...">
                             <button id="saveButton" onclick="saveSearch()">Save</button>
-                        </div>     
+                        </div>
                         <div id="loader-container" style="display: none;">
                             <div class="loader-wrapper">
                                 <img src="../images/Eyedeea_Photos_m_logo.png" class="loader-logo" alt="Logo" />
-                                <img src="../images/sliding_square_loader_view.gif" class="loader-gif" alt="Loading..." />                                
+                                <img src="../images/sliding_square_loader_view.gif" class="loader-gif"
+                                    alt="Loading..." />
                             </div>
-                        </div>                   
+                        </div>
                         <div id="gallery" class="gallery"></div>
                         <div class="viewer" id="viewer">
                             <span class="close" onclick="closeViewer()">&times;</span>
@@ -147,7 +156,7 @@
                     </div>
                 </div>
 
-                
+
                 <!-- Add New Filter -->
             </div>
         </div>
@@ -169,7 +178,7 @@
                     <header class="major">
                         <h2><a href="../">Eyedeea Photos</a></h2>
                     </header>
-                    <ul>                        
+                    <ul>
                         <li><a href="index.html">System</a></li>
                         <li><a href="player.html">Player Settings</a></li>
                         <li><a href="photos.html">Photos</a></li>
@@ -201,7 +210,7 @@
     <script src="assets/js/manage_main.js"></script>
     <script src="assets/js/eyedeea_manage.js"></script>
     <script src="assets/js/search.js"></script>
-    
+
 </body>
 
 </html>

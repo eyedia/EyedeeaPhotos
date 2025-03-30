@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', async function () {
     let pathArray = window.location.pathname.split("/");
     const documentName = pathArray[pathArray.length - 1];
-    await get_sources();    
+    await get_sources();
     switch (documentName) {
         case "":
         case "index.html":
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 });
 
 function save_button_listener() {
-    const add = document.getElementById('add');   
+    const add = document.getElementById('add');
     if (!add)
         return;
     add.addEventListener('click', function (event) {
@@ -420,13 +420,13 @@ async function get_source_dirs_and_load_to_drop_down(source_id, offset) {
 
         fetch(`${apiUrl}?limit=${limit}&offset=${offset}`)
             .then(response => response.json())
-            .then(data => {                
+            .then(data => {
                 data.records.forEach(directory => {
                     const option = document.createElement("option");
                     option.value = directory.dir_id;
                     option.textContent = directory.dir;
 
-                    if((g_dir_id >0) && (g_dir_id == directory.dir_id)){
+                    if ((g_dir_id > 0) && (g_dir_id == directory.dir_id)) {
                         option.selected = true;
                     }
                     directorySelect.appendChild(option);
@@ -475,7 +475,7 @@ async function scan() {
         });
 
         const data = await response.json();
-        if (data.message) {           
+        if (data.message) {
             error_message = ""
             if (data.message && data.message.error && data.message.error.code) {
                 error_message = `Saved successfully! But check your config. Eyedeea Photos could not communicate with the server. <br>${data.message.error.code}: ${data.message.error.code}`;
@@ -490,7 +490,7 @@ async function scan() {
             scan_caption.style.removeProperty("color");
             scan_caption.style.visibility = 'visible';
             const tableBody = document.getElementById("dirs-table-body");
-            if(tableBody)
+            if (tableBody)
                 tableBody.innerHTML = '';
             show_count_down_refresh_timer(data, btn_scan, scan_caption);
             btn_scan.classList.add("disabled");
@@ -522,7 +522,7 @@ function show_count_down_refresh_timer(data, btn_scan, scan_caption) {
                 if (current_scan_log && current_scan_log.updated_at) {
                     btn_scan.classList.remove("disabled");
                     scan_caption.style.visibility = 'hidden';
-                    scan_caption.innerText = "";                    
+                    scan_caption.innerText = "";
                     get_scan_logs();
                     get_source_latest_scan_data();
                     get_source_dirs();
@@ -628,6 +628,7 @@ function renderTableSummary(data) {
 
 async function get_filters(triggered_by_page_a, offset) {
     try {
+        const btn_add_filter = document.getElementById("btn_add_filter");
         const apiUrl = `/api/view/filters`
         let limit = 10;
         if (!offset)
@@ -636,6 +637,12 @@ async function get_filters(triggered_by_page_a, offset) {
             .then(response => response.json())
             .then(data => {
                 renderTableFilters(data);
+                if ((data.length == 1) && (data[0].total_photos == 0)) {
+                    //very first time, when nothing was set or scanned                    
+                    btn_add_filter.classList.add("disabled");
+                } else {
+                    btn_add_filter.classList.remove("disabled");
+                }
                 //renderPagination(data.total_records, data.total_pages, data.current_offset, limit, triggered_by_page_a);
             })
             .catch(error => console.error("Error fetching data:", error));
@@ -754,7 +761,7 @@ function toggleSearchBox(dir) {
         const event = new Event('change', { bubbles: true });
         radio.dispatchEvent(event);
         sourceSelect.dispatchEvent(event);
-        
+
     } else {
         const radio = document.getElementById("demo-priority-search")
         radio.checked = true;

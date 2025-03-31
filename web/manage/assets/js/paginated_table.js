@@ -1,7 +1,7 @@
 class PaginatedTable {
-    constructor(apiUrl, tableBodyId, paginationUlId, limit = 30, pageGroupSize = 5) {
+    constructor(apiUrl, renderTable, paginationUlId, limit = 30, pageGroupSize = 10) {
         this.apiUrl = apiUrl;
-        this.tableBodyId = tableBodyId;
+        this.renderTable = renderTable;
         this.paginationUlId = paginationUlId;
         this.limit = limit;
         this.offset = 0;
@@ -20,18 +20,6 @@ class PaginatedTable {
         } catch (error) {
             console.error("Error fetching data:", error);
         }
-    }
-
-    renderTable(records) {
-        const tableBody = document.getElementById(this.tableBodyId);
-        tableBody.innerHTML = '';
-        records.forEach(item => {
-            const row = `<tr>            
-                <td>${item.dir}</td>
-                <td><a href='photos.html?dir-id=${item.dir_id}&dir-name=${item.dir}'>${item.photos}</a></td>
-            </tr>`;
-            tableBody.innerHTML += row;
-        });
     }
 
     renderPagination() {    

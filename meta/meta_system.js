@@ -5,12 +5,22 @@ import { meta_db } from "./meta_base.mjs";
 
 
 export function get_source_summary(callback) {
-    let query = `select p.source_id,s.name, 
-    (select count(*) from photo p where p.source_id = s.id)
-    total_photos, max(sl.updated_at) last_scanned_at from photo p
-    inner join scan_log sl on sl.source_id = p.source_id
-    inner join source s on p.source_id = s.id
-    group by p.source_id, s.name`;
+    let query = `SELECT 
+        s.id AS source_id,
+        s.name, 
+        COALESCE(photo_count.total_photos, 0) AS total_photos, 
+        COALESCE(MAX(sl.updated_at), 'N/A') AS last_scanned_at
+    FROM source s
+    LEFT JOIN (
+        SELECT 
+            p.source_id, 
+            COUNT(*) AS total_photos 
+        FROM photo p 
+        GROUP BY p.source_id
+    ) photo_count ON s.id = photo_count.source_id
+    LEFT JOIN scan_log sl ON s.id = sl.source_id
+    GROUP BY s.id, s.name
+    ORDER BY s.created_at;`;
 
     meta_db.all(query, (err, rows) => {
         if (err) {

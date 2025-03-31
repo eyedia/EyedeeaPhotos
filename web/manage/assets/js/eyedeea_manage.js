@@ -124,7 +124,7 @@ function validate_fields() {
     const username = document.getElementById("username");
     const password = document.getElementById("password");
     const directory = document.getElementById("directory");
-    const add = document.getElementById("add"); // Ensure the "add" button exists in your HTML
+    const add = document.getElementById("add");
 
     if (!source_name.value.trim() || !source_type.value) {
         add.disabled = true;
@@ -222,7 +222,23 @@ function getQueryParam(param) {
     return urlParams.get(param);
 }
 
-let g_source = null
+let g_source = null;
+let dirTable = undefined;
+let scanLogTable = undefined;
+
+function setSource(newSource) {
+    g_source = newSource;
+
+    if (g_source) {
+        dirTable = new PaginatedTable(`/api/sources/${g_source.id}/dirs`, renderTableDirs, 'pagination_dir');
+        scanLogTable = new PaginatedTable(`/api/sources/${g_source.id}/scan/logs`, renderTableScanLog, 'pagination_scan_log');
+    } else {
+        dirTable = undefined;
+        scanLogTable = undefined;
+    }
+}
+
+
 async function get_source() {
     const id = getQueryParam('id');
     if (!id) return;
@@ -234,7 +250,7 @@ async function get_source() {
         }
 
         const source = await response.json();
-        g_source = source;
+        setSource(source);
 
         const source_name = document.getElementById('source_name');
         const source_type = document.getElementById('source_type');
@@ -252,65 +268,27 @@ async function get_source() {
 
         toggleFields(true);
         get_source_latest_scan_data();
-        get_scan_logs();
-        any_active_scan();
-        //get_source_dirs();
-        const dirTable = new PaginatedTable('/api/sources/1/dirs', 'dirs-table-body', 'pagination_dir');
-        dirTable.fetchData();
+        any_active_scan();        
+        if(dirTable) dirTable.fetchData();
+        if(scanLogTable) scanLogTable.fetchData();
         
     } catch (error) {
         console.error("Error fetching data:", error);
     }
 }
 
-async function get_source_latest_scan_data() {
-    const id = getQueryParam('id'); // Get 'id' from the URL query string    
-    const total_photos = document.getElementById('total_photos');
-    const total_dirs = document.getElementById('total_dirs');
-    const last_scanned = document.getElementById('last_scanned');
-    if (!id) {
-        return;
-    }
-    try {
-        const response = await fetch(`/api/sources/${id}/scan/logs?latest=true`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        const data = await response.json();
-        if (data && data.length > 0) {
-            total_photos.innerText = data[0].total_photos;
-            total_dirs.innerText = data[0].total_dirs;
-            //total_geo_apis.innerText = data[0].total_geo_apis;
-            last_scanned.innerText = data[0].updated_at;
-        }
-    } catch (error) {
-        console.error("Error fetching data:", error);
-    }
+function renderTableDirs(records) {
+    const tableBody = document.getElementById('dirs-table-body');
+    tableBody.innerHTML = '';
+    records.forEach(item => {
+        const row = `<tr>            
+            <td>${item.dir}</td>
+            <td><a href='photos.html?source-id=${g_source.id}&source-name=${g_source.name}&dir-id=${item.dir_id}&dir-name=${item.dir}'>${item.photos}</a></td>
+        </tr>`;
+        tableBody.innerHTML += row;
+    });
 }
 
-async function get_scan_logs(triggered_by_page_a, offset) {
-    if (g_source == null) {
-        console.log("retr")
-        return;
-    }
-    try {
-        const apiUrl = `/api/sources/${g_source.id}/scan/logs`
-        let limit = 10;
-        if (!offset)
-            offset = 0;
-        fetch(`${apiUrl}?limit=${limit}&offset=${offset}`)
-            .then(response => response.json())
-            .then(data => {
-                renderTableScanLog(data.records);
-                //renderPagination(data.total_pages, limit, triggered_by_page_a, "pagination_scan_log");
-            })
-            .catch(error => console.error("Error fetching data:", error));
-
-
-    } catch (error) {
-        console.error('Error fetching data:', error);
-    }
-}
 
 function renderTableScanLog(records) {
     const tableBody = document.getElementById("scan-logs-table-body");
@@ -338,74 +316,29 @@ function renderTableScanLog(records) {
     });
 }
 
-function renderPagination_new(total_pages, limit, triggered_by_page_a, e_page_ul) {
-    let page_ul = document.getElementById(e_page_ul);
-    page_ul.innerHTML = "<li><span class='button disabled'>Prev</span></li>";
-    
-    for (let i = 0; i < total_pages; i++) {
-        let new_li = document.createElement("li");
-        let new_a = document.createElement("a");
-        new_a.href = "javascript:void(0);";
-        new_a.textContent = i + 1;
-        new_a.classList.add("page");
-        new_a.onclick = (event) => {
-            event.preventDefault();
-            if (e_page_ul == "pagination_scan_log")
-                get_scan_logs(event.currentTarget, i * limit);
-            else
-                get_source_dirs(event.currentTarget, i * limit);
+async function get_source_latest_scan_data() {
+    const id = getQueryParam('id'); // Get 'id' from the URL query string    
+    const total_photos = document.getElementById('total_photos');
+    const total_dirs = document.getElementById('total_dirs');
+    const last_scanned = document.getElementById('last_scanned');
+    if (!id) {
+        return;
+    }
+    try {
+        const response = await fetch(`/api/sources/${id}/scan/logs?latest=true`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
-        new_li.appendChild(new_a);
-        page_ul.appendChild(new_li);
-
-    }
-
-    let new_li = document.createElement("li");
-    let new_a = document.createElement("a");
-    new_a.textContent ="Next";
-    new_a.classList.add("button");
-    new_li.appendChild(new_a);
-    page_ul.appendChild(new_li);
-
-}
-
-function renderPagination_old(total_pages, limit, triggered_by_page_a, e_page_ul) {
-    let page_ul = document.getElementById(e_page_ul);
-    page_ul.innerHTML = "";
-    for (let i = 0; i < total_pages; i++) {
-        let new_li = document.createElement("li");
-        let new_a = document.createElement("a");
-        new_a.href = "javascript:void(0);";
-        new_a.textContent = i + 1;
-        new_a.classList.add("page");
-        new_a.onclick = (event) => {
-            event.preventDefault();
-            if (e_page_ul == "pagination_scan_log")
-                get_scan_logs(event.currentTarget, i * limit);
-            else
-                get_source_dirs(event.currentTarget, i * limit);
+        const data = await response.json();
+        if (data && data.length > 0) {
+            total_photos.innerText = data[0].total_photos;
+            total_dirs.innerText = data[0].total_dirs;
+            //total_geo_apis.innerText = data[0].total_geo_apis;
+            last_scanned.innerText = data[0].updated_at;
         }
-        new_li.appendChild(new_a);
-        page_ul.appendChild(new_li);
-
+    } catch (error) {
+        console.error("Error fetching data:", error);
     }
-    if (triggered_by_page_a)
-        set_active_page_no(triggered_by_page_a.parentElement.textContent, e_page_ul)
-    else
-        set_active_page_no("1", e_page_ul);
-}
-
-
-function set_active_page_no(page_no, e_page_ul) {
-    let page_ul = document.getElementById(e_page_ul);
-    const listItems = page_ul.getElementsByTagName("li");
-    for (let item of listItems) {
-        if (item.textContent == page_no)
-            item.childNodes[0].classList.add("active");
-        else
-            item.childNodes[0].classList.remove("active");
-    }
-
 }
 
 
@@ -446,103 +379,6 @@ async function get_source_dirs_and_load_to_drop_down(source_id, offset) {
     } catch (error) {
         console.error('Error fetching data:', error);
     }
-}
-
-
-async function scan() {
-    if (!g_source) {
-        console.log("Source is null.");
-        return;
-    }
-
-    const btn_scan = document.getElementById('btn_scan');
-    const scan_caption = document.getElementById('scan_caption');
-
-    try {
-        const response = await fetch(`/api/sources/${g_source.id}/scan`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        const data = await response.json();
-        if (data.message) {
-            error_message = ""
-            if (data.message && data.message.error && data.message.error.code) {
-                error_message = `Saved successfully! But check your config. Eyedeea Photos could not communicate with the server. <br>${data.message.error.code}: ${data.message.error.code}`;
-            } else if (data.message) {
-                error_message = data.message;
-            }
-            scan_caption.innerText = `Scanning could not be started. ${error_message}`;
-            scan_caption.style.color = "red";
-            scan_caption.style.visibility = 'visible';
-            setTimeout(() => scan_caption.style.visibility = 'hidden', 10000);
-        } else {
-            scan_caption.style.removeProperty("color");
-            scan_caption.style.visibility = 'visible';
-            const tableBody = document.getElementById("dirs-table-body");
-            if (tableBody)
-                tableBody.innerHTML = '';
-            show_count_down_refresh_timer(data, btn_scan, scan_caption);
-            btn_scan.classList.add("disabled");
-            get_scan_logs();
-        }
-    } catch (error) {
-        console.error('Error:', error);
-    }
-}
-
-function show_count_down_refresh_timer(data, btn_scan, scan_caption) {
-    let timeLeft = g_source.type == "nas" ? 60 : 30;  //seconds
-    const countdownInterval = setInterval(async function () {
-        if (timeLeft >= 0) {
-            let formatted_time_left = formatDuration(timeLeft);
-            scan_caption.innerText = `Scanning started; scan log id: ${data.scan_log_id}. Refreshing in ${formatted_time_left}`;
-            timeLeft--;
-        } else {
-            clearInterval(countdownInterval);
-            scan_caption.innerText = `Scanning started; scan log id: ${data.scan_log_id}. Refreshing...`;
-
-            try {
-                const response = await fetch(`/api/sources/${g_source.id}/scan/logs/${data.scan_log_id}`);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
-                const current_scan_log = await response.json();
-
-                if (current_scan_log && current_scan_log.updated_at) {
-                    btn_scan.classList.remove("disabled");
-                    scan_caption.style.visibility = 'hidden';
-                    scan_caption.innerText = "";
-                    get_scan_logs();
-                    get_source_latest_scan_data();
-                    get_source_dirs();
-                } else {
-                    show_count_down_refresh_timer(data, btn_scan, scan_caption);
-                }
-            } catch (error) {
-                console.error("Error fetching data:", error);
-            }
-        }
-    }, 1000);
-}
-
-function formatDuration(seconds) {
-    if (isNaN(seconds) || seconds < 0) {
-        return "Invalid input";
-    }
-
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-
-    let formattedTime = [];
-    if (hours > 0) formattedTime.push(`${hours} hour${hours !== 1 ? 's' : ''}`);
-    if (minutes > 0) formattedTime.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
-    if (secs > 0 || formattedTime.length === 0) formattedTime.push(`${secs} second${secs !== 1 ? 's' : ''}`);
-
-    return formattedTime.join(", ");
 }
 
 
@@ -606,6 +442,7 @@ function renderTableSummary(data) {
         system_summary.innerHTML = `${data.summary.total_sources} Photo sources are configured with ${data.summary.total_photos} photos.`;
     }
 
+    console.log(data);
     data.details.forEach(item => {
         const row = `<tr>            
             <td><a href='/manage/source.html?id=${item.source_id}'>${item.name}</a></td>

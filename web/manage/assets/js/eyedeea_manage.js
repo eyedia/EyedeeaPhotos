@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     switch (documentName) {
         case "":
         case "index.html":
-            console.log("here")
             save_button_listener();
             get_system_summary();
             break;
@@ -31,7 +30,6 @@ function save_button_listener() {
     if (!add)
         return;
     add.addEventListener('click', function (event) {
-        console.log("here")
         const data = (() => {
             const source_type = document.getElementById("source_type").value;
             const source_name = document.getElementById("source_name");
@@ -301,7 +299,7 @@ async function get_scan_logs(triggered_by_page_a, offset) {
             .then(response => response.json())
             .then(data => {
                 renderTableScanLog(data.records);
-                renderPagination(data.total_pages, limit, triggered_by_page_a, "pagination_scan_log");
+                //renderPagination(data.total_pages, limit, triggered_by_page_a, "pagination_scan_log");
             })
             .catch(error => console.error("Error fetching data:", error));
 
@@ -337,7 +335,7 @@ function renderTableScanLog(records) {
     });
 }
 
-function renderPagination(total_pages, limit, triggered_by_page_a, e_page_ul) {
+function renderPagination_new(total_pages, limit, triggered_by_page_a, e_page_ul) {
     let page_ul = document.getElementById(e_page_ul);
     page_ul.innerHTML = "<li><span class='button disabled'>Prev</span></li>";
     
@@ -408,30 +406,6 @@ function set_active_page_no(page_no, e_page_ul) {
 }
 
 
-async function get_source_dirs(triggered_by_page_a, offset) {
-    if (g_source == null) {
-        console.log("retr")
-        return;
-    }
-    try {
-        const apiUrl = `/api/sources/${g_source.id}/dirs`
-        let limit = 30;
-        if (!offset)
-            offset = 0;
-        fetch(`${apiUrl}?limit=${limit}&offset=${offset}`)
-            .then(response => response.json())
-            .then(data => {
-                renderTableDirs(data.records);
-                renderPagination(data.total_pages, limit, triggered_by_page_a, "pagination_dir");
-            })
-            .catch(error => console.error("Error fetching data:", error));
-
-
-    } catch (error) {
-        console.error('Error fetching data:', error);
-    }
-}
-
 let g_dir_id = 0;
 async function get_source_dirs_and_load_to_drop_down(source_id, offset) {
     if (!source_id) {
@@ -471,21 +445,6 @@ async function get_source_dirs_and_load_to_drop_down(source_id, offset) {
     }
 }
 
-function renderTableDirs(records) {
-    const tableBody = document.getElementById("dirs-table-body");
-    tableBody.innerHTML = '';
-
-    records.forEach(item => {
-        const row = `<tr>            
-            <td>${item.dir}</td>
-            <td><a href='photos.html?source-id=${g_source.id}&source-name=${g_source.name}&dir-id=${item.dir_id}&dir-name=${item.dir}'>${item.photos}</a></td>
-            <td><a href='#' onclick=scanDir(this) data-id=${item.dir}>Rescan</a></td>
-            <td><a href='#' onclick=scanDir(this, true) data-id=${item.dir}>Rescan Parent</a></td>
-        </tr>`;
-
-        tableBody.innerHTML += row;
-    });
-}
 
 async function scan() {
     if (!g_source) {

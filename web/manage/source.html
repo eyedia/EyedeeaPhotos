@@ -66,10 +66,11 @@
                                     <p id="last_scanned">N/A</p>
                                 </div>
                                 <div style="padding-top: 12px;">
-                                    <a id="btn_scan" onclick="scan()" class="button primary icon solid fa-search">Scan Now</a>
+                                    <a id="btn_scan" onclick="scan()" class="button primary icon solid fa-search">Scan
+                                        Now</a>
                                 </div>
                                 <div>
-                                    <p id="scan_caption" style="visibility: hidden;"></p>                                    
+                                    <p id="scan_caption" style="visibility: hidden;"></p>
                                 </div>
                             </div>
                             <div class="row gtr-uniform">
@@ -79,12 +80,14 @@
                             </div>
                         </div>
                     </div>
-                    <hr />
+                </section>
+                <section>
                     <!-- Scan Logs-->
                     <h3>Directories</h3>
+                    <div class="table-wrapper">
                     <table>
                         <thead>
-                            <tr>                                
+                            <tr>
                                 <th>Directory</th>
                                 <th>Photos</th>
                             </tr>
@@ -95,11 +98,13 @@
 
                         </ul>
                     </table>
-
+                </div>
+                </section>
+                <section>
                     <h3>Scan History</h3>
                     <table>
                         <thead>
-                            <tr>                                
+                            <tr>
                                 <th class="hide-mobile">Started</th>
                                 <th>Finished</th>
                                 <th>Duration</th>
@@ -113,51 +118,57 @@
 
                         </ul>
                     </table>
-                    
+                </section>
+                <section>
                     <!--Update Source-->
                     <header class="main">
-                        <h3 id="source_details">Source Details</h3>                        
+                        <h3 id="source_details">Source Details</h3>
                     </header>
-                    <div class="erow">
-                        <label for="name">Name:</label>
-                        <input type="text" id="source_name" name="source_name" oninput="validate_fields()">
-                    </div>
-                    <div class="erow">
-                        <label for="type">Type:</label>
-                        <select id="source_type" name="source_type" onchange="toggleFields()">
-                            <option value="">Select</option>
-                            <option value="nas">NAS</option>
-                            <option value="fs">FS</option>
-                        </select>
-                    </div>
-                    
-                    <div id="nasFields" class="hidden">
-                        <div class="erow">
-                            <label for="url">URL:</label>
-                            <input type="text" id="url" name="url" oninput="validate_fields()">
-                        </div>
-                        <div class="erow">
-                            <label for="username">Username:</label>
-                            <input type="text" id="username" name="username" oninput="validate_fields()">
-                            <label for="password">Password:</label>
-                            <input type="password" id="password" name="password" oninput="validate_fields()">
-                        </div>
-                    </div>
-                    
-                    <div id="fsFields" class="hidden">
-                        <div class="erow">
-                            <label for="directory">Directory:</label>
-                            <input type="text" id="directory" name="directory" oninput="validate_fields()">
-                        </div>
-                        <div class="erow">
-                            <label for="apiKey">API Key:</label>
-                            <input type="text" id="apiKey" name="apiKey">
-                        </div>
-                    </div>
-                    
-                    <a id="add"  class="button primary icon solid fa-save">Update</a>
-                    <div id="message" class="message hidden"></div>
+                    <div class="col-6 col-12-medium">
+                        <form method="post" action="#">
+                            <div class="row gtr-uniform">
+                                <div class="col-6 col-12-xsmall">
+                                    <label for="name">Name</label>
+                                    <input type="text" id="source_name" name="source_name" oninput="validate_fields()">
+                                </div>
+                                <div class="col-6 col-12-xsmall">
+                                    <label for="type">Type</label>
+                                    <select id="source_type" name="source_type" onchange="toggleFields()">
+                                        <option value="">Select</option>
+                                        <option value="nas">Synology Photos</option>
+                                        <option value="fs">File System</option>
+                                    </select>
+                                </div>
 
+                                <div id="nasFields" class="col-12 hidden">
+                                    <div class="col-6 col-12-xsmall">
+                                        <label for="url">URL</label>
+                                        <input type="text" id="url" name="url" oninput="validate_fields()">
+                                    </div>
+                                    <div class="col-6 col-12-xsmall">
+                                        <label for="username">User</label>
+                                        <input type="text" id="username" name="username" oninput="validate_fields()">
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="password">Password</label>
+                                        <input type="password" id="password" name="password"
+                                            oninput="validate_fields()">
+                                    </div>
+                                </div>
+
+                                <div id="fsFields" class="col-12 hidden">
+                                    <div class="col-12">
+                                        <label for="directory">Directory</label>
+                                        <input type="text" id="directory" name="directory" oninput="validate_fields()">
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <a id="add" class="button primary icon solid fa-save">Update</a>
+                                    <div id="message" class="message hidden"></div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                 </section>
 
             </div>
@@ -179,7 +190,7 @@
                     <header class="major">
                         <h2><a href="../">Eyedeea Photos</a></h2>
                     </header>
-                    <ul>                        
+                    <ul>
                         <li><a href="index.html">System</a></li>
                         <li><a href="player.html">Player Settings</a></li>
                         <li><a href="photos.html">Photos</a></li>

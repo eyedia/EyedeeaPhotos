@@ -281,10 +281,16 @@ function renderTableDirs(records) {
     const tableBody = document.getElementById('dirs-table-body');
     tableBody.innerHTML = '';
     records.forEach(item => {
-        const row = `<tr>            
-            <td>${item.dir}</td>
-            <td><a href='photos.html?source-id=${g_source.id}&source-name=${g_source.name}&dir-id=${item.dir_id}&dir-name=${item.dir}'>${item.photos}</a></td>
+        const a = `<a href='photos.html?source-id=${g_source.id}&source-name=${g_source.name}&dir-id=${item.dir_id}&dir-name=${item.dir}'>`;
+        let row = "<tr>";
+        // if (window.innerWidth < 425){
+        //     row += `<td>${a}${item.dir}</a></td>`
+        // }else{
+            row += `<td>${item.dir}</td>`
+        //}
+        row += `<td><a href='photos.html?source-id=${g_source.id}&source-name=${g_source.name}&dir-id=${item.dir_id}&dir-name=${item.dir}'>${item.photos}</a></td>
         </tr>`;
+
         tableBody.innerHTML += row;
     });
 }

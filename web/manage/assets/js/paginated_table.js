@@ -8,6 +8,9 @@ class PaginatedTable {
         this.currentPage = 1;
         this.totalPages = 1;
         this.pageGroupSize = pageGroupSize;
+        
+        if (window.innerWidth < 480)    //pagination is disabled for smaller screens. Should be same as main.css; line#1497
+            this.pageGroupSize = 1;
     }
 
     async fetchData(offset = 0) {
@@ -20,6 +23,27 @@ class PaginatedTable {
         } catch (error) {
             console.error("Error fetching data:", error);
         }
+    }
+
+    //for smaller viewport pages will not be shown
+    hasInvisibleListItem() {        
+        const ul = document.querySelector(".pagination");
+        if (!ul) return false;
+    
+        const listItems = ul.querySelectorAll("li");
+        console.log(listItems);
+        for (const li of listItems) {
+            const style = window.getComputedStyle(li);
+            if (
+                style.display === "none" ||
+                style.visibility === "hidden" ||
+                style.opacity === "0"
+            ) {
+                return true;
+            }
+        }
+    
+        return false;
     }
 
     renderPagination() {    

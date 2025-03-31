@@ -37,49 +37,35 @@
                 <section>
                     <!--Update Source-->
                     <header class="main">
-                        <h2 id="title">Photo Sources</h2>
+                        <a href="#source_details">
+                            <span class="icon solid fa-edit" style="font-size:larger;"></span>
+                            <h2 id="title" >Photo Sources</h2>
+                        </a>
                     </header>
+                    <ul class="contact">
+                        <li class="icon solid fa-edit"><a href="#source_details">NAS</a></li>
+                    </ul>
                     <!-- Scan-->
-                    <div class="row gtr-200">
-                        <div class="col-6 col-12-medium">
-                            <div class="row gtr-uniform">
-                                <div>
-                                    <p>Total Photos:</p>
-                                </div>
-                                <div>
-                                    <p id="total_photos">0</p>
-                                </div>
-                            </div>
-                            <div class="row gtr-uniform">
-                                <div>
-                                    <p>Total Directories:</p>
-                                </div>
-                                <div>
-                                    <p id="total_dirs">0</p>
-                                </div>
-                            </div>
-                            <div class="row gtr-uniform">
-                                <div>
-                                    <p>Last scanned:</p>
-                                </div>
-                                <div>
-                                    <p id="last_scanned">N/A</p>
-                                </div>
-                                <div style="padding-top: 12px;">
-                                    <a id="btn_scan" onclick="scan()" class="button primary icon solid fa-search">Scan
-                                        Now</a>
-                                </div>
-                                <div>
-                                    <p id="scan_caption" style="visibility: hidden;"></p>
-                                </div>
-                            </div>
-                            <div class="row gtr-uniform">
-                                <div>
-                                    <p><a href="#source_details">Source Details</a></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="table-wrapper">
+                        <table>                           
+                            <tbody>
+                                <tr>
+                                    <td>Total Photos</td>
+                                    <td><p id="total_photos">0</p></td>                                    
+                                </tr>
+                                <tr>
+                                    <td>Total Directories</td>
+                                    <td><p id="total_dirs">0</p></td>
+                                </tr>
+                                <tr>
+                                    <td>Last scanned</td>
+                                    <td><p id="last_scanned">0</p></td>
+                                </tr>                                
+                            </tbody>                            
+                        </table>                        
+                    </div>  
+                    <div id="notification" class="notification-container">N/A</div>
+                    <a id="btn_scan" onclick="scan()" class="button primary icon solid fa-search">Scan Now</a>
                 </section>
                 <section>
                     <!-- Scan Logs-->

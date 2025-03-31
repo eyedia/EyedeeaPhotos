@@ -33,7 +33,13 @@ const fetchImages = async (dir) => {
         else
             response = await fetch(`/api/system/search?keywords=${keywords}&limit=${limit}&offset=${offset_search}`);
         
-        let data = await response.json();        
+        let data = await response.json();
+        
+        //checking for known errors
+        if ((data) && (data.message) && (data.message.code) && (data.message.details)){
+            show_notification(`${data.message.code}: ${data.message.details}`, true);
+            return [];
+        }
         let thumbnails = [];
         if (data.thumbnails){
             data.thumbnails.forEach(item => {                                
@@ -55,8 +61,8 @@ const fetchImages = async (dir) => {
             totalPhotos = 0;
         }
         updateFooter();
-        return thumbnails; // assuming API returns { images: [url1, url2, ...] }
-    } catch (error) {
+        return thumbnails;
+    } catch (error) {       
         console.error('Error fetching images:', error);
         return [];
     }
@@ -231,17 +237,24 @@ load_more.addEventListener("click", () => {
     
 });
 
-function show_notification(message){
+function show_notification(message, is_error){
     const notification = document.getElementById("notification");
     notification.innerText = message;
     notification.style.display = "block";
+    notification.className = "message success";
+    let show_duration = 2000;
+    let opacity_duration = 1000;
+    if(is_error){
+        notification.className = "message error";
+        show_duration = 10000;
+    }
             setTimeout(() => {
                 notification.style.opacity = "0";
                 setTimeout(() => {
                     notification.style.display = "none";
                     notification.style.opacity = "1";
-                }, 1000);
-            }, 2000);
+                }, opacity_duration);
+            }, show_duration);
 }
 
 let currently_viewing = null;

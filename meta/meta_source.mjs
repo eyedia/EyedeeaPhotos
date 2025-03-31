@@ -93,13 +93,13 @@ export function list(callback) {
     });
 }
 
-export function get(id, decrypt_value, callback) {
+export function get(id, decrypt_value, callback) {    
     const try_id = parseInt(id);
     let query = `select * from source where id = ?`;
     if (isNaN(try_id))
         query = `select * from source where name = ? COLLATE NOCASE`;
     meta_db.get(query, [id],
-        (err, source) => {
+        (err, source) => {            
             if (err) {
                 logger.error(err.message);
                 callback(err, null);

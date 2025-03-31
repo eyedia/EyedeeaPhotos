@@ -19,8 +19,8 @@ export let nas_auth_token = {}
 let api_client = null;
 
 export async function authenticate(source_id, callback) {
-  try {
-    return init_syno(source_id, (err, nas_config) => {
+  try {    
+    return init_syno(source_id, (err, nas_config) => {      
       if (nas_config) {
         if (nas_config.cache && Object.keys(nas_config.cache).length != 0) {
           nas_auth_token[source_id] = JSON.parse(nas_config.cache);
@@ -30,6 +30,7 @@ export async function authenticate(source_id, callback) {
         }
         //not in cache, lets authenticate
         logger.info(`Authenticating NAS...${source_id}`);
+        
         return api_client.get('/auth.cgi', {
           params: {
             api: "SYNO.API.Auth",
@@ -45,7 +46,6 @@ export async function authenticate(source_id, callback) {
             nas_config.cache = response.data.data;
             nas_auth_token[source_id] = nas_config.cache;
             if (response.data.error) {
-              logger.error(response.data);
               if ((response.data.error.code) && (response.data.error.code == 407)) {
                 const syno_error_msg = "Synology blocked this IP address because it has reached the maximum number of failed login attempts allowed within a specific time period. Please contact Synology system administrator."
                 response.data.error["details"] = syno_error_msg
@@ -81,10 +81,10 @@ export async function authenticate(source_id, callback) {
   }
 }
 
-function init_syno(source_id, callback) {
-  meta_get_source(source_id, true, (err, nas_config) => {
+function init_syno(source_id, callback) {  
+  meta_get_source(source_id, true, (err, nas_config) => {   
     if (err) {
-      logger.error(err.message);
+      logger.error(err);
       callback(err, null);
     } else {
       if (!nas_config) {
@@ -101,10 +101,9 @@ function init_syno(source_id, callback) {
 
       // Configure retry behavior
       axiosRetry(api_client, {
-        retries: 3, // Number of retries
-        retryDelay: axiosRetry.exponentialDelay, // Exponential backoff
-        retryCondition: (error) => {
-          // Retry on ECONNRESET and network errors
+        retries: 3,
+        retryDelay: axiosRetry.exponentialDelay,
+        retryCondition: (error) => {          
           return error.code === 'ECONNRESET' || axiosRetry.isNetworkError(error);
         },
       });
@@ -306,12 +305,21 @@ export async function list_geo(source_id, offset = 0, limit = 1000) {
   });
 }
 
-export async function get_photo(photo_data, size = "sm", callback) {
+export async function get_photo(photo_data, size = "sm", callback) {  
+ 
   return authenticate_if_required(photo_data.source_id, auth_result => {
-    if (!nas_auth_token[photo_data.source_id]) {
+    if (!auth_result.auth_status) {      
+      //const err_msg = "Authentication failed. Please check the error log and try again later."
+      callback({ "message": auth_result.error }, null);
+      return;
+    }
+
+    //for any reason still we dont have token
+    if (!nas_auth_token[photo_data.source_id]) {      
       callback("Cannot communicate with Synology as there is no auth token. Mostly it happens when server is not able to decrypt cache.", null);
       return;
     }
+
     let m_param = {
       api: "SYNO.FotoTeam.Thumbnail",
       SynoToken: nas_auth_token[photo_data.source_id].synotoken,

@@ -1541,6 +1541,11 @@ table {
     table.alt tfoot {
       border-top: 0; }
 
+    @media only screen and (max-width: 900px) {
+      .hide-mobile{
+          display: none;
+      }
+    }
 /* Button */
 input[type="submit"],
 input[type="reset"],

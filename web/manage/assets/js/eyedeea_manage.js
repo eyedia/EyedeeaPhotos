@@ -301,7 +301,7 @@ async function get_scan_logs(triggered_by_page_a, offset) {
             .then(response => response.json())
             .then(data => {
                 renderTableScanLog(data.records);
-                renderPaginationScanLog(data.total_pages, limit, triggered_by_page_a, "pagination_scan_log");
+                renderPagination(data.total_pages, limit, triggered_by_page_a, "pagination_scan_log");
             })
             .catch(error => console.error("Error fetching data:", error));
 
@@ -326,19 +326,49 @@ function renderTableScanLog(records) {
         }
 
         const row = `<tr>            
-            <td>${item.created_at}</td>
+            <td class='hide-mobile'>${item.created_at}</td>
             <td>${item.updated_at}</td>
             <td>${duration}</td>
             <td>${item.total_photos}</td>
-            <td>${item.total_dirs}</td>
-            <td>${item.total_geo_apis}</td>
+            <td>${item.total_dirs}</td>            
         </tr>`;
 
         tableBody.innerHTML += row;
     });
 }
 
-function renderPaginationScanLog(total_pages, limit, triggered_by_page_a, e_page_ul) {
+function renderPagination(total_pages, limit, triggered_by_page_a, e_page_ul) {
+    let page_ul = document.getElementById(e_page_ul);
+    page_ul.innerHTML = "<li><span class='button disabled'>Prev</span></li>";
+    
+    for (let i = 0; i < total_pages; i++) {
+        let new_li = document.createElement("li");
+        let new_a = document.createElement("a");
+        new_a.href = "javascript:void(0);";
+        new_a.textContent = i + 1;
+        new_a.classList.add("page");
+        new_a.onclick = (event) => {
+            event.preventDefault();
+            if (e_page_ul == "pagination_scan_log")
+                get_scan_logs(event.currentTarget, i * limit);
+            else
+                get_source_dirs(event.currentTarget, i * limit);
+        }
+        new_li.appendChild(new_a);
+        page_ul.appendChild(new_li);
+
+    }
+
+    let new_li = document.createElement("li");
+    let new_a = document.createElement("a");
+    new_a.textContent ="Next";
+    new_a.classList.add("button");
+    new_li.appendChild(new_a);
+    page_ul.appendChild(new_li);
+
+}
+
+function renderPagination_old(total_pages, limit, triggered_by_page_a, e_page_ul) {
     let page_ul = document.getElementById(e_page_ul);
     page_ul.innerHTML = "";
     for (let i = 0; i < total_pages; i++) {
@@ -392,7 +422,7 @@ async function get_source_dirs(triggered_by_page_a, offset) {
             .then(response => response.json())
             .then(data => {
                 renderTableDirs(data.records);
-                renderPaginationScanLog(data.total_pages, limit, triggered_by_page_a, "pagination_dir");
+                renderPagination(data.total_pages, limit, triggered_by_page_a, "pagination_dir");
             })
             .catch(error => console.error("Error fetching data:", error));
 
@@ -740,11 +770,14 @@ function init_search() {
         if (g_searchBox)
             g_searchBox.value = keywords;
     }
-
+    
     //toggleSearchBox(dir_name, source_name);
     const dir = dir_id ? { source_id: source_id, source_name: source_name, dir_id: dir_id, dir_name: dir_name } : undefined;
-    toggleSearchBox(dir);
-    search(dir);
+    
+    if ((keywords != null) || (dir)){        
+        toggleSearchBox(dir);    
+        search(dir);
+    }
 }
 
 function toggleSearchBox(dir) {

@@ -157,8 +157,13 @@ export const get_photos_from_a_dir = async (req, res) => {
 
     res.json(return_data); // Send the complete array once processing is done
 
-  } catch (error) {
-    logger.error(`Unexpected error: ${error.message}`, { stack: error.stack });
-    res.status(500).json({ message: "Internal Server Error" });
+  } catch (error) {    
+    console.log("xxx", error)
+    if (error.message && error.message.code) {
+      //known error
+      res.status(503).json(error);
+    }else{
+      res.status(500).json({ message: "Internal Server Error" });
+    }
   }
 };

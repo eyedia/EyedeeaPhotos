@@ -57,9 +57,8 @@ const fetchSources = () => {
 export const get_photo_from_synology = (photo_data) => {
   return new Promise((resolve, reject) => {
     syno_get_photo(photo_data, "sm", (err, response) => {
-      if (err || !response || !response.headers) {
-        // If Synology fails, return a default image
-        return get_default_photo(photo_data);
+      if (err || !response || !response.headers) {        
+        reject(err);
       } else {
         resolve({
           'Content-Type': response.headers.get('content-type'),
@@ -150,7 +149,8 @@ export const global_search = async (req, res) => {
     res.json(return_data); // Send the complete array once processing is done
 
   } catch (error) {
-    logger.error(`Unexpected error: ${error.message}`, { stack: error.stack });
+    console.log(error.code)
+    //logger.error(`Unexpected error: ${error.message}`, { stack: error.stack });
     res.status(500).json({ message: "Internal Server Error" });
   }
 }

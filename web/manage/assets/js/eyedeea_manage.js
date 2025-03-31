@@ -254,7 +254,10 @@ async function get_source() {
         get_source_latest_scan_data();
         get_scan_logs();
         any_active_scan();
-        get_source_dirs();
+        //get_source_dirs();
+        const dirTable = new PaginatedTable('/api/sources/1/dirs', 'dirs-table-body', 'pagination_dir');
+        dirTable.fetchData();
+        
     } catch (error) {
         console.error("Error fetching data:", error);
     }

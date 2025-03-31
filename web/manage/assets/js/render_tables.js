@@ -1,106 +1,78 @@
-let limit = 30;
-let offset = 0;
-let currentPage = 1;
-let totalPages = 1;
-let pageGroupSize = 5;
-let paginationUl = "pagination_dir";
-//const apiUrl = `/api/sources/${g_source.id}/dirs`;
-
-async function get_source_dirs(offset) {
-    if (g_source == null) {
-        console.log("retr")
-        return;
+class PaginatedTable {
+    constructor(apiUrl, tableBodyId, paginationUlId, limit = 30, pageGroupSize = 5) {
+        this.apiUrl = apiUrl;
+        this.tableBodyId = tableBodyId;
+        this.paginationUlId = paginationUlId;
+        this.limit = limit;
+        this.offset = 0;
+        this.currentPage = 1;
+        this.totalPages = 1;
+        this.pageGroupSize = pageGroupSize;
     }
-    try {
-        const apiUrl = `/api/sources/${g_source.id}/dirs`;
-        if (!offset)
-            offset = 0;
-        fetch(`${apiUrl}?limit=${limit}&offset=${offset}`)
-            .then(response => response.json())
-            .then(data => {
-                totalPages = data.total_pages;
-                renderTable(data.records);
-                renderPagination(currentPage, totalPages);
-            })
-            .catch(error => console.error("Error fetching data:", error));
 
-
-    } catch (error) {
-        console.error('Error fetching data:', error);
-    }
-}
-
-
-function renderTable(records) {
-    const tableBody = document.getElementById("dirs-table-body");
-    tableBody.innerHTML = '';
-
-    records.forEach(item => {
-        const row = `<tr>            
-            <td>${item.dir}</td>
-            <td><a href='photos.html?source-id=${g_source.id}&source-name=${g_source.name}&dir-id=${item.dir_id}&dir-name=${item.dir}'>${item.photos}</a></td>
-        </tr>`;
-
-        tableBody.innerHTML += row;
-    });
-}
-
-function renderPagination(currentPage, totalPages) {    
-    let page_ul = document.getElementById(paginationUl);
-    page_ul.innerHTML = "";
-
-    let startPage = Math.floor((currentPage - 1) / pageGroupSize) * pageGroupSize + 1;
-    let endPage = Math.min(startPage + pageGroupSize - 1, totalPages);
-
-    let prevButton = document.createElement("span");
-    prevButton.textContent = "Prev";
-    prevButton.className = "button";
-    if (currentPage <= 1)
-        prevButton.classList.add("disabled");
-
-    prevButton.onclick = () => {
-        currentPage = Math.max(1, currentPage - pageGroupSize);
-        offset = (currentPage - 1) * limit;
-        get_source_dirs(offset);
-    };
-    let prev_li = document.createElement("li");
-    prev_li.appendChild(prevButton);
-    page_ul.appendChild(prev_li);
-
-
-    for (let i = startPage; i <= endPage; i++) {
-        let new_li = document.createElement("li");
-        let new_a = document.createElement("a");
-        new_a.href = "javascript:void(0);";
-        new_a.textContent = i;
-        console.log("page content", new_a.textContent);
-        new_a.classList.add("page");
-        new_a.onclick = () => {
-            currentPage = i;
-            offset = (i - 1) * limit;
-            get_source_dirs(offset);
-        };
-        if (i === currentPage) {
-            new_a.disabled = true;
+    async fetchData(offset = 0) {
+        try {
+            const response = await fetch(`${this.apiUrl}?limit=${this.limit}&offset=${offset}`);
+            const data = await response.json();
+            this.totalPages = data.total_pages;
+            this.renderTable(data.records);
+            this.renderPagination();
+        } catch (error) {
+            console.error("Error fetching data:", error);
         }
-        new_li.appendChild(new_a);
-        page_ul.appendChild(new_li);
-
     }
 
-    let next_li = document.createElement("li");
-    let next_a = document.createElement("a");
-    next_a.textContent = "Next";
-    next_a.classList.add("button");
-    if (currentPage + pageGroupSize > totalPages)
-        next_a.classList.add("disabled");
+    renderTable(records) {
+        const tableBody = document.getElementById(this.tableBodyId);
+        tableBody.innerHTML = '';
+        records.forEach(item => {
+            const row = `<tr>            
+                <td>${item.dir}</td>
+                <td><a href='photos.html?dir-id=${item.dir_id}&dir-name=${item.dir}'>${item.photos}</a></td>
+            </tr>`;
+            tableBody.innerHTML += row;
+        });
+    }
 
-    next_a.onclick = () => {
-        currentPage = Math.min(totalPages, currentPage + pageGroupSize);
-        offset = (currentPage - 1) * limit;
-        get_source_dirs(offset);
-    };
+    renderPagination() {    
+        let page_ul = document.getElementById(this.paginationUlId);
+        page_ul.innerHTML = "";
+        let startPage = Math.floor((this.currentPage - 1) / this.pageGroupSize) * this.pageGroupSize + 1;
+        let endPage = Math.min(startPage + this.pageGroupSize - 1, this.totalPages);
+        
+        this.createPaginationButton("Prev", this.currentPage > 1, () => {
+            this.currentPage = Math.max(1, this.currentPage - this.pageGroupSize);
+            this.offset = (this.currentPage - 1) * this.limit;
+            this.fetchData(this.offset);
+        }, page_ul);
+        
+        for (let i = startPage; i <= endPage; i++) {
+            this.createPaginationButton(i, true, () => {
+                this.currentPage = i;
+                this.offset = (i - 1) * this.limit;
+                this.fetchData(this.offset);
+            }, page_ul, i === this.currentPage);
+        }
+        
+        this.createPaginationButton("Next", this.currentPage + this.pageGroupSize <= this.totalPages, () => {
+            this.currentPage = Math.min(this.totalPages, this.currentPage + this.pageGroupSize);
+            this.offset = (this.currentPage - 1) * this.limit;
+            this.fetchData(this.offset);
+        }, page_ul);
+    }
 
-    next_li.appendChild(next_a);
-    page_ul.appendChild(next_li);
+    createPaginationButton(text, isEnabled, onClick, container, isActive = false) {
+        const li = document.createElement("li");
+        const element = document.createElement(text === "Prev" ? "span" : "a");
+        
+        element.textContent = text;
+        element.classList.add(text === "Prev" || text === "Next" ? "button" : "page");
+        if (!isEnabled) element.classList.add("disabled");
+        if (isEnabled) element.onclick = onClick;
+        if (isActive) element.classList.add("active");
+        if (text !== "Prev") element.href = "javascript:void(0);";
+        
+        li.appendChild(element);
+        container.appendChild(li);
+    }
 }

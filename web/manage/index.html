@@ -44,9 +44,9 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Source Name</th>
-                            <th>Total Photos</th>
-                            <th>Last Scanned</th>
+                            <th>Source</th>
+                            <th>Photos</th>
+                            <th class="hide-mobile">Last Scanned</th>
                         </tr>
                     </thead>
                     <tbody id="source-summary-table-body">
@@ -61,47 +61,57 @@
                         <header class="main">
                             <h2 id="title">Add New Photo Source</h2>
                         </header>
-                        <div class="erow">
-                            <label for="name">Name:</label>
-                            <input type="text" id="source_name" name="source_name" oninput="validate_fields()">
-                        </div>
-                        <div class="erow">
-                            <label for="type">Type:</label>
-                            <select id="source_type" name="source_type" onchange="toggleFields()">
-                                <option value="">Select</option>
-                                <option value="nas">NAS</option>
-                                <option value="fs">FS</option>
-                            </select>
-                        </div>
+                        <div class="col-6 col-12-xsmall">                            
+                                <div class="row gtr-uniform">
+                                    <div class="col-6 col-12-xsmall">
+                                        <label for="name">Name</label>
+                                        <input type="text" id="source_name" name="source_name"
+                                            oninput="validate_fields()">
+                                    </div>
+                                    <div class="col-6 col-12-xsmall">
+                                        <label for="type">Type</label>
+                                        <select id="source_type" name="source_type" onchange="toggleFields()">
+                                            <option value="">Select</option>
+                                            <option value="nas">Synology Photos</option>
+                                            <option value="fs">File System</option>
+                                        </select>
+                                    </div>
 
-                        <div id="nasFields" class="hidden">
-                            <div class="erow">
-                                <label for="url">URL:</label>
-                                <input type="text" id="url" name="url" oninput="validate_fields()">
-                            </div>
-                            <div class="erow">
-                                <label for="username">Username:</label>
-                                <input type="text" id="username" name="username" oninput="validate_fields()">
-                                <label for="password">Password:</label>
-                                <input type="password" id="password" name="password" oninput="validate_fields()">
-                            </div>
-                        </div>
+                                    <div id="nasFields" class="col-12 hidden">
+                                        <div class="col-6 col-12-xsmall">
+                                            <label for="url">URL</label>
+                                            <input type="text" id="url" name="url" oninput="validate_fields()">
+                                        </div>
+                                        <div class="col-6 col-12-xsmall">
+                                            <label for="username">User</label>
+                                            <input type="text" id="username" name="username"
+                                                oninput="validate_fields()">
+                                        </div>
+                                        <div class="col-6">
+                                            <label for="password">Password</label>
+                                            <input type="password" id="password" name="password"
+                                                oninput="validate_fields()">
+                                        </div>
+                                    </div>
 
-                        <div id="fsFields" class="hidden">
-                            <div class="erow">
-                                <label for="directory">Directory:</label>
-                                <input type="text" id="directory" name="directory" oninput="validate_fields()">
-                            </div>
-                            <div class="erow">
-                                <label for="apiKey">API Key:</label>
-                                <input type="text" id="apiKey" name="apiKey">
-                            </div>
+                                    <div id="fsFields" class="col-12 hidden">
+                                        <div class="col-12">
+                                            <label for="directory">Directory</label>
+                                            <input type="text" id="directory" name="directory"
+                                                oninput="validate_fields()">
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <a id="add" class="button primary icon solid fa-save">Add</a>
+                                        <div id="message" class="message hidden"></div>
+                                    </div>
+                                </div>
+                           
                         </div>
-                        <input id="add" name="add" type="submit" value="Save" class="primary" disabled />
-                        <div id="message" class="message hidden"></div>
                     </section>
 
-                    <button onclick="window.dialog.close();" aria-label="close" class="x">❌</button>
+                   
+                    <button class="close-btn" onclick="document.getElementById('dialog').close()">✖</button>
                 </dialog>
             </div>
         </div>
@@ -122,7 +132,7 @@
                     <header class="major">
                         <h2><a href="../">Eyedeea Photos</a></h2>
                     </header>
-                    <ul>                        
+                    <ul>
                         <li><a href="index.html">System</a></li>
                         <li><a href="player.html">Player Settings</a></li>
                         <li><a href="photos.html">Photos</a></li>
@@ -153,7 +163,7 @@
     <script src="assets/js/util.js"></script>
     <script src="assets/js/manage_main.js"></script>
     <script src="assets/js/paginated_table.js"></script>
-    <script src="assets/js/eyedeea_manage.js"></script>    
+    <script src="assets/js/eyedeea_manage.js"></script>
 </body>
 
 </html>

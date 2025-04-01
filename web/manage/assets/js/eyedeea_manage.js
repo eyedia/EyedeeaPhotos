@@ -447,13 +447,12 @@ function renderTableSummary(data) {
     } else if (data.summary.total_sources > 1) {
         system_summary.innerHTML = `${data.summary.total_sources} Photo sources are configured with ${data.summary.total_photos} photos.`;
     }
-
-    console.log(data);
+    
     data.details.forEach(item => {
         const row = `<tr>            
             <td><a href='/manage/source.html?id=${item.source_id}'>${item.name}</a></td>
             <td>${item.total_photos}</td>
-            <td>${item.last_scanned_at}</td>
+            <td class='hide-mobile'>${item.last_scanned_at}</td>
         </tr>`;
 
         tableBody.innerHTML += row;

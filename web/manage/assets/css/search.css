@@ -103,7 +103,7 @@
 
 
 
-
+/*
 .g-search {
     display: none;
     position: fixed;
@@ -117,7 +117,7 @@
     
 }
 
-.g-search-content {
+ .g-search-content {
     background-color: #fff;
     padding: 20px;
     border-radius: 8px;
@@ -140,7 +140,7 @@
     border-radius: 4px;
     flex: 1;
     
-}
+} */
 
 #loader-container {
     position: fixed;

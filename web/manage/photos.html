@@ -150,27 +150,33 @@
                 </div>
                 <!-- Search -->
                 <div id="g-search">
-                    <div class="g-search-content">
-                        <input type="radio" id="demo-priority-search" name="option" value="search"
-                            onchange="handleSearchOrBrowse()" checked>
-                        <label for="demo-priority-search">Search</label>
-                        <input type="radio" id="demo-priority-browse" name="option" value="browse"
-                            onchange="handleSearchOrBrowse()">
-                        <label for="demo-priority-browse">Browse</label>
+                    <div>
+                        <div>
+                            <input type="radio" id="demo-priority-search" name="option" value="search"
+                                onchange="handleSearchOrBrowse()" checked>
+                            <label for="demo-priority-search">Search</label>
+                            <input type="radio" id="demo-priority-browse" name="option" value="browse"
+                                onchange="handleSearchOrBrowse()">
+                            <label for="demo-priority-browse">Browse</label>
 
-                        <div id="gSearchContainer" class="search-container">
-                            <input type="text" id="g-search-searchBox" placeholder="Search photos..." autofocus>
-                        </div>
+                            <div id="gSearchContainer" class="search-container">
+                                <input type="text" id="g-search-searchBox" placeholder="Search photos..." autofocus>
+                            </div>
+                            <div id="browseOptions" class="hidden">
+                                <div class="col-6 col-12-xsmall">
+                                    
+                                    <label for="sourceSelect">Source</label>
+                                    <select id="sourceSelect">
+                                    </select>
+                                </div>
+                                <div class="col-6 col-12-xsmall">
+                                    <label for="directorySelect">Directory</label>
+                                    <select id="directorySelect">
 
-                        <div id="browseOptions" class="hidden browse-container">
-                            <label for="sourceSelect">Source:</label>
-                            <select id="sourceSelect">
-                            </select>
-
-                            <label for="directorySelect">Directory:</label>
-                            <select id="directorySelect">
-
-                            </select>
+                                    </select>
+                                </div>
+                            </div>
+                            
                         </div>
                         <div id="loader" class="loader-container">
                             <div class="loader"></div>

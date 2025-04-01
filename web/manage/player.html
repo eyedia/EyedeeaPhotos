@@ -104,8 +104,9 @@
                 <div style="height: 10px;"></div>
                 <div class="col-12">
                     <h3 id="system_summary"></h3>
-                    <a id="btn_add_filter" onclick="openModal()" class="button primary icon"
-                        style="vertical-align: middle;">Add New Filter</a>
+                    <a id="btn_add_filter"
+                        onclick="document.getElementById('sidebar').classList.add('inactive');window.dialog.showModal();"
+                        class="button primary icon" style="vertical-align: middle;">Add New Filter</a>
                     <div id="notification" class="notification-container">N/A</div>
 
                 </div>
@@ -125,39 +126,38 @@
                 </table>
 
                 <!-- Add New Filter -->
-                <div id="modal" class="modal">
-                    <div class="modal-content">
-                        <span id="closeModal" class="close" title="Escape key works too!">&times;</span>
-                        <div class="search-bar">
-                            <input type="text" id="searchBox" autofocus placeholder="Search images...">
-                            <button id="searchButton">Search</button>
-                            <input type="text" id="nameBox" placeholder="Name your filter...">
-                            <button id="saveButton" onclick="saveSearch()">Save</button>
-                        </div>
-                        <div id="loader-container" style="display: none;">
-                            <div class="loader-wrapper">
-                                <img src="../images/Eyedeea_Photos_m_logo.png" class="loader-logo" alt="Logo" />
-                                <img src="../images/sliding_square_loader_view.gif" class="loader-gif"
-                                    alt="Loading..." />
-                            </div>
-                        </div>
-                        <div id="gallery" class="gallery"></div>
-                        <div class="viewer" id="viewer">
-                            <span class="close" onclick="closeViewer()">&times;</span>
-                            <span class="arrow left" onclick="changeImage(-1)">&#10094;</span>
-                            <div class="loading" id="loading">Loading...</div>
-                            <img id="viewer-img" src="" alt="Fullscreen Image">
-                            <span class="arrow right" onclick="changeImage(1)">&#10095;</span>
-                        </div>
-                        <div class="footer-container">
-                            <div id="footer" class="footer"></div>
-                            <p><a id="load-more" href="#">More</a></p>
-                        </div>
+                <dialog id="dialog" style="height: 100vw;">
+                    <span id="closeModal" class="close" title="Escape key works too!">&times;</span>
+                    <div class="col-6 col-12-xsmall">
+                        <input type="text" id="searchBox" autofocus placeholder="Search images...">
+                        <div style="height: 10px;"></div>
+                        <a id="searchButton" href="#" class="button primary fit small icon solid fa-search">Search</a>
                     </div>
-                </div>
+                    <div id="loader" class="loader-container">
+                        <div class="loader"></div>
+                    </div>
+                    <div style="height: 10px;"></div>
+                    <div id="gallery" class="gallery"></div>
+                    <div class="viewer" id="viewer">
+                        <span class="close" onclick="closeViewer()">&times;</span>
+                        <span class="arrow left" onclick="changeImage(-1)">&#10094;</span>
+                        <div class="loading" id="loading">Loading...</div>
+                        <img id="viewer-img" src="" alt="Fullscreen Image">
+                        <span class="arrow right" onclick="changeImage(1)">&#10095;</span>
+                    </div>
+                    <div class="footer-container">
+                        <div id="footer" class="footer"></div>
+                        <p><a id="load-more" href="#">More</a></p>
+                    </div>
 
-
+                </dialog>
                 <!-- Add New Filter -->
+                <dialog id="dialogSaveFilter">
+                    <div class="col-6 col-12-xsmall">
+                        <input type="text" id="nameBox" placeholder="Name your filter...">
+                        <button id="saveButton" onclick="saveSearch()">Save</button>
+                    </div>
+                </dialog>
             </div>
         </div>
 

@@ -1,4 +1,4 @@
-.modal {
+/* .modal {
     display: none;
     position: fixed;
     top: 0;
@@ -18,7 +18,7 @@
     max-height: 90%;
     overflow-y: auto;
     position: relative;
-}
+} */
 
 .close {
     position: absolute;
@@ -27,7 +27,7 @@
     font-size: 24px;
     cursor: pointer;
 }
-
+/* 
 .search-bar {
     display: flex;
     gap: 10px;
@@ -43,15 +43,37 @@
 }
 
 #searchBox {
-    flex: 1; /* Takes the remaining space */
-    min-width: 0; /* Prevents overflow */
+    flex: 1; 
+    min-width:
 }
 
 #nameBox {
-    flex: 0.3; /* Takes 30% of the space */
-    min-width: 100px; /* Ensures it doesn't become too small */
+    flex: 0.3;
+    min-width: 100px;
+} */
+
+        
+.loader-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: none; /* Hidden by default */
+    justify-content: center;
+    align-items: center;            
+    background: rgba(255, 255, 255, 0.8); /* Optional: Adds a semi-transparent overlay */
 }
 
+.loader {
+    width: 10vw;
+    height: 10vw;
+    max-width: 100px;
+    max-height: 100px;
+    min-width: 50px;
+    min-height: 50px;
+    background: url('../../../images/eyedeea_loading.gif') no-repeat center center;
+    background-size: contain;
+}
 
 .gallery {
     display: grid;
@@ -101,7 +123,21 @@
     display: block;
 }
 
+dialog {
+    width: 90vw;
+    height: 90vh;
+    border: none;
+    padding: 1rem;
+    max-width: 900px;
+    max-height: 600px;
+    
+    min-height: 75vh;
 
+    position: fixed;
+    top: 18%;
+    /* left: 50%;
+    transform: translate(-50%, -50%);*/
+  }
 
 /*
 .g-search {
@@ -140,7 +176,7 @@
     border-radius: 4px;
     flex: 1;
     
-} */
+}
 
 #loader-container {
     position: fixed;
@@ -154,7 +190,7 @@
 
 .loader-wrapper {
     position: relative;
-    width: 489px; /* Adjust based on your GIF size */
+    width: 489px;
     height: 279px;
 }
 
@@ -164,7 +200,7 @@
     position: absolute;
     top: 0;
     left: 0;
-    z-index: 0; /* Behind the GIF */
+    z-index: 0;
 }
 
 .loader-gif {
@@ -173,5 +209,6 @@
     position: absolute;
     top: 0;
     left: 0;
-    z-index: 1; /* On top */
+    z-index: 1; 
 }
+*/

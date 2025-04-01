@@ -192,17 +192,17 @@ if(nameBox){
 //     saveButton.addEentListener('click', saveSearch);
 // }
 
-function openModal(){
-    modal.style.display = 'flex';
-    keywords = '';
-    searchBox.value = '';
-    searchBox.focus();
-    nameBox.value = '';
-    gallery.innerHTML = '';
-    offset_search = 0;
-    sidebar.classList.add("inactive");
-    gallery.addEventListener('scroll', loadMoreImagesOnScroll);
-}
+// function openModal(){
+//     modal.style.display = 'flex';
+//     keywords = '';
+//     searchBox.value = '';
+//     searchBox.focus();
+//     nameBox.value = '';
+//     gallery.innerHTML = '';
+//     offset_search = 0;
+//     sidebar.classList.add("inactive");
+//     gallery.addEventListener('scroll', loadMoreImagesOnScroll);
+// }
 
 if(closeModal){
     closeModal.addEventListener('click', () => {

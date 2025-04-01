@@ -9,8 +9,10 @@ class PaginatedTable {
         this.totalPages = 1;
         this.pageGroupSize = pageGroupSize;
         
-        if (window.innerWidth < 480)    //pagination is disabled for smaller screens. Should be same as main.css; line#1497
+        if (window.innerWidth < 480){    //pagination is disabled for smaller screens. Should be same as main.css; line#1497
+            this.limit = 10;
             this.pageGroupSize = 1;
+        }
     }
 
     async fetchData(offset = 0) {

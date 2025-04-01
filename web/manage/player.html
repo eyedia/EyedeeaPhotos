@@ -105,7 +105,7 @@
                 <div class="col-12">
                     <h3 id="system_summary"></h3>
                     <a id="btn_add_filter"
-                        onclick="document.getElementById('sidebar').classList.add('inactive');window.dialog.showModal();"
+                        onclick="openPlayerFilterPopup()"
                         class="button primary icon" style="vertical-align: middle;">Add New Filter</a>
                     <div id="notification" class="notification-container">N/A</div>
 
@@ -127,11 +127,16 @@
 
                 <!-- Add New Filter -->
                 <dialog id="dialog" style="height: 100vw;">
-                    <span id="closeModal" class="close" title="Escape key works too!">&times;</span>
                     <div class="col-6 col-12-xsmall">
-                        <input type="text" id="searchBox" autofocus placeholder="Search images...">
+                        <h3>Add New Player Filter</h3>
+                    </div>
+                    <div class="col-6 col-12-xsmall">
+                        <span id="closeModal" class="close-btn" onclick="document.getElementById('dialog').close()" title="Escape key works too!">&times;</span>
+                     </div>
+                    <div class="col-6 col-12-xsmall">
+                        <input type="text" id="searchBox" autofocus placeholder="Search images..." oninput="enableSearchButton()">
                         <div style="height: 10px;"></div>
-                        <a id="searchButton" href="#" class="button primary fit small icon solid fa-search">Search</a>
+                        <a id="searchButton" href="#" class="button primary fit small icon solid fa-search disabled">Search Photos</a>
                     </div>
                     <div id="loader" class="loader-container">
                         <div class="loader"></div>
@@ -145,19 +150,23 @@
                         <img id="viewer-img" src="" alt="Fullscreen Image">
                         <span class="arrow right" onclick="changeImage(1)">&#10095;</span>
                     </div>
-                    <div class="footer-container">
-                        <div id="footer" class="footer"></div>
-                        <p><a id="load-more" href="#">More</a></p>
+                    <div class="col-6 col-12-xsmall">
+                        <p id="footer" class="footer"></p>
+                        <p><a id="load-more" href="#" style="float:right">More</a></p>
                     </div>
-
+                    <div id="divCreateFilter" class="hidden">
+                        <div class="col-6 col-12-xsmall">                        
+                            <input type="text" id="nameBox" placeholder="Name your filter...">
+                        </div>
+                        <div style="height: 10px;"></div>
+                        <div class="col-6 col-12-xsmall">
+                            <a id="createFilter" href="#" onclick="saveFilter()" class="button primary fit small icon solid fa-save">Save
+                                Filter</a>
+                        </div>
+                    </div>
                 </dialog>
                 <!-- Add New Filter -->
-                <dialog id="dialogSaveFilter">
-                    <div class="col-6 col-12-xsmall">
-                        <input type="text" id="nameBox" placeholder="Name your filter...">
-                        <button id="saveButton" onclick="saveSearch()">Save</button>
-                    </div>
-                </dialog>
+               
             </div>
         </div>
 

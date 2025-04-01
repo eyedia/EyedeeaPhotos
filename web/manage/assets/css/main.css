@@ -175,14 +175,13 @@ dialog::backdrop {
   background: rgba(0, 0, 0, 0.3);
 }
 
- /* Close button styles */
  .close-btn {
   position: absolute;
-  top: 3px;
-  right: 3px;
+  top: 1px;
+  right: 10px;
   background: none;
   border: none;
-  font-size: 10px;
+  font-size: 2em;
   font-weight: bold;
   cursor: pointer;
   color: #555;

@@ -10,6 +10,8 @@ const searchButton = document.getElementById('searchButton');
 const footer = document.getElementById('footer');
 const load_more = document.getElementById("load-more");
 
+const divCreateFilter = document.getElementById("divCreateFilter");
+
 const viewer = document.getElementById("viewer");
 const viewerImg = document.getElementById('viewer-img');
 const loadingText = document.getElementById('loading');
@@ -19,6 +21,19 @@ const limit = 40;
 let keywords = '';
 let totalPhotos = 0;
 
+function openPlayerFilterPopup(){
+    clearSearch();
+    sidebar.classList.add('inactive');
+    window.dialog.showModal();
+}
+
+function enableSearchButton() {
+    console.log(searchBox.value.length)
+    if (searchBox.value.length >= 3)
+        searchButton.classList.remove("disabled");
+    else
+        searchButton.classList.add("disabled");
+}
 
 const fetchImages = async (dir) => {    
     
@@ -68,7 +83,7 @@ const fetchImages = async (dir) => {
     }
 };
 
-const saveSearch = async () => {
+const saveFilter = async () => {
     const name = nameBox.value.trim();
     const search = searchBox.value.trim();
 
@@ -124,9 +139,11 @@ const updateFooter = (loading) => {
         }else{
             load_more.classList.remove("show");
         }
+        divCreateFilter.classList.remove("hidden");
     }else{
         footer.textContent = "No photos found!";
         load_more.classList.remove("show");
+        divCreateFilter.classList.add("hidden");
     }
 };
 
@@ -138,7 +155,7 @@ const loadMoreImagesOnScroll = () => {
 
 if (searchBox){
     searchBox.addEventListener("keydown", function (event) {
-        if (event.key === "Enter") {
+        if ((event.key === "Enter") && (searchBox.value.length >= 3)) {
             search();
         }
     });
@@ -146,7 +163,7 @@ if (searchBox){
 
 if (g_searchBox){
     g_searchBox.addEventListener("keydown", function (event) {
-        if (event.key === "Enter") {
+        if ((event.key === "Enter") && (searchBox.value.length >= 3)) {
             search();
         }
     });
@@ -182,14 +199,14 @@ function search(dir){
 if(nameBox){
     nameBox.addEventListener("keydown", function (event) {
         if (event.key === "Enter") {
-            saveSearch();
+            saveFilter();
         }
     });
 }
 
 // if(saveButton){
 //     console.log(saveButton);
-//     saveButton.addEentListener('click', saveSearch);
+//     saveButton.addEentListener('click', saveFilter);
 // }
 
 // function openModal(){
@@ -204,15 +221,15 @@ if(nameBox){
 //     gallery.addEventListener('scroll', loadMoreImagesOnScroll);
 // }
 
-if(closeModal){
-    closeModal.addEventListener('click', () => {
-        modal.style.display = 'none';
-        gallery.innerHTML = '';
-        offset_search = 0;
-        gallery.removeEventListener('scroll', loadMoreImagesOnScroll);
-        footer.textContent = '';
-    });
-}
+// if(closeModal){
+//     closeModal.addEventListener('click', () => {
+//         modal.style.display = 'none';
+//         gallery.innerHTML = '';
+//         offset_search = 0;
+//         gallery.removeEventListener('scroll', loadMoreImagesOnScroll);
+//         footer.textContent = '';
+//     });
+// }
 
 window.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
@@ -298,7 +315,17 @@ function closeViewer() {
 }
 
 function clearSearch(){
-    //g_dir_id = 0;
+    if(divCreateFilter){
+        divCreateFilter.classList.add("hidden");
+        load_more.classList.remove("show");
+        searchBox.value = "";
+        searchButton.classList.add("disabled");
+    }else{
+        g_searchBox.value = "";
+        //g_searchButton.classList.add("hidden");
+    }
+
+    footer.textContent = '';
     if(gallery)
         gallery.innerHTML = '';
 

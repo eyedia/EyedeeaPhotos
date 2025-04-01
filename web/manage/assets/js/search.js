@@ -28,7 +28,6 @@ function openPlayerFilterPopup(){
 }
 
 function enableSearchButton() {
-    console.log(searchBox.value.length)
     if (searchBox.value.length >= 3)
         searchButton.classList.remove("disabled");
     else
@@ -99,6 +98,7 @@ const saveFilter = async () => {
             body: JSON.stringify({ "name": name, "filter_must": search })
         });
         get_filters(undefined, 0);
+        show_notification("Filter added! You can now activate your newly created filter.");
         closeModal.click();
         
     } catch (error) {
@@ -139,11 +139,13 @@ const updateFooter = (loading) => {
         }else{
             load_more.classList.remove("show");
         }
-        divCreateFilter.classList.remove("hidden");
+        if(divCreateFilter)
+            divCreateFilter.classList.remove("hidden");
     }else{
         footer.textContent = "No photos found!";
         load_more.classList.remove("show");
-        divCreateFilter.classList.add("hidden");
+        if(divCreateFilter)
+            divCreateFilter.classList.add("hidden");
     }
 };
 
@@ -163,7 +165,7 @@ if (searchBox){
 
 if (g_searchBox){
     g_searchBox.addEventListener("keydown", function (event) {
-        if ((event.key === "Enter") && (searchBox.value.length >= 3)) {
+        if ((event.key === "Enter") && (g_searchBox.value.length >= 3)) {
             search();
         }
     });
@@ -259,14 +261,15 @@ function show_notification(message, is_error){
     notification.innerText = message;
     notification.style.display = "block";
     notification.className = "message success";
-    let show_duration = 2000;
+    let show_duration = 5000;
     let opacity_duration = 1000;
     if(is_error){
         notification.className = "message error";
         show_duration = 10000;
     }
             setTimeout(() => {
-                notification.style.opacity = "0";
+                //notification.style.opacity = "0";
+                notification.classList.add("hidden");
                 setTimeout(() => {
                     notification.style.display = "none";
                     notification.style.opacity = "1";

@@ -1,4 +1,4 @@
-import { list_dir, list_dir_items, get_dir_details } from "./syno_client.mjs";
+import { list_dir, list_dir_items, get_dir_details, listPersons } from "./syno_client.mjs";
 import {
     save_item, save_scan_log_detail,
     get_scan_log_detail, update_scan_log,
@@ -37,8 +37,16 @@ export async function scan(source, folder_id, inform_caller_scan_started, inform
                 } else {
                     total_dirs = 1;
                     total_photos = 0;
-                    inform_caller_scan_started(null, scan_started_data);
-                    internal_scan(scan_started_data, folder_id);
+
+                    let args = {
+                        "source_id": scan_started_data.source_id,                        
+                        "offset": 0,
+                        "limit": 1000
+                    }                    
+                    listPersons(args, (err, persons) => {
+                        inform_caller_scan_started(null, scan_started_data);
+                        internal_scan(scan_started_data, folder_id);
+                    });
                 }
             },
                 syno_scanning_ended,

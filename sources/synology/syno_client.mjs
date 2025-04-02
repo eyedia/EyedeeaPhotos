@@ -271,6 +271,50 @@ export async function list_dir_items(args, callback) {
   });
 }
 
+
+export async function listPersons(args, callback) {
+  authenticate_if_required(args.source_id, auth_result => {
+    let m_param = {
+      api: "SYNO.FotoTeam.Browse.Person",
+      SynoToken: nas_auth_token[args.source_id].synotoken,
+      _sid: nas_auth_token[args.source_id].sid,
+      version: 2,
+      method: "list",
+      offset: args.offset,
+      limit: args.limit
+    };
+
+    api_client.get('/entry.cgi', {
+      params: m_param,
+      httpsAgent: httpsAgent
+    })
+      .then(function (response) {
+        callback(null, response.data);
+      })
+      .catch(function (error) {
+        if (error.code === 'ECONNRESET') {
+          logger.error('Connection reset by peer.');
+          callback('Connection reset by peer.', null);
+        } else {
+          logger.info(error.message);
+          callback(error, null);
+        }
+      });
+  });
+}
+
+export function listPersonsAsync(args) {
+  return new Promise((resolve, reject) => {
+    listPersons(args, (error, data) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(data);
+      }
+    });
+  });
+}
+
 export async function list_geo(source_id, offset = 0, limit = 1000) {
   return authenticate_if_required(source_id, auth_result => {
     let m_param = {

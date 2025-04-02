@@ -404,12 +404,16 @@ async function any_active_scan() {
                 let data = {
                     "scan_log_id": scan_details.scan_log.id
                 }
+                const btn_update = document.getElementById("add");
                 const btn_scan = document.getElementById('btn_scan');
                 const scan_caption = document.getElementById('scan_caption');
+                const scan_loading = document.getElementById("scan_loading");
+                
                 scan_caption.style.removeProperty("color");
                 scan_caption.style.visibility = 'visible';
                 btn_scan.classList.add("disabled");
-                show_count_down_refresh_timer(data, btn_scan, scan_caption);
+                scan_loading.style.display = "flex"; 
+                checkScanLog(data, btn_scan, btn_update, scan_caption);
             }
         }
     } catch (error) {

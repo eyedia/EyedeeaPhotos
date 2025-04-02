@@ -248,7 +248,7 @@ export async function list_dir_items(args, callback) {
       "folder_id": args.folder_id,
       offset: args.offset,
       limit: args.limit,
-      additional: "[\"thumbnail\", \"resolution\",\"orientation\",\"provider_user_id\", \"tag\", \"geocoding_id\", \"address\"]"
+      additional: "[\"thumbnail\", \"resolution\",\"orientation\",\"provider_user_id\", \"tag\", \"geocoding_id\", \"address\", \"person\"]"
 
     };
 

@@ -116,6 +116,13 @@ async function list_dir_loop(scan_started_data, folder_id, folder_name, offset, 
                         photo_data.data.list.forEach(function (photo) {
                             total_photos++;
                             const persons =  photo.additional.person.map(p => p.name).join(",");
+                            if(photo.folder_id == 1077){
+                                console.log("XXXXXXXXXXXXXXXXX");
+                                console.log(photo);
+                                console.log(persons);
+                                console.log("XXXXXXXXXXXXXXXXX");
+
+                            }
                             let one_record = {
                                 "source_id": scan_started_data.source_id,
                                 "photo_id": photo.id,
@@ -185,7 +192,6 @@ function syno_scanning_ended(err, scan_log_end_data, inform_caller_scan_ended) {
             } else {
                 if (rows && rows.length > 0) {
                     logger.info("Started secondary scans (retrying failed folders)...");
-                    logger.info("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
                     console.log("After 1st round scan:", scan_log_end_data.total_dirs, total_dirs, total_photos);
                     syno_start_failed_folders(scan_log_end_data, inform_caller_scan_ended);
                 }
@@ -193,7 +199,6 @@ function syno_scanning_ended(err, scan_log_end_data, inform_caller_scan_ended) {
         });
         
     } else {
-        logger.info("YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
         console.log("After 2nd round scan:", scan_log_end_data.total_dirs, total_dirs, total_photos);
         _failed_folders_tried = true;
         scan_log_end_data.total_dirs = total_dirs;

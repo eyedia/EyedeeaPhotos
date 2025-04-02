@@ -139,6 +139,17 @@ dialog {
     transform: translate(-50%, -50%);*/
   }
 
+.fa-icon  {
+    text-decoration: none;
+    color: darkgray;
+    font-size: 24px;
+    transition: color 0.3s ease-in-out;
+}
+
+.fa-icon:hover {
+    color: #F67878;
+}
+
 /*
 .g-search {
     display: none;

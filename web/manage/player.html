@@ -73,6 +73,37 @@
             top: 20px;
             right: 20px;
         }
+
+        .logo {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+}
+
+.logo img {
+    grid-row: span 2;
+    width: 100px; /* Adjust as needed */
+    height: auto;
+    content: url('../images/Eyedeea_Photos_m_logo.png'); /* Adding the logo image */
+}
+
+.logo h2 {
+    grid-column: 2;
+    margin: 0;
+    align-self: end; /* Bottom align h2 */
+    
+}
+
+.logo h3 {
+    grid-column: 2;
+    margin: 0;
+    align-self: start; /* Top align h3 */
+    padding-left: 10px;
+    
+}
         
     </style>
 </head>
@@ -90,9 +121,9 @@
                 <header id="header">
                     <div class="eyedeea-header">
                         <a href="index.html" class="logo">
-                            <img src="../images/Eyedeea_Photos_m_logo.png" width="10%" alt="Eyedeea Photos Logo"
-                                style="vertical-align: middle;" />
-                            <h2 style="display: inline;vertical-align: middle;">Eyedeea Photos - Player Settings</h2>
+                            <img/>
+                            <h2>Eyedeea Photos</h2>
+                            <h3>Player Settings</h3>
                         </a>
                     </div>
                     <ul class="icons">

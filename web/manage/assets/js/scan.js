@@ -1,10 +1,4 @@
-
-
 async function scan() {
-    show_notification("this is somethig")
-}
-
-async function scan1() {
     if (!g_source) {
         console.log("Source is null.");
         return;

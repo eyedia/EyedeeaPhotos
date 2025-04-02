@@ -182,7 +182,7 @@ dialog::backdrop {
   right: 10px;
   background: none;
   border: none;
-  font-size: 2em;
+  font-size: 10px;
   font-weight: bold;
   cursor: pointer;
   color: #555;

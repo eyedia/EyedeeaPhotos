@@ -61,6 +61,7 @@ function create_tables(callback) {
             orientation INT, 
             cache_key TEXT,
             unit_id INT,
+            persons TEXT,
             geocoding_id INT,
             tags TEXT,
             address TEXT,

@@ -76,6 +76,7 @@ async function internal_scan(source, dir, directoryDict) {
               "orientation": 1,
               "cache_key": undefined,
               "unit_id": undefined,
+              "persons": undefined,
               "geocoding_id": undefined,
               "tags": exif_data.tags,
               "address": JSON.stringify(exif_data.address)

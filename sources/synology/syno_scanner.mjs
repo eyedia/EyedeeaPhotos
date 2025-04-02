@@ -115,6 +115,7 @@ async function list_dir_loop(scan_started_data, folder_id, folder_name, offset, 
                     if (photo_data) {
                         photo_data.data.list.forEach(function (photo) {
                             total_photos++;
+                            const persons =  photo.additional.person.map(p => p.name).join(",");
                             let one_record = {
                                 "source_id": scan_started_data.source_id,
                                 "photo_id": photo.id,
@@ -126,6 +127,7 @@ async function list_dir_loop(scan_started_data, folder_id, folder_name, offset, 
                                 "orientation": photo.additional.orientation,
                                 "cache_key": photo.additional.thumbnail.cache_key,
                                 "unit_id": photo.additional.thumbnail.unit_id,
+                                "persons": persons,
                                 "geocoding_id": photo.additional.geocoding_id,
                                 "tags": photo.additional.tag.map(t => t.name).join(","),
                                 "address": JSON.stringify(photo.additional.address)

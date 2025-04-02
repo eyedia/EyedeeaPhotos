@@ -206,33 +206,6 @@ if(nameBox){
     });
 }
 
-// if(saveButton){
-//     console.log(saveButton);
-//     saveButton.addEentListener('click', saveFilter);
-// }
-
-// function openModal(){
-//     modal.style.display = 'flex';
-//     keywords = '';
-//     searchBox.value = '';
-//     searchBox.focus();
-//     nameBox.value = '';
-//     gallery.innerHTML = '';
-//     offset_search = 0;
-//     sidebar.classList.add("inactive");
-//     gallery.addEventListener('scroll', loadMoreImagesOnScroll);
-// }
-
-// if(closeModal){
-//     closeModal.addEventListener('click', () => {
-//         modal.style.display = 'none';
-//         gallery.innerHTML = '';
-//         offset_search = 0;
-//         gallery.removeEventListener('scroll', loadMoreImagesOnScroll);
-//         footer.textContent = '';
-//     });
-// }
-
 window.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
         if(closeModal)
@@ -256,34 +229,6 @@ load_more.addEventListener("click", () => {
     
 });
 
-function show_notification(message, is_error){
-    const notification = document.getElementById("notification");
-    notification.innerText = message;
-    notification.style.display = "block";
-    notification.className = "message success";
-    let show_duration = 5000;
-    let opacity_duration = 1000;
-    if(is_error){
-        notification.className = "message error";
-        show_duration = 10000;
-    }
-            setTimeout(() => {
-                //notification.style.opacity = "0";
-                notification.classList.add("hidden");
-                setTimeout(() => {
-                    notification.style.display = "none";
-                    notification.style.opacity = "1";
-                }, opacity_duration);
-            }, show_duration);
-}
-
-let currently_viewing = null;
-function viewImage(event) {
-    viewer.style.display = 'flex';
-    const photo_data = JSON.parse(event.target.getAttribute('photo-data'));
-    currently_viewing = event.target;
-    updateImage(photo_data.photo_id);
-}
 
 function changeImage(next){
     if(currently_viewing){

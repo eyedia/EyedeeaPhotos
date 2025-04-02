@@ -1,5 +1,10 @@
 
+
 async function scan() {
+    show_notification("this is somethig")
+}
+
+async function scan1() {
     if (!g_source) {
         console.log("Source is null.");
         return;
@@ -8,6 +13,7 @@ async function scan() {
     const btn_update = document.getElementById("add");
     const btn_scan = document.getElementById('btn_scan');
     const scan_caption = document.getElementById('scan_caption');
+    const scan_loading = document.getElementById("scan_loading");
 
     try {
         const response = await fetch(`/api/sources/${g_source.id}/scan`, {
@@ -32,6 +38,7 @@ async function scan() {
         } else {
             scan_caption.style.removeProperty("color");
             scan_caption.style.visibility = 'visible';
+            scan_loading.style.display = "flex"; 
             const tableBody = document.getElementById("dirs-table-body");
             if (tableBody)
                 tableBody.innerHTML = '';
@@ -67,7 +74,9 @@ function checkScanLog(data, btn_scan, btn_update, scan_caption) {
                     btn_scan.classList.remove("disabled");
                     btn_update.classList.remove("disabled");
                     scan_caption.style.visibility = 'hidden';
+                    scan_loading.style.display = "none"; 
                     scan_caption.innerText = "";
+                    show_notification("Scan successful!");
                     if(scanLogTable) scanLogTable.fetchData()
                     get_source_latest_scan_data();
                     if(dirTable) dirTable.fetchData();

@@ -31,62 +31,72 @@
                 <header id="header">
                     <div class="eyedeea-header">
                         <a href="index.html" class="logo">
-                            <img/>
+                            <img />
                             <h2>Eyedeea Photos</h2>
                             <h3>Source Settings</h3>
                         </a>
                     </div>
                     <ul class="icons">
                         <li><a href="https://github.com/eyedia/EyedeeaPhotos" target="_blank"
-                            class="fa-icon fa fa-github"></a></li>
+                                class="fa-icon fa fa-github"></a></li>
                         <li><a href="https://eyedeeaphotos.eyediatech.com/" target="_blank"
-                            class="fa-icon fa fa-globe"></a></li>
-                    </ul>
+                                class="fa-icon fa fa-globe"></a></li>
+                    </ul>                    
                 </header>
+                <div id="notification" class="notification-container">N/A</div>
                 <!-- Content -->
                 <section>
-                    <!--Update Source-->        
-                    <a  href="#source_details" id="title" class="icon solid fa-edit">NAS</a>                   
+                    <!--Update Source-->
+                    <a href="#source_details" id="title" class="icon solid fa-edit">NAS</a>
                     <!-- Scan-->
                     <div class="table-wrapper">
-                        <table>                           
+                        <table>
                             <tbody>
                                 <tr>
                                     <td>Total Photos</td>
-                                    <td><p id="total_photos">0</p></td>                                    
+                                    <td>
+                                        <p id="total_photos">0</p>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td>Total Directories</td>
-                                    <td><p id="total_dirs">0</p></td>
+                                    <td>
+                                        <p id="total_dirs">0</p>
+                                    </td>
                                 </tr>
                                 <tr>
                                     <td>Last scanned</td>
-                                    <td><p id="last_scanned">0</p></td>
-                                </tr>                                
-                            </tbody>                            
-                        </table>                        
-                    </div>  
-                    <div id="notification" class="notification-container">N/A</div>
-                    <a id="btn_scan" onclick="scan()" class="button primary icon solid fa-search">Scan Now</a>
+                                    <td>
+                                        <p id="last_scanned">0</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>                    
+                    <div class="scanner-loader">
+                        <a id="btn_scan" onclick="scan()" class="button primary icon solid fa-search">Scan Now</a>
+                        <img id="scan_loading" />
+                    </div>                    
+                    <p id="scan_caption"></p>
                 </section>
                 <section>
                     <!-- Scan Logs-->
                     <h3>Directories</h3>
                     <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Directory</th>
-                                <th>Photos</th>
-                            </tr>
-                        </thead>
-                        <tbody id="dirs-table-body">
-                        </tbody>
-                        <ul id="pagination_dir" class="pagination">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Directory</th>
+                                    <th>Photos</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dirs-table-body">
+                            </tbody>
+                            <ul id="pagination_dir" class="pagination">
 
-                        </ul>
-                    </table>
-                </div>
+                            </ul>
+                        </table>
+                    </div>
                 </section>
                 <section>
                     <h3>Scan History</h3>
@@ -209,8 +219,8 @@
     <script src="assets/js/util.js"></script>
     <script src="assets/js/manage_main.js"></script>
     <script src="assets/js/paginated_table.js"></script>
-    <script src="assets/js/scan.js"></script>
     <script src="assets/js/eyedeea_manage.js"></script>
+    <script src="assets/js/scan.js"></script>    
 </body>
 
 </html>

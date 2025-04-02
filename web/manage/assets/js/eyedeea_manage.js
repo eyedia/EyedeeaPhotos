@@ -604,3 +604,35 @@ function toggleSearchBox(dir) {
         radio.checked = true;
     }
 }
+
+
+function show_notification(message, is_error){
+    const notification = document.getElementById("notification");
+    notification.innerText = message;
+    notification.style.display = "block";
+    notification.className = "message success";
+    let show_duration = 5000;
+    let opacity_duration = 1000;
+    if(is_error){
+        notification.className = "message error";
+        show_duration = 10000;
+    }
+            setTimeout(() => {                
+                notification.classList.add("hidden");
+                setTimeout(() => {
+                    notification.style.display = "none";
+                    notification.style.opacity = "1";
+                }, opacity_duration);
+            }, show_duration);
+}
+
+let currently_viewing = null;
+function viewImage(event) {
+    if (!sidebar.classList.contains('inactive'))
+        sidebar.classList.add('inactive');
+    
+    viewer.style.display = 'flex';
+    const photo_data = JSON.parse(event.target.getAttribute('photo-data'));
+    currently_viewing = event.target;
+    updateImage(photo_data.photo_id);
+}

@@ -1212,7 +1212,7 @@ input[type="radio"] {
       text-rendering: auto;
       line-height: 1;
       text-transform: none !important;
-      font-family: 'Font Awesome 5 Free';
+      font-family: 'Font Awesome 5 Free', sans-serif;
       font-weight: 900; }
     input[type="checkbox"] + label:before,
     input[type="radio"] + label:before {
@@ -1291,7 +1291,7 @@ input[type="radio"] + label:before {
     text-rendering: auto;
     line-height: 1;
     text-transform: none !important;
-    font-family: 'Font Awesome 5 Free';
+    font-family: 'Font Awesome 5 Free', sans-serif;
     font-weight: 400; }
   .icon > .label {
     display: none; }
@@ -1465,7 +1465,7 @@ ul.contact {
       text-rendering: auto;
       line-height: 1;
       text-transform: none !important;
-      font-family: 'Font Awesome 5 Free';
+      font-family: 'Font Awesome 5 Free', sans-serif;
       font-weight: 400; }
     ul.contact li:before {
       color: #f56a6a;
@@ -1989,7 +1989,7 @@ button,
     text-rendering: auto;
     line-height: 1;
     text-transform: none !important;
-    font-family: 'Font Awesome 5 Free';
+    font-family: 'Font Awesome 5 Free', sans-serif;
     font-weight: 900; }
   #search searchbox:before {
     -moz-transform: scaleX(-1);
@@ -2081,7 +2081,7 @@ button,
       text-rendering: auto;
       line-height: 1;
       text-transform: none !important;
-      font-family: 'Font Awesome 5 Free';
+      font-family: 'Font Awesome 5 Free', sans-serif;
       font-weight: 900; }
     #sidebar .toggle:before {
       content: '\f0c9';
@@ -2329,7 +2329,7 @@ button,
         text-rendering: auto;
         line-height: 1;
         text-transform: none !important;
-        font-family: 'Font Awesome 5 Free';
+        font-family: 'Font Awesome 5 Free', sans-serif;
         font-weight: 900; }
       #menu ul a.opener:before, #menu ul span.opener:before {
         -moz-transition: color 0.2s ease-in-out, -moz-transform 0.2s ease-in-out;

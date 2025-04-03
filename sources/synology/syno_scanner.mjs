@@ -13,6 +13,8 @@ import { start_scanning } from '../scanner.js';
 import logger from "../../config_log.js";
 import { get as meta_get_scan_log } from '../../meta/meta_scan_log.mjs';
 
+import {startInternalScanInWorker} from "./syno_scan_manager.js";
+
 
 let _failed_folders_tried = false;
 
@@ -47,7 +49,10 @@ export async function scan(source, folder_id, inform_caller_scan_started, inform
                     meta_clear_cache(scan_started_data.source_id, (err, data, status_code) => {
                         console.log("Cleared auth cache to retrieve person data...");
                         inform_caller_scan_started(null, scan_started_data);
-                        internal_scan(scan_started_data, folder_id);
+                        internal_scan(scan_started_data, folder_id);                        
+                        // startInternalScanInWorker(scan_started_data, folder_id)
+                        // .then(console.log)
+                        // .catch(console.error);
                     });
                 }
             },
@@ -58,7 +63,7 @@ export async function scan(source, folder_id, inform_caller_scan_started, inform
     });
 }
 
-async function internal_scan(scan_started_data, folder_id) {
+export async function internal_scan(scan_started_data, folder_id) {
 
     if (folder_id === -1) {
         //scan starts from root

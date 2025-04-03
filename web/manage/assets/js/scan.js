@@ -8,6 +8,9 @@ async function scan() {
     const btn_scan = document.getElementById('btn_scan');
     const scan_caption = document.getElementById('scan_caption');
     const scan_loading = document.getElementById("scan_loading");
+    btn_scan.classList.add("disabled");
+    scan_caption.innerText = "Starting scan...";
+    scan_caption.style.visibility = 'visible';
 
     try {
         const response = await fetch(`/api/sources/${g_source.id}/scan`, {
@@ -28,8 +31,25 @@ async function scan() {
             scan_caption.innerText = `Scanning could not be started. ${error_message}`;
             scan_caption.style.color = "red";
             scan_caption.style.visibility = 'visible';
+            btn_scan.classList.remove("disabled");
+            scan_caption.innerText = "";
+            scan_caption.style.visibility = 'hidden';
             setTimeout(() => scan_caption.style.visibility = 'hidden', 10000);
         } else {
+            if (data.error) {                
+                if ((data.error.error) && (data.error.error.code)) {
+                    let error_msg = "";
+                    if (data.error.error.details)
+                        error_msg = data.error.error.details;
+                    else
+                        error_msg = data.error.error `Synology Photos server error code ${data.error.error.code}. Please contact support!`;                  
+                  show_notification(error_msg, true);
+                  btn_scan.classList.remove("disabled");
+                  scan_caption.innerText = "";
+                  scan_caption.style.visibility = 'hidden';
+                  return;
+                }
+            }
             scan_caption.style.removeProperty("color");
             scan_caption.style.visibility = 'visible';
             scan_loading.style.display = "flex"; 

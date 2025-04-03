@@ -35,7 +35,7 @@ export async function authenticate(source_id, callback) {
         }
         //not in cache, lets authenticate
         logger.info(`Authenticating NAS...${source_id}`);
-        
+
         return api_client.get('/auth.cgi', {
           params: {
             api: "SYNO.API.Auth",
@@ -46,7 +46,7 @@ export async function authenticate(source_id, callback) {
             enable_syno_token: "yes"
           }
         })
-          .then(function (response) {
+          .then(function (response) {            
             nas_config.cache = response.data.data;
             nas_auth_token[source_id] = nas_config.cache;
             if (response.data.error) {
@@ -54,7 +54,16 @@ export async function authenticate(source_id, callback) {
                 const syno_error_msg = "Synology blocked this IP address because it has reached the maximum number of failed login attempts allowed within a specific time period. Please contact Synology system administrator."
                 response.data.error["details"] = syno_error_msg
                 logger.error(syno_error_msg);
+              }else if ((response.data.error.code) && (response.data.error.code == 400)) {
+                const syno_error_msg = `Synology server returned error code 400. This generally happens when username or password is not set correctly. Try updating the source config with correct username and password. Or, contact Synology system administrator.`
+                response.data.error["details"] = syno_error_msg
+                logger.error(syno_error_msg);
+              }else if (response.data.error.code) {
+                const syno_error_msg = `Synology server returned error code ${response.data.error.code}. Try updating the source config with correct username and password. Or, contact Synology system administrator.`
+                response.data.error["details"] = syno_error_msg
+                logger.error(syno_error_msg);
               }
+
               callback({ "auth_status": false, "error": response.data.error });
             } else {
               return meta_update_cache(nas_config, (update_err, updated_nas_config, status_code) => {
@@ -137,7 +146,7 @@ export async function list_dir(args, callback) {
   if (!args.limit)
     args.limit = 1000
 
-  authenticate_if_required(args.source_id, auth_result => {
+  authenticate_if_required(args.source_id, auth_result => {    
     if (!auth_result.auth_status) {
       const err_msg = "Authentication failed. Please check the error log and try again later."
       callback({ "message": auth_result }, null);
@@ -159,7 +168,7 @@ export async function list_dir(args, callback) {
     api_client.get('/entry.cgi', {
       params: m_param
     })
-      .then(function (response) {
+      .then(function (response) {       
         callback(null, response.data);
       })
       .catch(function (error) {

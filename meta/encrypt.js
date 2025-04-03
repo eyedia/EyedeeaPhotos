@@ -51,9 +51,8 @@ function get_key(){
   let keyHex = process.env.EYEDEEA_KEY;
   if (!keyHex) {
     const platform = os.platform();
-    if (platform.startsWith("win")) {      
-      const currentDir = path.dirname(new URL(import.meta.url).pathname).substring(1);      
-      const scriptPath = path.join(currentDir, 'set_env.ps1');      
+    if (platform.startsWith("win")) { 
+      const scriptPath  = "./meta/set_env.ps1";
       checkAndSetEnvKey(`powershell -ExecutionPolicy Bypass -File "${scriptPath}"`);
       const output = execSync('powershell -Command "[System.Environment]::GetEnvironmentVariable(\'EYEDEEA_KEY\', [System.EnvironmentVariableTarget]::User)"', { encoding: 'utf-8' });      
       process.env.EYEDEEA_KEY = output.trim();

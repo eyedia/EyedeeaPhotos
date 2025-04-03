@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { execSync } from 'child_process';
 import os from 'os';
+import path from 'path';
 const algorithm = 'aes-256-gcm';
 import logger from "../config_log.js";
 
@@ -50,9 +51,14 @@ function get_key(){
   let keyHex = process.env.EYEDEEA_KEY;
   if (!keyHex) {
     const platform = os.platform();
-    if (platform.startsWith("win")) {
+    if (platform.startsWith("win")) {      
+      const currentDir = path.dirname(new URL(import.meta.url).pathname).substring(1);      
+      const scriptPath = path.join(currentDir, 'set_env.ps1');      
+      checkAndSetEnvKey(`powershell -ExecutionPolicy Bypass -File "${scriptPath}"`);
+      const output = execSync('powershell -Command "[System.Environment]::GetEnvironmentVariable(\'EYEDEEA_KEY\', [System.EnvironmentVariableTarget]::User)"', { encoding: 'utf-8' });      
+      process.env.EYEDEEA_KEY = output.trim();
     }else{
-      checkAndSetEnvKey();
+      checkAndSetEnvKey('bash set_env.sh');
     }
   }
   keyHex = process.env.EYEDEEA_KEY;
@@ -68,11 +74,11 @@ export function generate_short_GUID() {
   return crypto.randomBytes(8).toString("hex");
 }
 
-const checkAndSetEnvKey = async () => {
+const checkAndSetEnvKey = async (script_name) => {
   if (!process.env.EYEDEEA_KEY) {
       console.log("EYEDEEA_KEY not found. Generating and setting it...");
       try {
-          execSync('bash set_env.sh', { stdio: 'inherit' });
+          execSync(script_name, { stdio: 'inherit' });
       } catch (error) {
           console.error("Error setting EYEDEEA_KEY:", error.message);
       }

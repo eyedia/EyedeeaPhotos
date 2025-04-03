@@ -59,9 +59,11 @@ function save_button_listener() {
 }
 
 async function save_source(url, data) {
+    const btn_update = document.getElementById("add");
     const messageDiv = document.getElementById("message");
 
     try {
+        btn_update.classList.add("disabled");
         const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -71,6 +73,7 @@ async function save_source(url, data) {
         });
 
         if (!response.ok) {
+            btn_update.classList.remove("disabled");
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
@@ -91,9 +94,11 @@ async function save_source(url, data) {
             if (response.status === 201) {
                 window.location.href = `source.html?id=${responseData.id}`;
             }
+            btn_update.classList.remove("disabled");
             messageDiv.textContent = "Saved successfully";
             messageDiv.className = "message success";
         } else {
+            btn_update.classList.remove("disabled");
             messageDiv.innerHTML = error_message;
             messageDiv.className = "message error";
             return;

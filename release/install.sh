@@ -100,47 +100,6 @@ pm2 startup systemd > /dev/null 2>&1
 pm2 save > /dev/null 2>&1
 echo -e "\rSetting up PM2 to start on boot...done"
 
-echo "All good! Let's configure Eyedeea Photos..."
-
-# Check if the JSON file exists
-if [[ ! -f "$JSON_FILE" ]]; then
-    echo "Error: JSON file '$JSON_FILE' not found!"
-    return 1
-fi
-
-# Make the POST request and extract the "id" field from the response
-RESPONSE=$(curl -s -X POST -H "Content-Type: application/json" -d @"$JSON_FILE" http://127.0.0.1:8080/api/sources)
-
-# Check if the request was successful
-if [[ -z "$RESPONSE" ]]; then
-    echo "Error: No response received from the server!"
-    return 1
-fi
-
-# Extract the "id" from the response
-source_id=$(echo "$response" | jq -r '.id')
-
-# Check if an id was extracted
-if [[ "$source_id" == "null" || -z "$source_id" ]]; then
-    echo "Error: Could not communicate with Eyedeea Photos server!"
-    return 1
-fi
-
-echo "New source registered: $source_id"
-
-if [[ "$source_id" != "null" && -n "$source_id" ]]; then
-    echo "New source registered. ID: $source_id"
-    read -p "Do you want to start scan (y/n)? " yes_no
-    if [[ "$yes_no" == "y" ]]; then
-        scan_response=$(curl -s -X POST "$eyedeea_url/api/sources/$source_id/scan")
-        echo "$scan_response"
-    fi
-    echo "Refresh browser after scanning completes."
-    xdg-open "http://127.0.0.1:8080" &>/dev/null &
-else
-    echo "Error: Failed to register source."
-fi
-
 
 sudo mkdir -p /var/log/EyedeeaPhotos/logs
 sudo chown -R $USER:$USER /var/log/EyedeeaPhotos
@@ -149,3 +108,6 @@ sudo chmod -R 777 /var/log/EyedeeaPhotos
 sudo mkdir -p /var/lib/EyedeeaPhotos/data
 sudo chown -R $USER:$USER /var/lib/EyedeeaPhotos/data
 sudo chmod -R 777 /var/lib/EyedeeaPhotos
+
+xdg-open "http://127.0.0.1:8080/manage"
+echo "Eyedeea Photos setup complete!"

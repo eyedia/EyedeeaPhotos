@@ -5,34 +5,36 @@ import { meta_db } from "./meta_base.mjs";
 
 
 
-export function search_init(callback) {
+export async function search_init(callback) {
     const create_search_indexes = [
         `DELETE FROM fts`,
         `INSERT INTO fts 
-            (photo_id, folder_name, tags, address) 
+            (photo_id, folder_name, persons, tags, address) 
             SELECT 
-            photo_id, folder_name, tags, address 
+            photo_id, folder_name, persons, tags, address 
             FROM photo`
     ];
 
-    const promises = create_search_indexes.map((query) => {
-        return new Promise((resolve, reject) => {
-            meta_db.run(query, (err) => {
-                if (err) {
-                    logger.error(err.message);
-                    reject(err);
-                } else {
-                    logger.info('.');
-                    resolve();
-                }
+    try {
+        for (let query of create_search_indexes) {
+            await new Promise((resolve, reject) => {
+                meta_db.run(query, (err) => {
+                    if (err) {
+                        logger.error(err.message);
+                        reject(err);
+                    } else {
+                        logger.info('.');
+                        resolve();
+                    }
+                });
             });
-        });
-    });
-
-    Promise.all(promises)
-        .then(() => callback(null))
-        .catch((err) => callback(err));
+        }
+        callback(null);
+    } catch (err) {
+        callback(err);
+    }
 }
+
 
 
 export function search(callback) {

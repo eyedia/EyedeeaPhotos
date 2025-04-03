@@ -1,22 +1,27 @@
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
+import tough from 'tough-cookie';
+import {wrapper} from 'axios-cookiejar-support';
+
 import https from 'https';
 import fs from 'fs';
 import logger from "../../config_log.js";
 import {
   get as meta_get_source,
-  update_cache as meta_update_cache,
-  clear_cache as meta_clear_cache,
+  update_cache as meta_update_cache,  
   save_source_dir,
   get_source_dir
 } from "../../meta/meta_source.mjs"
 import { meta_db } from '../../meta/meta_base.mjs';
 
 
-const httpsAgent = new https.Agent({ rejectUnauthorized: false })
-export let nas_auth_token = {}
+const cookieJar = new tough.CookieJar();
 
+//const httpsAgent = new https.Agent({ rejectUnauthorized: false })
+export let nas_auth_token = {}
 let api_client = null;
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 
 export async function authenticate(source_id, callback) {
   try {    
@@ -39,8 +44,7 @@ export async function authenticate(source_id, callback) {
             account: nas_config.user,
             passwd: nas_config.password,
             enable_syno_token: "yes"
-          },
-          httpsAgent: httpsAgent
+          }
         })
           .then(function (response) {
             nas_config.cache = response.data.data;
@@ -66,8 +70,10 @@ export async function authenticate(source_id, callback) {
             } else {
               logger.info(error.message);
             }
-            if (callback)
+            if (callback){
+              logger.error(error);
               callback({ "auth_status": false, "error": { "message": error } });
+            }
           });
       } else {
         if (callback)
@@ -91,13 +97,15 @@ function init_syno(source_id, callback) {
         logger.error(`NAS was not configured for ${source_id}!`);
         return;
       }
-      api_client = axios.create({
+      api_client = wrapper(axios.create({
         baseURL: nas_config.url,
+        withCredentials: true, 
+        jar: cookieJar,
         headers: {
           //'Content-Type': 'application/json',
           // Add any other headers you need
         },
-      });
+      }));
 
       // Configure retry behavior
       axiosRetry(api_client, {
@@ -149,8 +157,7 @@ export async function list_dir(args, callback) {
     //if id == -1, it will fetch root folder
 
     api_client.get('/entry.cgi', {
-      params: m_param,
-      httpsAgent: httpsAgent
+      params: m_param
     })
       .then(function (response) {
         callback(null, response.data);
@@ -239,7 +246,17 @@ export async function get_dir_details_recursive(folder_id, args, callback) {
 
 
 export async function list_dir_items(args, callback) {
+  //this requires fresh auth, so removing cache manually
+  // delete nas_auth_token[args.source_id];
+  // await meta_clear_cache(args.source_id);
+
   authenticate_if_required(args.source_id, auth_result => {
+    if (!auth_result.auth_status) {
+      const err_msg = "Authentication failed. Please check the error log and try again later."
+      callback({ "message": auth_result }, null);
+      return;
+    }
+    
     let m_param = {
       api: "SYNO.FotoTeam.Browse.Item",
       SynoToken: nas_auth_token[args.source_id].synotoken,
@@ -254,7 +271,7 @@ export async function list_dir_items(args, callback) {
 
     api_client.get('/entry.cgi', {
       params: m_param,
-      httpsAgent: httpsAgent
+      withCredentials: true
     })
       .then(function (response) {
         callback(null, response.data);
@@ -285,8 +302,7 @@ export async function listPersons(args, callback) {
     };
 
     api_client.get('/entry.cgi', {
-      params: m_param,
-      httpsAgent: httpsAgent
+      params: m_param
     })
       .then(function (response) {
         callback(null, response.data);
@@ -327,8 +343,7 @@ export async function list_geo(source_id, offset = 0, limit = 1000) {
     };
 
     return api_client.get('/entry.cgi', {
-      params: m_param,
-      httpsAgent: httpsAgent
+      params: m_param
     })
       .then(function (response) {
         logger.info(response.data);
@@ -377,8 +392,7 @@ export async function get_photo(photo_data, size = "sm", callback) {
 
     return api_client.get('/entry.cgi', {
       params: m_param,
-      responseType: 'arraybuffer',
-      httpsAgent: httpsAgent
+      responseType: 'arraybuffer'
     })
       .then(function (response) {
         callback(null, response);
@@ -424,8 +438,7 @@ export async function create_tag(source_id, name, callback) {
     };
 
     return api_client.get('/entry.cgi', {
-      params: m_param,
-      httpsAgent: httpsAgent
+      params: m_param
     })
       .then(function (response) {
         callback(null, response.data);
@@ -452,8 +465,7 @@ export async function add_tag(source_id, photo_id, tag_id) {
     };
 
     return api_client.get('/entry.cgi', {
-      params: m_param,
-      httpsAgent: httpsAgent
+      params: m_param
     })
       .then(function (response) {
         return response.data;

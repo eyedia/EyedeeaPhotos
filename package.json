@@ -23,6 +23,7 @@
     "@googlemaps/google-maps-services-js": "^3.4.0",
     "appdata-path": "^1.0.0",
     "axios": "^1.7.9",
+    "axios-cookiejar-support": "^5.0.5",
     "axios-retry": "^4.5.0",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
@@ -33,6 +34,7 @@
     "moment-timezone": "^0.5.47",
     "node-cron": "^3.0.3",
     "sqlite3": "^5.1.7",
+    "tough-cookie": "^5.1.2",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0"
   },

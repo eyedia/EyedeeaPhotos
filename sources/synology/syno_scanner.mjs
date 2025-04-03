@@ -1,9 +1,14 @@
-import { list_dir, list_dir_items, get_dir_details, listPersons } from "./syno_client.mjs";
+import { list_dir, list_dir_items, get_dir_details, listPersons, nas_auth_token } from "./syno_client.mjs";
 import {
     save_item, save_scan_log_detail,
     get_scan_log_detail, update_scan_log,
     stop_scan as meta_stop_scan
 } from "../../meta/meta_scan.mjs";
+
+import {
+    clear_cache as meta_clear_cache,
+} from "../../meta/meta_source.mjs"
+
 import { start_scanning } from '../scanner.js';
 import logger from "../../config_log.js";
 import { get as meta_get_scan_log } from '../../meta/meta_scan_log.mjs';
@@ -38,14 +43,9 @@ export async function scan(source, folder_id, inform_caller_scan_started, inform
                     total_dirs = 1;
                     total_photos = 0;
 
-                    let args = {
-                        "source_id": scan_started_data.source_id,                        
-                        "offset": 0,
-                        "limit": 1000
-                    }                    
-                    listPersons(args, (err, persons) => {
-                        console.log("Initialized persons....");
-                        console.log(persons.data.list);
+                    delete nas_auth_token[scan_started_data.source_id];               
+                    meta_clear_cache(scan_started_data.source_id, (err, data, status_code) => {
+                        console.log("Cleared auth cache to retrieve person data...");
                         inform_caller_scan_started(null, scan_started_data);
                         internal_scan(scan_started_data, folder_id);
                     });
@@ -125,14 +125,7 @@ async function list_dir_loop(scan_started_data, folder_id, folder_name, offset, 
                     if (photo_data) {
                         photo_data.data.list.forEach(function (photo) {
                             total_photos++;
-                            const persons =  photo.additional.person.map(p => p.name).join(",");
-                            if(photo.folder_id == 1077){
-                                console.log("XXXXXXXXXXXXXXXXX");
-                                console.log(photo);
-                                console.log(persons);
-                                console.log("XXXXXXXXXXXXXXXXX");
-
-                            }
+                            const persons =  photo.additional.person.map(p => p.name).join(",");                          
                             let one_record = {
                                 "source_id": scan_started_data.source_id,
                                 "photo_id": photo.id,

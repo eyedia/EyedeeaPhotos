@@ -109,7 +109,7 @@ function create_tables(callback) {
             );`,
 
         `CREATE VIRTUAL TABLE fts 
-            USING FTS5(photo_id,folder_name, tags,address);`,
+            USING FTS5(photo_id,folder_name, persons, tags,address);`,
 
         `CREATE TABLE view_filter (
             id INTEGER PRIMARY KEY AUTOINCREMENT,

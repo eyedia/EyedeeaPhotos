@@ -115,36 +115,35 @@ export function get(id, decrypt_value, callback) {
         });
 }
 
-export function clear_cache_async(id) {
-    return new Promise((resolve, reject) => {
-        const try_id = parseInt(id);
-        let query = `select * from source where id = ?`;
-        if (isNaN(try_id)) query = `select * from source where name = ? COLLATE NOCASE`;
-
-        meta_db.get(query, [id], (err, source) => {
+export function clear_cache(id, callback) {
+    const try_id = parseInt(id);
+    let query = `select * from source where id = ?`;
+    if (isNaN(try_id))
+        query = `select * from source where name = ? COLLATE NOCASE`;
+    meta_db.get(query, [id],
+        (err, source) => {
             if (err) {
                 logger.error(err.message);
-                return reject(err);
-            }
-
-            if (!source) {
-                return resolve(null);
-            }
-
-            meta_db.run(
-                `UPDATE source set [cache] = null, updated_at = strftime('%Y-%m-%d %H:%M:%S', 'now') where id = ?`,
-                [source["id"]],
-                function (err) {
-                    if (err) {
-                        logger.error('Error updating data:', err);
-                        return reject(err);
-                    }
-                    source["cache"] = undefined;
-                    resolve(source);
+                callback(err, null, 500);
+            } else {
+                if (source) {
+                    meta_db.run(
+                        `UPDATE source set [cache] = null, updated_at = strftime('%Y-%m-%d %H:%M:%S', 'now') where id = ?`,
+                        [source["id"]],
+                        function (err) {
+                            if (err) {
+                                logger.error('Error updating data:', err);
+                                callback(err, null, 500);
+                            } else {
+                                source["cache"] = undefined;
+                                callback(null, source, 200);
+                            }
+                        });
+                } else {
+                    callback(null, null, 500);
                 }
-            );
+            }
         });
-    });
 }
 
 

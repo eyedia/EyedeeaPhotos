@@ -5,6 +5,14 @@ afterAll((done) => {
   server.server.close(done);
 });
 
+jest.mock('tough-cookie', () => {
+  return {
+    CookieJar: jest.fn(() => ({
+    })),
+  };
+});
+
+
 describe('Server Status', () => {
   it('Check server status', async () => {
     const response = await request(server.server).get('/api/system/status');

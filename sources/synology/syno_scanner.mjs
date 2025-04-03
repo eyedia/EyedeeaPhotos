@@ -44,6 +44,8 @@ export async function scan(source, folder_id, inform_caller_scan_started, inform
                         "limit": 1000
                     }                    
                     listPersons(args, (err, persons) => {
+                        console.log("Initialized persons....");
+                        console.log(persons.data.list);
                         inform_caller_scan_started(null, scan_started_data);
                         internal_scan(scan_started_data, folder_id);
                     });

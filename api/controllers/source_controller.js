@@ -157,8 +157,7 @@ export const get_photos_from_a_dir = async (req, res) => {
 
     res.json(return_data); // Send the complete array once processing is done
 
-  } catch (error) {    
-    console.log("xxx", error)
+  } catch (error) {
     if (error.message && error.message.code) {
       //known error
       res.status(503).json(error);

@@ -56,6 +56,9 @@ Function Install-EyedeeaPhotos {
         Write-Host "Created application directory: $app_path"
     }
 
+    # Create a minimal package.json
+    Execute-Command -cmd $node_path -arg "init -y" -working_dir $app_path | Out-Null
+
     # Install Eyedeea Photos
     Write-Host "Installing Eyedeea Photos package..."
     $output = Execute-Command -cmd $node_path -arg "install eyedeeaphotos" -working_dir $app_path

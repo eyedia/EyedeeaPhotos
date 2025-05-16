@@ -10,6 +10,8 @@ import source_router from './api/routers/source_router.js';
 import source_scan_router from './api/routers/source_scan_router.js';
 import source_browser_router from './api/routers/source_browser_router.js';
 import system_router from './api/routers/system_router.js';
+import api_doc_router from './api/routers/api_doc_router.js';
+
 
 process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err);
@@ -26,6 +28,7 @@ app.use(cors({
 app.use(express.static('web'));
 app.use(express.json());
 
+app.use('/api/docs', api_doc_router);
 app.use('/api/system', system_router);
 app.use('/api/view', view_router);
 app.use('/api/view/filters', view_filter_router);

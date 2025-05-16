@@ -106,31 +106,27 @@ I end up setting up NAS. But, you can simply migrate your photos to an external 
 
 ## Download Eyedeea Photos
 
-### Simple Installation
+- [Download & Execute](release/install.ps1) on Windows Powershell
+- [Download & Execute](release/install.sh) on Linux
 
-> **_NOTE:_** After installing we will set up one source, this is temporary solution until we have Eyedeea Photos Management user interface is ready!.
-
-| Windows | Linux | Mac |
-| ------- | ----- | --- |
-|Download [Install Scripts](release/install_scripts.zip) and execute ```./install.ps1``` on Windows Powershell |Download [Install Scripts](release/install_scripts.zip) and execute ```sudo ./install.sh``` on terminal  | _Use Expert_ |
-<img src="graphics/eyedeea_photos_installation.gif" alt="Eyedeea Photos Installation" width="50%"/>
-
-### Expert Installation
-- Install Node.js
-- Install npm pm2 globally
-- Install npm eyedeeaphotos
-- Configure pm2, optionally configure Apache HTTP server
+- Expert Installation
+  - Install Node.js
+  - Install npm pm2 globally
+  - Install npm eyedeeaphotos
+  - Configure pm2, optionally configure Apache HTTP server
 
 > **_NOTE:_**  *Remember he IP address of the server. Henceforth we will call this device as **Eyedeea Photos** server.*
 
 ## Access Eyedeea Photos
 After installing, make sure that you triggered scan mannually. And once scanning is completed, you can access it.
 
-- On the server, access it using http://127.0.0.1:8080
-- On other devices, access it using server intranet IP Address e.g. http://192.168.1.112:8080
-- We can configure Apache server to access it without the port like http://192.168.1.112
+- On the server, access it using http://127.0.0.1:8080/manage
+- On other devices, access it using server intranet IP Address e.g. http://192.168.1.112:8080/manage
+- We can configure Apache server to access it without the port like http://192.168.1.112/manage
 - We can also configure it to access it using hostname like http://eyedeea **recommended**
 
+## Detailed Features:
+Finally, access the player http://127.0.0.1:8080
 
 ## Detailed Features:
 | Source Type | Extract Address | Cost | Explanation |

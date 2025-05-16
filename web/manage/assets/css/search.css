@@ -215,6 +215,19 @@ dialog {
     .logo img {
         width: 5vw;
     }
+    /* dialog {        
+        width: 100vh;
+        min-width: 100vh;
+    } */
+}
+
+
+
+@media (min-height: 550px) {
+    dialog {
+        height: 70vh;        
+        min-height: 70vh;
+    }
 }
 
 .logo h2 {

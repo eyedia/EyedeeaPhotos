@@ -128,6 +128,10 @@ After installing, make sure that you triggered scan mannually. And once scanning
 ## Detailed Features:
 Finally, access the player http://127.0.0.1:8080
 
+
+## Detailed Features:
+Blog & Official Website https://eyedeeaphotos.eyediatech.com/
+
 ## Credits:
 - **Website Template:** https://html5up.net
 - **Synology API Documentation:** [GitHub by zeichensatz](https://github.com/zeichensatz/SynologyPhotosAPI)

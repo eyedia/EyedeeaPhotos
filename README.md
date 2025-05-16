@@ -128,12 +128,6 @@ After installing, make sure that you triggered scan mannually. And once scanning
 ## Detailed Features:
 Finally, access the player http://127.0.0.1:8080
 
-## Detailed Features:
-| Source Type | Extract Address | Cost | Explanation |
-| ----------- | --------------- | ---- | ----------- |
-|Synology NAS(DS923+) | Available |Free| Thanks to Synology, it comes with built in scanner to convert geo-location to address.
-|File System | Optional |About $5 per 1000 addresses. [Details at Google](https://mapsplatform.google.com/pricing/?#pricing-grid)|If configured, Eyedeea Photos will call Google Geolocation API only when (1) your photo meta data has geo location and (2) call only once per photo, even if you rescan multiple times.<br><br> You will be directly paying to Google.
-
 ## Credits:
 - **Website Template:** https://html5up.net
 - **Synology API Documentation:** [GitHub by zeichensatz](https://github.com/zeichensatz/SynologyPhotosAPI)

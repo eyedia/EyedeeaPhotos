@@ -130,7 +130,8 @@ Finally, access the player http://127.0.0.1:8080
 
 
 ## Detailed Features:
-Blog & Official Website https://eyedeeaphotos.eyediatech.com/
+Blog & Official Website: https://eyedeeaphotos.eyediatech.com/
+NPM Package: https://www.npmjs.com/package/eyedeeaphotos
 
 ## Credits:
 - **Website Template:** https://html5up.net

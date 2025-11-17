@@ -77,7 +77,7 @@ const checkAndSetEnvKey = async (script_name) => {
   if (!process.env.EYEDEEA_KEY) {
       console.log("EYEDEEA_KEY not found. Generating and setting it...");
       try {
-          execSync(script_name, { stdio: 'inherit' });
+          execSync(script_name, { stdio: 'inherit', shell: true });
       } catch (error) {
           console.error("Error setting EYEDEEA_KEY:", error.message);
       }

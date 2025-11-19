@@ -1,24 +1,38 @@
 const photo_url_server = window.location.protocol + "//" + window.location.host + "/api/view";
 //const photo_url_server = "http://192.168.86.101/api/view"
 
+// In-memory cache
+const memoryCache = new Map();
+const MAX_MEMORY_CACHE = 24;
+
 async function cache_incoming_photos() {
     console.time("cache_photos");
-    var total = 13;
+    const total = 13;
+    const CONCURRENT_REQUESTS = 3;
     
-    const response = await fetch(photo_url_server + `/photos?photo_id_only=true&limit=${total}`);
-    if (!response.ok)
-        return;
-    
-    const photo_ids = await response.json();    
-    photo_ids.forEach(async function(photo_id) {
-        const response = await fetch(photo_url_server + `/photos/${photo_id}`);
-        if (!response.ok)
-            return;
-        await save_photo_from_respose(response);
-            
-      });
-
-      console.timeEnd("cache_photos");
+    try {
+        const response = await fetch(photo_url_server + `/photos?photo_id_only=true&limit=${total}`);
+        if (!response.ok) return;
+        
+        const photo_ids = await response.json();
+        
+        for (let i = 0; i < photo_ids.length; i += CONCURRENT_REQUESTS) {
+            const batch = photo_ids.slice(i, i + CONCURRENT_REQUESTS);
+            await Promise.all(batch.map(photo_id => 
+                fetch(photo_url_server + `/photos/${photo_id}`)
+                    .then(response => {
+                        if (!response.ok) return;
+                        return save_photo_from_respose(response);
+                    })
+                    .catch(error => console.error(`Error caching photo ${photo_id}:`, error))
+            ));
+        }
+        
+        console.timeEnd("cache_photos");
+    } catch (error) {
+        console.error('Error in cache_incoming_photos:', error);
+        console.timeEnd("cache_photos");
+    }
 }
 
 async function save_photo_from_respose(response){
@@ -31,7 +45,8 @@ async function save_photo_from_respose(response){
     if (v_photo_data)
         photo_data = JSON.parse(v_photo_data);
 
-    save_photo_to_cache(blob, photo_orientation, photo_data);
+    await save_photo_to_cache(photo_data, this_photo_url, photo_orientation);
+    
     let photo_info = {
         "url": this_photo_url,
         "orientation": photo_orientation,
@@ -74,20 +89,7 @@ async function get_photo(photo_index) {
         }
         return photo_info;
     }
-    photo_info = save_photo_from_respose(response);
-    // const blob = await response.blob();
-    // const this_photo_url = URL.createObjectURL(blob);
-    // const this_photo_size = await get_photo_size(this_photo_url);
-    // let photo_orientation = (this_photo_size.height > this_photo_size.width) ? "P" : "L";
-    // const v_photo_data = response.headers.get("photo-data");
-    // let photo_data = undefined;
-    // if (v_photo_data)
-    //     photo_data = JSON.parse(v_photo_data);
-
-    // save_photo_to_cache(blob, photo_orientation, photo_data);
-    // console.log("server", photo_data);
-    //console.timeEnd("ts_get_photo_" + photo_index);
-    
+    photo_info = await save_photo_from_respose(response);    
     return photo_info;
 }
 
@@ -105,7 +107,6 @@ async function get_photo_size(photo_url) {
         img.src = photo_url;
     });
 }
-
 
 async function get_config() {
     return fetch(photo_url_server + "/config")
@@ -136,112 +137,66 @@ function set_tag(photo_id, tag) {
         });
 }
 
-
-function open_cache_db() {
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.open('EyedeeaPhotos', 1);
-
-        request.onupgradeneeded = function (event) {
-            const db = event.target.result;
-            if (!db.objectStoreNames.contains('photos')) {
-                db.createObjectStore('photos', { keyPath: 'id' });
-            }
-        };
-
-        request.onsuccess = function (event) {
-            resolve(event.target.result);
-        };
-
-        request.onerror = function (event) {
-            reject(event.target.error);
-        };
-    });
-}
-
-async function save_photo_to_cache(blob, orientation, photo_data) {
-    if (!photo_data)
-        return;
+async function save_photo_to_cache(photo_data, photo_url, orientation) {
+    if (!photo_data) return;
+    
     const key = photo_data.photo_id;
-
-    const count = await get_cache_item_count();
-
-    if (count >= 24) {
-        await delete_oldest_entries_from_cache(12);
+    
+    // Check if already cached
+    if (memoryCache.has(key)) {
+        console.log(`Photo ${key} already cached, skipping`);
+        return;
     }
-
-    const db = await open_cache_db();
-    const transaction = db.transaction('photos', 'readwrite');
-    const store = transaction.objectStore('photos');
-
-    store.put({ id: key, blob: blob, orientation: orientation, photo_data: photo_data });
-
-    return new Promise((resolve, reject) => {
-        transaction.oncomplete = () => resolve(true);
-        transaction.onerror = (event) => reject(event.target.error);
-    });
+    
+    // If cache is full, delete oldest entry
+    if (memoryCache.size >= MAX_MEMORY_CACHE) {
+        const firstKey = memoryCache.keys().next().value;
+        const oldPhoto = memoryCache.get(firstKey);
+        URL.revokeObjectURL(oldPhoto.url);
+        memoryCache.delete(firstKey);
+        console.log(`Evicted ${firstKey} from cache`);
+    }
+    
+    const photo_info = {
+        "url": photo_url,
+        "orientation": orientation,
+        "meta_data": photo_data,
+    };
+    
+    memoryCache.set(key, photo_info);
+    console.log(`Cached photo ${key}, cache size: ${memoryCache.size}`);
 }
-
 
 async function retrieve_photo_from_cache(key) {
-    const db = await open_cache_db();
-    const transaction = db.transaction('photos', 'readonly');
-    const store = transaction.objectStore('photos');
-    const request = store.get(key);
-
-    return new Promise((resolve, reject) => {
-        request.onsuccess = function (event) {
-            const result = event.target.result;
-            if (result) {
-                const blob = result.blob;
-                const photo_url = URL.createObjectURL(blob);
-                const photo_info = {
-                    "url": photo_url,
-                    "orientation": result.orientation,
-                    "meta_data": result.photo_data,
-                }
-                resolve(photo_info);
-            } else {
-                resolve(null);
-            }
-        };
-        request.onerror = (event) => reject(event.target.error);
-    });
+    if (memoryCache.has(key)) {
+        console.log(`Retrieved ${key} from memory cache`);
+        return memoryCache.get(key);
+    }
+    return null;
 }
 
 async function get_cache_item_count() {
-    const db = await open_cache_db();
-    return new Promise((resolve, reject) => {
-        const transaction = db.transaction('photos', 'readonly');
-        const store = transaction.objectStore('photos');
-        const request = store.count();
-
-        request.onsuccess = function () {
-            resolve(request.result);
-        };
-        request.onerror = function (event) {
-            reject(event.target.error);
-        };
-    });
+    return memoryCache.size;
 }
 
-async function delete_oldest_entries_from_cache(count_to_delete = 10) {
-    const db = await open_cache_db();
-    const transaction = db.transaction('photos', 'readwrite');
-    const store = transaction.objectStore('photos');
-    const request = store.openCursor();
-
+async function delete_oldest_entries_from_cache(count_to_delete = 5) {
     let deletedCount = 0;
-    return new Promise((resolve, reject) => {
-        request.onsuccess = function (event) {
-            const cursor = event.target.result;
-            if (cursor && deletedCount < count_to_delete) {
-                store.delete(cursor.primaryKey);
-                deletedCount++;
-                cursor.continue();
-            } else {
-                resolve(deletedCount);
-            }
-        };
-        request.onerror = (event) => reject(event.target.error);
-    });
+    for (const [key, photo] of memoryCache.entries()) {
+        if (deletedCount >= count_to_delete) break;
+        URL.revokeObjectURL(photo.url);
+        memoryCache.delete(key);
+        deletedCount++;
+    }
+    console.log(`Deleted ${deletedCount} entries from cache`);
+    return deletedCount;
 }
+
+// Clean up blob URLs on page unload
+window.addEventListener('beforeunload', () => {
+    memoryCache.forEach((photo_info) => {
+        if (photo_info.url) {
+            URL.revokeObjectURL(photo_info.url);
+        }
+    });
+    memoryCache.clear();
+});

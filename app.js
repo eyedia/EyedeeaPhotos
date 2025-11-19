@@ -28,10 +28,14 @@ app.use(cors({
 app.use(express.static('web'));
 app.use(express.json());
 
+const isSafeMode = process.argv.includes('--safe-mode');
+if (!isSafeMode) {
 app.use('/api/docs', api_doc_router);
 app.use('/api/system', system_router);
 app.use('/api/view', view_router);
 app.use('/api/view/filters', view_filter_router);
+}
+
 app.use('/api/sources', source_router);
 app.use('/api/sources/:id', source_scan_router);
 app.use('/api/sources/:id/browse', source_browser_router);

@@ -7,7 +7,9 @@
     "start": "nodemon app.js",
     "start-safe": "nodemon app.js --safe-mode",
     "swagger": "node ./swagger.js",
-    "test": "jest --config=jest.config.js --detectOpenHandles"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
+    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage"
   },
   "repository": {
     "type": "git",

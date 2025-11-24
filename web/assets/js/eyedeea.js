@@ -3,7 +3,21 @@ const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 
 let refresh_client = 60;
 
+function hideLoading() {
+    const el = document.getElementById('loading-overlay');
+    if (!el) return;
+    el.style.opacity = '0';
+    setTimeout(() => {
+        if (el.parentNode) el.parentNode.removeChild(el);
+    }, 350);
+}
+
 document.addEventListener('DOMContentLoaded', function () {
+
+    console.log('=== DOMContentLoaded fired ===');
+    console.log('Viewport:', window.innerWidth, 'x', window.innerHeight);
+    console.log('Main element:', document.getElementById('main'));
+    console.log('Viewer element:', document.getElementById('viewer'));
 
     //init materialize
     var elems = document.querySelectorAll('.fixed-action-btn');
@@ -13,30 +27,66 @@ document.addEventListener('DOMContentLoaded', function () {
         toolbarEnabled: false
     }
 
-    var instances = M.FloatingActionButton.init(elems, options);
-    var elems_tooltips = document.querySelectorAll('.tooltipped');
-    var instances_tooltips = M.Tooltip.init(elems_tooltips, { position: 'top' });
-    top_init();     //this is required to initialize design time urls.
+    try {
+        var instances = M.FloatingActionButton.init(elems, options);
+        var elems_tooltips = document.querySelectorAll('.tooltipped');
+        var instances_tooltips = M.Tooltip.init(elems_tooltips, { position: 'top' });
+    } catch (e) {
+        console.warn('Materialize init error:', e);
+    }
+
+    try {
+        top_init();     //this is required to initialize design time urls.
+        console.log('top_init completed');
+        console.log('=== top_init completed ===');
+        console.log('main object:', main);
+        console.log('main.slides length:', main.slides ? main.slides.length : 'undefined');
+        console.log('Viewer element after top_init:', document.getElementById('viewer'));
+    } catch (e) {
+        console.error('top_init error:', e);
+        hideLoading();
+        return;
+    }
 
 
     //refresh timer configs from server
     get_config()
         .then(config_from_server => {
+            console.log('=== Config received ===');
+            console.log('Config:', config_from_server);
             if (config_from_server && config_from_server.refresh_client) {
                 console.log(`got the server config: ${config_from_server.refresh_client}`);                
                 if(config_from_server.refresh_client > 60)
                     refresh_client = 60;    //client cannot function properly if it is less than 60
             }
-            console.log("setting timers...");
+            console.log("setting timers with refresh_client:", refresh_client);
+            
+            // Initial cache
+            cache_incoming_photos().then(() => {
+                console.log('=== cache_incoming_photos completed ===');
+                console.log('Starting refresh_pic...');
+                refresh_pic();
+                console.log('=== refresh_pic completed ===');
+                console.log('Viewer element:', document.getElementById('viewer'));
+                console.log('Viewer visible?', document.getElementById('viewer')?.offsetHeight);
+                hideLoading();
+            }).catch(err => {
+                console.error('Initial cache error:', err);
+                hideLoading();
+            });
+
+            // Set recurring timers
             setInterval(function () {
                 cache_incoming_photos();
             }, (refresh_client - 30) * 1000);
+            
             setInterval(function () {
                 refresh_pic();
             }, refresh_client * 1000);
         })
         .catch(err => {            
-            console.log(err);
+            console.error('get_config error:', err);
+            hideLoading();
         });
 
 });
@@ -44,13 +94,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
 function refresh_pic() {
     console.time("refresh_pic");
-
+    console.log('refresh_pic called');
+    console.log('main.slides:', main.slides ? main.slides.length : 'undefined');
     var total = 12;
-    var count = 0;
 
     let e_viewer = document.getElementById("viewer");
-    if (e_viewer)
+    console.log('Viewer before remove:', e_viewer);
+    if (e_viewer) {
         e_viewer.remove();
+        console.log('Viewer removed');
+    }
 
     let e_toggles = document.getElementsByClassName("toggle");
     if (e_toggles) {
@@ -59,54 +112,65 @@ function refresh_pic() {
         }
     }
     
+    // Create array of promises for all photos
+    const photoPromises = [];
     for (let i = 0; i < total; i++) {
-        (function (internal_i) {
-            get_photo(internal_i).then(photo_info => {
-                const photo_data = photo_info.meta_data;
-                if (photo_data) {
-                    let id_suffix = String(photo_data.photo_index).padStart(2, '0');
-                    const e_article = document.getElementById('article-' + id_suffix);
+        photoPromises.push(
+            new Promise((resolve, reject) => {
+                get_photo(i).then(photo_info => {
+                    const photo_data = photo_info.meta_data;
+                    if (photo_data) {
+                        let id_suffix = String(photo_data.photo_index).padStart(2, '0');
+                        const e_article = document.getElementById('article-' + id_suffix);
 
-                    let e_img = document.getElementById("img-" + id_suffix);
-                    e_img.setAttribute("src", photo_info.url);
-                    e_img.setAttribute("title", photo_data.filename);
+                        let e_img = document.getElementById("img-" + id_suffix);
+                        e_img.setAttribute("src", photo_info.url);
+                        e_img.setAttribute("title", photo_data.filename);
 
-                    let e_a = document.getElementById("a-" + id_suffix);
-                    e_a.setAttribute("href", photo_info.url);
-                    e_a.setAttribute("orientation_v2", photo_info.orientation);
-                    e_a.setAttribute("orientation", photo_data.orientation);
-                    e_a.setAttribute("photo_id", photo_data.photo_id);
+                        let e_a = document.getElementById("a-" + id_suffix);
+                        e_a.setAttribute("href", photo_info.url);
+                        e_a.setAttribute("orientation_v2", photo_info.orientation);
+                        e_a.setAttribute("orientation", photo_data.orientation);
+                        e_a.setAttribute("photo_id", photo_data.photo_id);
 
-                    const e_title = document.createElement('h2');
-                    e_title.setAttribute("id", `title-${id_suffix}`);
-                    e_article.appendChild(e_title);
+                        const e_title = document.createElement('h2');
+                        e_title.setAttribute("id", `title-${id_suffix}`);
+                        e_article.appendChild(e_title);
 
-                    const e_sub_title = document.createElement('h3');
-                    e_sub_title.setAttribute("id", `sub-title-${id_suffix}}`);
-                    e_article.appendChild(e_sub_title);
+                        const e_sub_title = document.createElement('h3');
+                        e_sub_title.setAttribute("id", `sub-title-${id_suffix}}`);
+                        e_article.appendChild(e_sub_title);
 
-                    const e_sub_sub_title = document.createElement('p');
-                    e_sub_sub_title.setAttribute("id", `sub-sub-title-${id_suffix}}`);
-                    e_article.appendChild(e_sub_sub_title);
+                        const e_sub_sub_title = document.createElement('p');
+                        e_sub_sub_title.setAttribute("id", `sub-sub-title-${id_suffix}}`);
+                        e_article.appendChild(e_sub_sub_title);
 
-                    set_image_attributes(photo_data, e_title, e_sub_title, e_sub_sub_title);
-                }
+                        set_image_attributes(photo_data, e_title, e_sub_title, e_sub_sub_title);
+                    }
 
-                count++;
-                if (count > total - 1) {
-                    top_init();
-                }
-
-            })
+                    console.log(`Photo ${i} loaded and DOM updated`);
+                    resolve(photo_info);
+                })
                 .catch(error => {
-                    console.error('Error fetching image:', error);
+                    console.error(`Error fetching image ${i}:`, error);
+                    reject(error);
                 });
-        }(i));
+            })
+        );
     }
 
-    console.timeEnd("refresh_pic");
+    // Wait for ALL photos to load and DOM to update, THEN initialize viewer
+    Promise.all(photoPromises).then(results => {
+        console.log('All photos loaded and DOM updated:', results.length);
+        console.log('Calling top_init() to create viewer...');
+        top_init();
+        console.log('Viewer element after top_init:', document.getElementById("viewer"));
+        console.timeEnd("refresh_pic");
+    }).catch(err => {
+        console.error('Error in refresh_pic Promise.all:', err);
+        console.timeEnd("refresh_pic");
+    });
 }
-
 
 function set_image_attributes(photo_data, e_title, e_sub_title, e_sub_title2) {
     if (photo_data == null) {

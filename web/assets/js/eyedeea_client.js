@@ -8,7 +8,7 @@ const MAX_MEMORY_CACHE = 24;
 async function cache_incoming_photos() {
     console.time("cache_photos");
     const total = 13;
-    const CONCURRENT_REQUESTS = 3;
+    const CONCURRENT_REQUESTS = 5; // Increase concurrent requests
     
     try {
         const response = await fetch(photo_url_server + `/photos?photo_id_only=true&limit=${total}`);
@@ -19,10 +19,10 @@ async function cache_incoming_photos() {
         for (let i = 0; i < photo_ids.length; i += CONCURRENT_REQUESTS) {
             const batch = photo_ids.slice(i, i + CONCURRENT_REQUESTS);
             await Promise.all(batch.map(photo_id => 
-                fetch(photo_url_server + `/photos/${photo_id}`)
+                fetch(photo_url_server + `/photos/${photo_id}`, { signal: AbortSignal.timeout(10000) })
                     .then(response => {
                         if (!response.ok) return;
-                        return save_photo_from_respose(response);
+                        return save_photo_to_cache_fast(response);
                     })
                     .catch(error => console.error(`Error caching photo ${photo_id}:`, error))
             ));
@@ -35,10 +35,32 @@ async function cache_incoming_photos() {
     }
 }
 
+// Fast cache without dimension calculation
+async function save_photo_to_cache_fast(response) {
+    try {
+        const blob = await response.blob();
+        const this_photo_url = URL.createObjectURL(blob);
+        const v_photo_data = response.headers.get("photo-data");
+        let photo_data = undefined;
+        
+        if (v_photo_data) {
+            photo_data = JSON.parse(v_photo_data);
+        }
+
+        // Skip orientation calculation during bulk cache
+        let photo_orientation = "L"; // Default orientation
+        
+        await save_photo_to_cache(photo_data, this_photo_url, photo_orientation);
+    } catch (error) {
+        console.error('Error in save_photo_to_cache_fast:', error);
+    }
+}
+
+// Keep original for on-demand photo loading (needs accurate orientation)
 async function save_photo_from_respose(response){
     const blob = await response.blob();
     const this_photo_url = URL.createObjectURL(blob);
-    const this_photo_size = await get_photo_size(this_photo_url);
+    const this_photo_size = await get_photo_size(this_photo_url); // Only when actually displaying
     let photo_orientation = (this_photo_size.height > this_photo_size.width) ? "P" : "L";
     const v_photo_data = response.headers.get("photo-data");
     let photo_data = undefined;

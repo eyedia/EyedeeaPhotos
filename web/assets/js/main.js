@@ -590,17 +590,27 @@ main = (function ($) {
 							newSlide.$slideImage
 								.css('background-image', 'url(' + newSlide.url + ')');
 
-							//DDD: set orientation
+							//set orientation
 							if ((newSlide.orientation_v2 == "P") || ((newSlide.orientation == 6) || (newSlide.orientation == 8))) {
+								// Set blurred background via inline background-image (pseudo-element uses it)
 								newSlide.$slideImage
-								.css("background-size", "contain");
-								newSlide.$slideImage.parent()
-								.css('background-image', 'url(' + newSlide.url + ')');
+									.css("background-image", 'url(' + newSlide.url + ')')
+									.css("background-size", "cover") // used by ::before
+									.addClass('portrait-blur')
+									.removeClass('landscape');
+
+								// Ensure any previous foreground img removed, then add fresh one
+								newSlide.$slideImage.find('img.portrait-foreground').remove();
+								$('<img class="portrait-foreground" src="' + newSlide.url + '" alt="">')
+									.appendTo(newSlide.$slideImage);
 							} else {
+								// Landscape: remove foreground and blurred background
+								newSlide.$slideImage.find('img.portrait-foreground').remove();
 								newSlide.$slideImage
-								.css("background-size", "cover");
-								newSlide.$slideImage.parent()
-								.css('background-image', 'none');
+									.css("background-image", 'url(' + newSlide.url + ')')
+									.css("background-size", "cover")
+									.removeClass('portrait-blur')
+									.addClass('landscape');
 							}
 
 							// Mark as loaded.

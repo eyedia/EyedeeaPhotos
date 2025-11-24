@@ -10,6 +10,7 @@ import {
 } from "../../meta//meta_scan.mjs"
 
 import constants from '../../constants.js';
+import { generateETag } from '../../common.js';
 
 export let fs_config = {};
 export let total_geo_apis = 0;
@@ -197,7 +198,10 @@ async function get_geo_reverse(source_id, lat, lng, callback) {
     });
 }
 
-export async function get_photo(photo_data, res) {
+export async function get_photo(photo_data, res, isCurrentPhoto = false) {    
+    const etag = generateETag(photo_data);
+    // Short cache (40s) for current photo, long cache (30min) for history
+    const maxAge = isCurrentPhoto ? 40 : 1800;
     fs.readFile(photo_data.filename, (err, data) => {
         if (err) {
             res.writeHead(500, { 'Content-Type': 'text/plain' });
@@ -207,7 +211,9 @@ export async function get_photo(photo_data, res) {
         photo_data.filename = path.basename(photo_data.filename);
         res.writeHead(200, {
             'Content-Type': 'image/jpeg',
-            'photo-data': JSON.stringify(photo_data)
+            'photo-data': JSON.stringify(photo_data),
+            'Cache-Control': `public, max-age=${maxAge}`,
+            'ETag': etag
         });
         res.end(data);
     });

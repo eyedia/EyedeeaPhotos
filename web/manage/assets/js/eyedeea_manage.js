@@ -157,13 +157,33 @@ function validate_fields() {
 
 
 function is_valid_dir(path) {
-    const first_check = /[:/\\/]/.test(path);
-    if (!first_check) return false;
-    const pathRegex = /^(?:[a-zA-Z]:\\|\\\\|\/|\.\/|~\/)?(?:[\w.-]+[\\\/])*[\w.-]+$/;
+    // Quick sanity checks first
+    if (!path || typeof path !== 'string' || path.length > 500) {
+        return false;
+    }
+    
+    // Check if path contains at least one path separator
+    if (!/[:\\/]/.test(path)) {
+        return false;
+    }
+    
+    // Simplified, non-backtracking regex pattern
+    // Matches: C:\path\to\dir, /path/to/dir, \\network\share, ./relative, ~/home
+    const pathRegex = /^(?:[a-zA-Z]:\\|\\\\|\/|\.\/|~\/)[^\0<>"|?*]*[^\0<>"|?*/\\]$|^[^\0<>"|?*]*[^\0<>"|?*/\\]$/;
+    
     return pathRegex.test(path);
 }
+
 function is_valid_url(url) {
-    const urlRegex = /^(https?:\/\/)?([\w.-]+)\.([a-z]{2,6})([\/\w .-]*)*\/?$/i;
+    // Quick sanity checks first
+    if (!url || typeof url !== 'string' || url.length > 500) {
+        return false;
+    }
+    
+    // Simplified, atomic grouping to prevent backtracking
+    // Using a more restrictive pattern without nested quantifiers
+    const urlRegex = /^https?:\/\/[\w.-]+\.[\w]{2,6}(?:\/[\w./-]*)?$|^[\w.-]+\.[\w]{2,6}(?:\/[\w./-]*)?$/;
+    
     return urlRegex.test(url);
 }
 

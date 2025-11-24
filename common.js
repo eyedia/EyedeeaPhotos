@@ -18,15 +18,12 @@ class IdGeneratorDictionary {
 }
 
 const generateETag = (photo_data) => {
-    //console.log(photo_data);
-    return `"${crypto.createHash('md5').update(photo_data.id + photo_data.folder_id + photo_data.folder_name + photo_data.filename).digest('hex')}"`;
-
-    // const hash = crypto
-    //     .createHash('md5')
-    //     .update(JSON.stringify(photo_data))
-    //     .digest('hex');
-    
-    // return `"${hash}"`;
+    return `"${crypto.createHash('sha256').update(
+        photo_data.id + 
+        photo_data.folder_id + 
+        photo_data.folder_name + 
+        photo_data.filename
+    ).digest('hex')}"`;
 };
 
 export default IdGeneratorDictionary;

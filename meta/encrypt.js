@@ -59,12 +59,12 @@ function get_key(){
     const platform = os.platform();
     if (platform.startsWith("win")) {       
       const scriptPath = path.join(__dirname, 'set_env.ps1');
-      checkAndSetEnvKey(`powershell -ExecutionPolicy Bypass -File "${scriptPath}"`);
+      checkAndSetEnvKey(scriptPath, 'windows');
       const output = execSync('powershell -Command "[System.Environment]::GetEnvironmentVariable(\'EYEDEEA_KEY\', [System.EnvironmentVariableTarget]::User)"', { encoding: 'utf-8' });      
       process.env.EYEDEEA_KEY = output.trim();
     } else {      
       const scriptPath = path.join(__dirname, 'set_env.sh');
-      checkAndSetEnvKey(`bash "${scriptPath}"`);
+      checkAndSetEnvKey(scriptPath, 'unix');
     }
   }
   keyHex = process.env.EYEDEEA_KEY;
@@ -80,11 +80,22 @@ export function generate_short_GUID() {
   return crypto.randomBytes(8).toString("hex");
 }
 
-const checkAndSetEnvKey = async (script_name) => {
+const checkAndSetEnvKey = (scriptPath, platform) => {
   if (!process.env.EYEDEEA_KEY) {
       console.log("EYEDEEA_KEY not found. Generating and setting it...");
       try {
-          execSync(script_name, { stdio: 'inherit', shell: false });
+          // SAFE: No shell: true, pass script path as argument instead
+          if (platform === 'windows') {
+              execSync('powershell', ['-ExecutionPolicy', 'Bypass', '-File', scriptPath], { 
+                  stdio: 'inherit',
+                  shell: false
+              });
+          } else {
+              execSync('bash', [scriptPath], { 
+                  stdio: 'inherit',
+                  shell: false
+              });
+          }
       } catch (error) {
           console.error("Error setting EYEDEEA_KEY:", error.message);
       }

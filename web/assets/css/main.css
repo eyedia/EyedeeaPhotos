@@ -186,6 +186,7 @@ textarea {
 
     #viewer .slide .caption {
         font-size: 0.75rem;
+		z-index: 3;
     }
 
     #viewer .slide .caption h2 {
@@ -1082,6 +1083,44 @@ body.is-preload-1 #main {
 	font-weight: bold;
 }
 
+
+/* Configuration Menu(Right) -- Start*/
+.config-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+    position: relative;
+}
+
+/* Wrapper to Manage Logo image */
+.config-container .center-wrapper {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+/* Manage Logo image */
+.config-container a img.main-image {
+    width: 10vw;
+    max-width: 100px;
+    height: auto;
+    border-bottom: 3px solid red;
+    padding-bottom: 5px;
+    cursor: pointer;
+    display: block;
+}
+
+/* Close button */
+.config-container img.close-btn {
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    filter: brightness(0.1);      /* darken the SVG */
+}
+
+/* Configuration Menu(Right) -- End*/
+
 /* Footer */
 
 #footer {
@@ -1371,7 +1410,7 @@ body.is-preload-1 #main {
 	left: 0;
 	width: 100%;
 	color: rgba(255, 255, 255, 0.5);
-	z-index: 1;
+	z-index: 3;
 }
 
 #viewer .slide .caption h2,

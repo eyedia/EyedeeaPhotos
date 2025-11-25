@@ -409,7 +409,7 @@ export async function get_photo(photo_data, size = "sm", callback) {
       .catch(function (error) {
         let err_info = "Error getting photo from Synology. The server returned ";
         err_info += error + ". ";
-        err_info += `The request was for ${photo_data.id}, ${photo_data.cache_key}`;
+        err_info += `The request was for ${photo_data.photo_id}, ${photo_data.cache_key}`;
         logger.error(err_info);
         callback(err_info, null);
       });

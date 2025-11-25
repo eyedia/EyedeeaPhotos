@@ -1,4 +1,20 @@
+function setSlideShowUrlLink() {
+    const linkElement = document.getElementById('img_slideshow');
+    const baseUrl = window.location.protocol + '//' + window.location.host.split(':')[0] + (window.location.port ? ':' + window.location.port : '');
+    linkElement.href = baseUrl;
+    linkElement.addEventListener('click', function(event) {
+    event.preventDefault();
+    window.location.href = this.href;
+});
+    console.log(`Slide Show URL set to: ${linkElement.href}`);
+}
+
+// Call the function on page load
+//window.onload = setBaseUrlLink;
+
+
 document.addEventListener('DOMContentLoaded', async function () {
+    setSlideShowUrlLink();
     let pathArray = window.location.pathname.split("/");
     const documentName = pathArray[pathArray.length - 1];
     await get_sources();

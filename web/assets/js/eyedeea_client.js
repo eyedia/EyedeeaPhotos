@@ -162,11 +162,8 @@ function set_tag(photo_id, tag) {
 async function save_photo_to_cache(photo_data, photo_url, orientation) {
     if (!photo_data) return;
     
-    const key = photo_data.photo_id;
-    
-    // Check if already cached
-    if (memoryCache.has(key)) {
-        console.log(`Photo ${key} already cached, skipping`);
+    const key = photo_data.photo_id;    
+    if (memoryCache.has(key)) {       
         return;
     }
     
@@ -190,8 +187,7 @@ async function save_photo_to_cache(photo_data, photo_url, orientation) {
 }
 
 async function retrieve_photo_from_cache(key) {
-    if (memoryCache.has(key)) {
-        console.log(`Retrieved ${key} from memory cache`);
+    if (memoryCache.has(key)) {        
         return memoryCache.get(key);
     }
     return null;

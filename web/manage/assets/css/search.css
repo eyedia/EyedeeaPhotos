@@ -242,8 +242,7 @@ dialog {
 .logo h3 {
     grid-column: 2;
     margin: 0;
-    align-self: start;
-    padding-left: 10px;
+    align-self: start;    
     color: #F67878;
     font-weight: bold;
     font-size: 1.2em;

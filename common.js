@@ -26,5 +26,21 @@ const generateETag = (photo_data) => {
     ).digest('hex')}"`;
 };
 
+const cleanData = (obj) => {
+  if (typeof obj === 'string') {    
+    return obj.replace(/[^\x20-\x7E]/g, ''); // keep printable ASCII characters
+  } else if (Array.isArray(obj)) {
+    return obj.map(cleanData);
+  } else if (typeof obj === 'object' && obj !== null) {
+    const newObj = {};
+    for (const key in obj) {
+      newObj[key] = cleanData(obj[key]);
+    }
+    return newObj;
+  } else {
+    return obj;
+  }
+};
+
 export default IdGeneratorDictionary;
-export {generateETag};
+export {generateETag, cleanData};

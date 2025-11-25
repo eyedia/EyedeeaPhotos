@@ -13,7 +13,7 @@ import { list_geo,
 import logger from "../../config_log.js";
 import constants from "../../constants.js";
 
-import { generateETag } from '../../common.js';
+import { generateETag, cleanData } from '../../common.js';
 
 export const get_viewer_config = async (req, res) => {
 
@@ -88,7 +88,7 @@ export const get_random_photo = async (req, res) => {
           let photo_data = rows[0];
           photo_data["photo_index"] = 0;
           photo_data.address = JSON.parse(photo_data.address);
-          if (photo_data.source_type == constants.SOURCE_TYPE_NAS) {
+          if (photo_data.source_type == constants.SOURCE_TYPE_NAS) {             
             get_photo_from_synology(photo_data, req, res, true);
           }else if (photo_data.source_type == constants.SOURCE_TYPE_FS){
             fs_get_photo(photo_data, res, true);
@@ -146,16 +146,16 @@ function return_photo_from_rows(req, res, rows){
 
 function get_photo_from_synology(photo_data, req, res, isCurrentPhoto = false) {
   const etag = generateETag(photo_data);
+  const photo_data_x = cleanData(photo_data);
   //syno get photo
   syno_get_photo(photo_data, "xl", (err, response) => {
     if (response && response.headers) {      
       // Short cache (40s) for current photo, long cache (30min) for history
-      const maxAge = isCurrentPhoto ? 40 : 1800;
-
+      const maxAge = isCurrentPhoto ? 40 : 1800;      
       res.writeHead(200, {
         'Content-Type': response.headers.get('content-type'),
         'Content-Length': response.data.length,
-        'photo-data': JSON.stringify(photo_data),
+        'photo-data': JSON.stringify(photo_data_x),
         'Cache-Control': `public, max-age=${maxAge}`,
         'ETag': etag
       });

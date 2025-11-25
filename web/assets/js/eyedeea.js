@@ -13,12 +13,6 @@ function hideLoading() {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-
-    console.log('=== DOMContentLoaded fired ===');
-    console.log('Viewport:', window.innerWidth, 'x', window.innerHeight);
-    console.log('Main element:', document.getElementById('main'));
-    console.log('Viewer element:', document.getElementById('viewer'));
-
     //init materialize
     var elems = document.querySelectorAll('.fixed-action-btn');
     let options = {
@@ -36,12 +30,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     try {
-        top_init();     //this is required to initialize design time urls.
-        console.log('top_init completed');
-        console.log('=== top_init completed ===');
-        console.log('main object:', main);
-        console.log('main.slides length:', main.slides ? main.slides.length : 'undefined');
-        console.log('Viewer element after top_init:', document.getElementById('viewer'));
+        top_init();     //this is required to initialize design time urls.        
     } catch (e) {
         console.error('top_init error:', e);
         hideLoading();
@@ -51,9 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     //refresh timer configs from server
     get_config()
-        .then(config_from_server => {
-            console.log('=== Config received ===');
-            console.log('Config:', config_from_server);
+        .then(config_from_server => {            
             if (config_from_server && config_from_server.refresh_client) {
                 console.log(`got the server config: ${config_from_server.refresh_client}`);                
                 if(config_from_server.refresh_client > 60)
@@ -62,13 +49,8 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log("setting timers with refresh_client:", refresh_client);
             
             // Initial cache
-            cache_incoming_photos().then(() => {
-                console.log('=== cache_incoming_photos completed ===');
-                console.log('Starting refresh_pic...');
-                refresh_pic();
-                console.log('=== refresh_pic completed ===');
-                console.log('Viewer element:', document.getElementById('viewer'));
-                console.log('Viewer visible?', document.getElementById('viewer')?.offsetHeight);
+            cache_incoming_photos().then(() => {               
+                refresh_pic();                
                 hideLoading();
             }).catch(err => {
                 console.error('Initial cache error:', err);
@@ -93,16 +75,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 function refresh_pic() {
-    console.time("refresh_pic");
-    console.log('refresh_pic called');
-    console.log('main.slides:', main.slides ? main.slides.length : 'undefined');
+    console.time("refresh_pic");    
     var total = 12;
 
-    let e_viewer = document.getElementById("viewer");
-    console.log('Viewer before remove:', e_viewer);
+    let e_viewer = document.getElementById("viewer");    
     if (e_viewer) {
         e_viewer.remove();
-        console.log('Viewer removed');
     }
 
     let e_toggles = document.getElementsByClassName("toggle");
@@ -147,8 +125,7 @@ function refresh_pic() {
 
                         set_image_attributes(photo_data, e_title, e_sub_title, e_sub_sub_title);
                     }
-
-                    console.log(`Photo ${i} loaded and DOM updated`);
+                    
                     resolve(photo_info);
                 })
                 .catch(error => {
@@ -160,11 +137,8 @@ function refresh_pic() {
     }
 
     // Wait for ALL photos to load and DOM to update, THEN initialize viewer
-    Promise.all(photoPromises).then(results => {
-        console.log('All photos loaded and DOM updated:', results.length);
-        console.log('Calling top_init() to create viewer...');
-        top_init();
-        console.log('Viewer element after top_init:', document.getElementById("viewer"));
+    Promise.all(photoPromises).then(results => {        
+        top_init();        
         console.timeEnd("refresh_pic");
     }).catch(err => {
         console.error('Error in refresh_pic Promise.all:', err);
@@ -262,7 +236,7 @@ function set_sub_title_2(photo_data, e_sub_title2) {
 
 function set_orientation(photo_data) {
     let orientation = photo_data.orientation;
-    console.log(orientation);
+    
     if ((orientation == 6) || (orientation == 8)) {
         main.slides[main.current].$slideImage.css("background-size", "contain");
     } else {
@@ -274,8 +248,7 @@ function set_orientation(photo_data) {
 function mt_hangle_tool_click(id) {
 
     switch (id) {
-        case "mt_trash_it":
-            console.log(id);
+        case "mt_trash_it":            
             break;
         case "mt_mark_it":
             break;
@@ -333,6 +306,16 @@ function toggle_lighten(element, toggle_color) {
     } else {
         element.classList.remove(toggle_color);
         return false;
+    }
+}
+
+function closeConfigNav() {
+    var body = document.body;
+
+    if (body.classList.contains('fullscreen')) {       
+        body.classList.remove('fullscreen');
+    } else {        
+        body.classList.add('fullscreen');
     }
 }
 

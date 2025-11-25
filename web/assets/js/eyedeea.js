@@ -23,8 +23,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     try {
         var instances = M.FloatingActionButton.init(elems, options);
-        var elems_tooltips = document.querySelectorAll('.tooltipped');
-        var instances_tooltips = M.Tooltip.init(elems_tooltips, { position: 'top' });
+        //var elems_tooltips = document.querySelectorAll('.tooltipped');
+        //var instances_tooltips = M.Tooltip.init(elems_tooltips, { position: 'top' });
     } catch (e) {
         console.warn('Materialize init error:', e);
     }
@@ -277,7 +277,7 @@ async function mt_mark_it() {
 }
 
 async function mt_dont_show() {
-    console.log(main.slides[main.current].photo_id);
+    console.log("setting 'Do Not Show' tag to photo id:", main.slides[main.current].photo_id);
     set_tag(main.slides[main.current].photo_id, "dns");
 }
 
@@ -286,7 +286,8 @@ async function mt_download() {
         if (photo_info) {
             const a = document.createElement("a");
             a.href = photo_info.url;
-            
+            console.log(photo_info);
+            console.log("Downloading photo from url:", photo_info.url);
             if (photo_info.meta_data)
                 a.download = photo_info.meta_data.filename;
             else
@@ -298,6 +299,7 @@ async function mt_download() {
         }
     });
 }
+
 
 function toggle_lighten(element, toggle_color) {
     if (!element.classList.contains(toggle_color)) {

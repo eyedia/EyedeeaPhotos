@@ -193,7 +193,7 @@ function get_default_photo(res) {
   });
 }
 
-export const add_tag_dns = async (req, res) => {
+export const add_tag_dns = async (req, res) => {  
   meta_get_tag("eyedeea_dns", (err, e_tag) => {
     if (err) {
       logger.error(err.message);

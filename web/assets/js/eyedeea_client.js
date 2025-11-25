@@ -139,7 +139,9 @@ async function get_config() {
 }
 
 function set_tag(photo_id, tag) {
-    fetch(photo_url_server + "/" + photo_id + "/" + tag, {
+    const url = photo_url_server + "/" + photo_id + "/" + tag;
+    console.log("Setting tag via URL:", url);
+    fetch(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -149,7 +151,6 @@ function set_tag(photo_id, tag) {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            return response.json();
         })
         .then(responseData => {
             //console.log('Success:', responseData);

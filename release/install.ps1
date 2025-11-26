@@ -112,11 +112,12 @@ catch {
 # SUMMARY AND EXIT
 # ============================================================================
 
-Write-Host "📊 Installation Summary" -ForegroundColor Cyan
 $errorsColor = if ($script:ErrorCount -gt 0) { "Red" } else { "Green" }
-Write-Host "Errors: $script:ErrorCount" -ForegroundColor $errorsColor
 $warningsColor = if ($script:WarningCount -gt 0) { "Yellow" } else { "Green" }
+
+Write-Host "Errors: $script:ErrorCount" -ForegroundColor $errorsColor
 Write-Host "Warnings: $script:WarningCount" -ForegroundColor $warningsColor
+
 
 
 Pause-Script

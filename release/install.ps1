@@ -105,8 +105,15 @@ Function Execute-Command ($cmd, $arg, $working_dir) {
 Function Install-EyedeeaPhotos {
     Write-Info "Installing Eyedeea Photos..."
 
+    Write-Info $app_path
+    if (!(Test-Path $app_path)) {
+        New-Item -ItemType Directory -Path $app_path -Force | Out-Null
+        Write-Info "Created application directory: $app_path"
+    }
+
     # Check if Node.js is installed
     $output = Execute-Command -cmd "node" -arg "-v" -working_dir $app_path
+    
     if (-not $output.stdout) {
         Write-Info "Node.js not found, installing..."
         try {

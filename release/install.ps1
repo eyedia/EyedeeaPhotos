@@ -230,4 +230,42 @@ trap {
 
 Write-Header "EyedeeaPhotos Installation"
 
-# Check admin
+# Check admin privileges
+if (-not (Check-Admin)) {
+    Write-Error-Custom -Message "Administrator privileges required!" -Critical
+    Write-Info "Please right-click PowerShell and select 'Run as administrator'"
+    Pause-Script
+    exit 1
+}
+
+Write-Success "Running with administrator privileges"
+
+# Execute based on command-line parameter
+try {
+    Write-Step "Installing dependencies..."
+    if ($Action -eq "install") {
+        Install-EyedeeaPhotos
+    }
+    elseif ($Action -eq "uninstall") {
+        Uninstall-EyedeeaPhotos
+    }
+    else {
+        Write-Error-Custom -Message "Invalid argument! Use 'install' or 'uninstall'." -Critical
+        exit 1
+    }
+    Write-Success "Installation completed successfully!"
+} catch {
+    Write-Error-Custom -Message "Installation failed: $_" -Critical
+}
+
+# ============================================================================
+# SUMMARY AND EXIT
+# ============================================================================
+
+$errorsColor = if ($script:ErrorCount -gt 0) { "Red" } else { "Green" }
+$warningsColor = if ($script:WarningCount -gt 0) { "Yellow" } else { "Green" }
+
+Write-Host "Errors: $script:ErrorCount" -ForegroundColor $errorsColor
+Write-Host "Warnings: $script:WarningCount" -ForegroundColor $warningsColor
+
+Pause-Script

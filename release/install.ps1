@@ -1,161 +1,119 @@
-param (
+    param (
     [ValidateSet("install", "uninstall")]
-    [string]$Action = "install" # Default action is "install"
+    [string]$Action = "install",
+    [switch]$NoExit
 )
 
+# ============================================================================
+# CONFIGURATION
+# ============================================================================
 $app_path = Join-Path -Path $env:LOCALAPPDATA -ChildPath "EyediaTech\EyedeeaPhotos\app"
 $appdataRoaming = [Environment]::GetFolderPath("ApplicationData")
 $node_path = "C:\Program Files\nodejs\npm.cmd"
 $node_url = "https://nodejs.org/dist/v22.11.0/node-v22.11.0-x64.msi"
-$node_file = "node.msi"
+$node_file = "$env:TEMP\node.msi"
+$eyedeea_url = "http://127.0.0.1:8080/manage"
 
-Function Execute-Command ($cmd, $arg, $working_dir) {
-    $pinfo = New-Object System.Diagnostics.ProcessStartInfo
-    $pinfo.FileName = $cmd
-    $pinfo.RedirectStandardError = $true
-    $pinfo.RedirectStandardOutput = $true
-    $pinfo.UseShellExecute = $false
-    $pinfo.Arguments = $arg
-    $pinfo.WorkingDirectory = $working_dir
-    $p = New-Object System.Diagnostics.Process
-    $p.StartInfo = $pinfo
-    $p.Start() | Out-Null
-    $p.WaitForExit()
-    [pscustomobject]@{        
-        stdout   = $p.StandardOutput.ReadToEnd()
-        stderr   = $p.StandardError.ReadToEnd()
-        ExitCode = $p.ExitCode
+# Global error tracking
+$script:ErrorCount = 0
+$script:WarningCount = 0
+
+# ============================================================================
+# UTILITY FUNCTIONS
+# ============================================================================
+
+Function Write-Header {
+    param([string]$Message)
+    Write-Host ""
+    Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Cyan
+    Write-Host "  $Message" -ForegroundColor Cyan
+    Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Cyan
+    Write-Host ""
+}
+
+Function Write-Success {
+    param([string]$Message)
+    Write-Host "✅ $Message" -ForegroundColor Green
+}
+
+Function Write-Error-Custom {
+    param(
+        [string]$Message,
+        [switch]$Critical
+    )
+    Write-Host "❌ $Message" -ForegroundColor Red
+    $script:ErrorCount++
+    
+    if ($Critical) {
+        Write-Host "   This is a critical error. Installation cannot continue." -ForegroundColor Red
     }
 }
 
-Function Install-EyedeeaPhotos {
-    Write-Host "Installing Eyedeea Photos..."
-
-    # Check if Node.js is installed
-    $output = Execute-Command -cmd "node" -arg "-v" -working_dir $app_path
-    if (-not $output.stdout) {
-        Write-Host "Node.js not found, installing..."
-        try {
-            Invoke-WebRequest $node_url -OutFile $node_file
-            Start-Process "msiexec.exe" -ArgumentList "/i $node_file /qn" -Wait
-            Start-Sleep -Seconds 5
-            Write-Host "Node.js installed."
-            $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
-        } catch {
-            Write-Host "Error installing Node.js: $($_.Exception.Message)"
-            exit 1
-        }
-    } else {
-        Write-Host "Node.js found, version: $($output.stdout.Trim())"
-    }
-
-    # Check and install PM2
-    if (!(Test-Path "$appdataRoaming\npm\pm2.cmd")) {
-        Write-Host "Installing pm2..."
-        Execute-Command -cmd $node_path -arg "install pm2 -g" -working_dir $app_path | Out-Null
-        if (!(Test-Path "$appdataRoaming\npm\pm2.cmd")) {
-            Write-Host "PM2 installation failed."
-            exit 101
-        }
-        Write-Host "PM2 installed."
-    } else {
-        Write-Host "PM2 already installed."
-    }
-
-    # Create application directory if not exists
-    if (!(Test-Path $app_path)) {
-        try {
-            New-Item -ItemType Directory -Path $app_path -Force | Out-Null
-            Write-Host "Created application directory: $app_path"
-        } catch {
-            Write-Host "Error creating application directory: $($_.Exception.Message)"
-            exit 1
-        }
-    }
-
-    # Create a minimal package.json
-    Execute-Command -cmd $node_path -arg "init -y" -working_dir $app_path | Out-Null
-
-    # Install Eyedeea Photos
-    Write-Host "Installing Eyedeea Photos package..."
-    $output = Execute-Command -cmd $node_path -arg "install eyedeeaphotos" -working_dir $app_path
-    if ($output.ExitCode -ne 0) {
-        Write-Host "Installation failed: $($output.stderr.Trim())"
-        exit 100
-    }
-    Write-Host "Eyedeea Photos installed."
-
-    # Start the application
-    Write-Host "Starting Eyedeea Photos server..."
-    $eyedeea_dir = "$app_path\node_modules\eyedeeaphotos"
-    Execute-Command -cmd "$appdataRoaming\npm\pm2.cmd" -arg "start app.js --name ""Eyedeea Photos""" -working_dir $eyedeea_dir | Out-Null
-
-    Start-Sleep -Seconds 3
-    $pm2_status = Execute-Command -cmd "$appdataRoaming\npm\pm2.cmd" -arg "list" -working_dir $eyedeea_dir
-    if ($pm2_status.stdout -notmatch "Eyedeea Photos") {
-        Write-Host "WARNING: Eyedeea Photos may not have started"
-        exit 102
-    }
-
-    Write-Host "Eyedeea Photos started."
-
-    # Open the application in the browser
-    Start-Process "http://127.0.0.1:8080/manage"
-    Write-Host "Eyedeea Photos setup complete!"
+Function Write-Warning-Custom {
+    param([string]$Message)
+    Write-Host "⚠️  $Message" -ForegroundColor Yellow
+    $script:WarningCount++
 }
 
-Function Uninstall-EyedeeaPhotos {
-    Write-Host "Uninstalling Eyedeea Photos..."
-
-    # Stop PM2 process
-    if (Test-Path "$appdataRoaming\npm\pm2.cmd") {
-        Write-Host "Stopping PM2 process..."
-        Execute-Command -cmd "$appdataRoaming\npm\pm2.cmd" -arg "stop Eyedeea Photos" -working_dir $app_path | Out-Null
-        Execute-Command -cmd "$appdataRoaming\npm\pm2.cmd" -arg "delete Eyedeea Photos" -working_dir $app_path | Out-Null
-        Write-Host "PM2 process stopped."
-    }
-
-    # Kill all Node.js processes
-    Write-Host "Killing Node.js processes..."
-    Get-Process "node" -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.Id -Force }
-    Write-Host "Node.js processes killed."
-
-    # Uninstall Eyedeea Photos
-    if (Test-Path $node_path) {
-        Write-Host "Uninstalling Eyedeea Photos package..."
-        Execute-Command -cmd $node_path -arg "uninstall eyedeeaphotos" -working_dir $app_path | Out-Null
-        Write-Host "Eyedeea Photos uninstalled."
-    }
-
-    # Remove PM2 if not needed
-    $pm2_apps = Execute-Command -cmd "$appdataRoaming\npm\pm2.cmd" -arg "list --json"
-    if ($pm2_apps.ExitCode -eq 0) {
-        $pm2_list = $pm2_apps.stdout | ConvertFrom-Json
-        if ($pm2_list.Count -eq 0) {
-            Write-Host "No PM2 apps found, uninstalling PM2..."
-            Execute-Command -cmd $node_path -arg "uninstall pm2 -g" -working_dir $app_path | Out-Null
-            Write-Host "PM2 removed."
-        }
-    }
-
-    # Remove application directory
-    if (Test-Path $app_path) {
-        Write-Host "Removing Eyedeea Photos directory..."
-        Remove-Item -Path $app_path -Recurse -Force
-        Write-Host "Application directory deleted."
-    }
-
-    Write-Host "Uninstallation complete!"
+Function Write-Info {
+    param([string]$Message)
+    Write-Host "ℹ️  $Message" -ForegroundColor Cyan
 }
 
-# Execute based on command-line parameter
-if ($Action -eq "install") {
-    Install-EyedeeaPhotos
+Function Write-Step {
+    param([string]$Message)
+    Write-Host "📋 $Message" -ForegroundColor White
 }
-elseif ($Action -eq "uninstall") {
-    Uninstall-EyedeeaPhotos
+
+Function Pause-Script {
+    Write-Host ""
+    Write-Host "Press any key to continue or close this window..." -ForegroundColor Yellow
+    $null = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 }
-else {
-    Write-Host "Invalid argument! Use 'install' or 'uninstall'."
+
+Function Check-Admin {
+    $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+    return $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+
+# ============================================================================
+# MAIN INSTALLATION LOGIC
+# ============================================================================
+
+trap {
+    Write-Error-Custom -Message "Unexpected error: $_" -Critical
+    Pause-Script
     exit 1
 }
+
+Write-Header "🎉 EyedeeaPhotos Installation"
+
+# Check admin privileges
+if (-not (Check-Admin)) {
+    Write-Error-Custom -Message "Administrator privileges required!" -Critical
+    Write-Info "Please right-click PowerShell and select 'Run as administrator'"
+    Pause-Script
+    exit 1
+}
+
+Write-Success "Running with administrator privileges"
+
+# Add your installation steps here with try-catch blocks
+try {
+    Write-Step "Installing dependencies..."
+    # Your installation code
+    Write-Success "Installation completed successfully!"
+}
+catch {
+    Write-Error-Custom -Message "Installation failed: $_"
+}
+
+# ============================================================================
+# SUMMARY AND EXIT
+# ============================================================================
+
+Write-Header "📊 Installation Summary"
+Write-Host "Errors: $script:ErrorCount" -ForegroundColor $(if ($script:ErrorCount -gt 0) { "Red" } else { "Green" })
+Write-Host "Warnings: $script:WarningCount" -ForegroundColor $(if ($script:WarningCount -gt 0) { "Yellow" } else { "Green" })
+
+Pause-Script

@@ -1,4 +1,5 @@
 param (
+    [ValidateSet("install", "uninstall")]
     [string]$Action = "install" # Default action is "install"
 )
 
@@ -34,9 +35,16 @@ Function Install-EyedeeaPhotos {
     $output = Execute-Command -cmd "node" -arg "-v" -working_dir $app_path
     if (-not $output.stdout) {
         Write-Host "Node.js not found, installing..."
-        Invoke-WebRequest $node_url -OutFile $node_file
-        Start-Process "msiexec.exe" -ArgumentList "/i $node_file /qn" -Wait
-        Write-Host "Node.js installed."
+        try {
+            Invoke-WebRequest $node_url -OutFile $node_file
+            Start-Process "msiexec.exe" -ArgumentList "/i $node_file /qn" -Wait
+            Start-Sleep -Seconds 5
+            Write-Host "Node.js installed."
+            $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+        } catch {
+            Write-Host "Error installing Node.js: $($_.Exception.Message)"
+            exit 1
+        }
     } else {
         Write-Host "Node.js found, version: $($output.stdout.Trim())"
     }
@@ -45,6 +53,10 @@ Function Install-EyedeeaPhotos {
     if (!(Test-Path "$appdataRoaming\npm\pm2.cmd")) {
         Write-Host "Installing pm2..."
         Execute-Command -cmd $node_path -arg "install pm2 -g" -working_dir $app_path | Out-Null
+        if (!(Test-Path "$appdataRoaming\npm\pm2.cmd")) {
+            Write-Host "PM2 installation failed."
+            exit 101
+        }
         Write-Host "PM2 installed."
     } else {
         Write-Host "PM2 already installed."
@@ -52,8 +64,13 @@ Function Install-EyedeeaPhotos {
 
     # Create application directory if not exists
     if (!(Test-Path $app_path)) {
-        New-Item -ItemType Directory -Path $app_path -Force | Out-Null
-        Write-Host "Created application directory: $app_path"
+        try {
+            New-Item -ItemType Directory -Path $app_path -Force | Out-Null
+            Write-Host "Created application directory: $app_path"
+        } catch {
+            Write-Host "Error creating application directory: $($_.Exception.Message)"
+            exit 1
+        }
     }
 
     # Create a minimal package.json
@@ -72,6 +89,14 @@ Function Install-EyedeeaPhotos {
     Write-Host "Starting Eyedeea Photos server..."
     $eyedeea_dir = "$app_path\node_modules\eyedeeaphotos"
     Execute-Command -cmd "$appdataRoaming\npm\pm2.cmd" -arg "start app.js --name ""Eyedeea Photos""" -working_dir $eyedeea_dir | Out-Null
+
+    Start-Sleep -Seconds 3
+    $pm2_status = Execute-Command -cmd "$appdataRoaming\npm\pm2.cmd" -arg "list" -working_dir $eyedeea_dir
+    if ($pm2_status.stdout -notmatch "Eyedeea Photos") {
+        Write-Host "WARNING: Eyedeea Photos may not have started"
+        exit 102
+    }
+
     Write-Host "Eyedeea Photos started."
 
     # Open the application in the browser
@@ -98,16 +123,19 @@ Function Uninstall-EyedeeaPhotos {
     # Uninstall Eyedeea Photos
     if (Test-Path $node_path) {
         Write-Host "Uninstalling Eyedeea Photos package..."
-        Execute-Command -cmd $node_path -arg "uninstall eyedeeaphotos -g" -working_dir $app_path | Out-Null
+        Execute-Command -cmd $node_path -arg "uninstall eyedeeaphotos" -working_dir $app_path | Out-Null
         Write-Host "Eyedeea Photos uninstalled."
     }
 
     # Remove PM2 if not needed
-    $pm2_apps = Execute-Command -cmd "$appdataRoaming\npm\pm2.cmd" -arg "list" -working_dir $app_path
-    if ($pm2_apps.stdout -match "No processes") {
-        Write-Host "No PM2 apps found, uninstalling PM2..."
-        Execute-Command -cmd $node_path -arg "uninstall pm2 -g" -working_dir $app_path | Out-Null
-        Write-Host "PM2 removed."
+    $pm2_apps = Execute-Command -cmd "$appdataRoaming\npm\pm2.cmd" -arg "list --json"
+    if ($pm2_apps.ExitCode -eq 0) {
+        $pm2_list = $pm2_apps.stdout | ConvertFrom-Json
+        if ($pm2_list.Count -eq 0) {
+            Write-Host "No PM2 apps found, uninstalling PM2..."
+            Execute-Command -cmd $node_path -arg "uninstall pm2 -g" -working_dir $app_path | Out-Null
+            Write-Host "PM2 removed."
+        }
     }
 
     # Remove application directory
@@ -123,9 +151,11 @@ Function Uninstall-EyedeeaPhotos {
 # Execute based on command-line parameter
 if ($Action -eq "install") {
     Install-EyedeeaPhotos
-} elseif ($Action -eq "uninstall") {
+}
+elseif ($Action -eq "uninstall") {
     Uninstall-EyedeeaPhotos
-} else {
+}
+else {
     Write-Host "Invalid argument! Use 'install' or 'uninstall'."
     exit 1
 }

@@ -11,6 +11,7 @@ $app_path = Join-Path -Path $env:LOCALAPPDATA -ChildPath "EyediaTech\EyedeeaPhot
 $appdataRoaming = [Environment]::GetFolderPath("ApplicationData")
 $node_url = "https://nodejs.org/dist/v22.11.0/node-v22.11.0-x64.msi"
 $node_file = "$env:TEMP\node.msi"
+$node_path = "C:\Program Files\nodejs\"
 $eyedeea_url = "http://127.0.0.1:8080/manage"
 
 # Global error tracking
@@ -133,7 +134,7 @@ Function Install-EyedeeaPhotos {
     # Check and install PM2
     if (!(Test-Path "$appdataRoaming\npm\pm2.cmd")) {
         Write-Info "Installing PM2..."
-        Execute-Command -cmd "npm" -arg "install pm2 -g" -working_dir $app_path | Out-Null
+        Execute-Command -cmd "$node_path\npm" -arg "install pm2 -g" -working_dir $app_path | Out-Null
         if (!(Test-Path "$appdataRoaming\npm\pm2.cmd")) {
             Write-Error-Custom -Message "PM2 installation failed." -Critical
             exit 101
@@ -155,11 +156,11 @@ Function Install-EyedeeaPhotos {
     }
 
     # Create a minimal package.json
-    Execute-Command -cmd "npm" -arg "init -y" -working_dir $app_path | Out-Null
+    Execute-Command -cmd "$node_path\npm" -arg "init -y" -working_dir $app_path | Out-Null
 
     # Install Eyedeea Photos
     Write-Info "Installing Eyedeea Photos package..."
-    $output = Execute-Command -cmd "npm" -arg "install eyedeeaphotos" -working_dir $app_path
+    $output = Execute-Command -cmd "$node_path\npm" -arg "install eyedeeaphotos" -working_dir $app_path
     if ($output.ExitCode -ne 0) {
         Write-Error-Custom -Message "Installation failed: $($output.stderr.Trim())" -Critical
         exit 100
@@ -169,7 +170,7 @@ Function Install-EyedeeaPhotos {
     # Start the application
     Write-Info "Starting Eyedeea Photos server..."
     $eyedeea_dir = "$app_path\node_modules\eyedeeaphotos"
-    Execute-Command -cmd "$\pm2.cmd" -arg "start app.js --name ""Eyedeea Photos""" -working_dir $eyedeea_dir | Out-Null
+    Execute-Command -cmd "$appdataRoaming\npm\pm2.cmd" -arg "start app.js --name ""Eyedeea Photos""" -working_dir $eyedeea_dir | Out-Null
 
     Start-Sleep -Seconds 3
     $pm2_status = Execute-Command -cmd "$appdataRoaming\npm\pm2.cmd" -arg "list" -working_dir $eyedeea_dir
@@ -204,7 +205,7 @@ Function Uninstall-EyedeeaPhotos {
     # Uninstall Eyedeea Photos
     if (Test-Path "$env:LOCALAPPDATA\npm\node_modules\eyedeeaphotos") {
         Write-Info "Uninstalling Eyedeea Photos package..."
-        Execute-Command -cmd "npm" -arg "uninstall eyedeeaphotos" -working_dir $app_path | Out-Null
+        Execute-Command -cmd "$node_path\npm" -arg "uninstall eyedeeaphotos" -working_dir $app_path | Out-Null
         Write-Info "Eyedeea Photos uninstalled."
     }
 
@@ -214,7 +215,7 @@ Function Uninstall-EyedeeaPhotos {
         $pm2_list = $pm2_apps.stdout | ConvertFrom-Json
         if ($pm2_list.Count -eq 0) {
             Write-Info "No PM2 apps found, uninstalling PM2..."
-            Execute-Command -cmd "npm" -arg "uninstall pm2 -g" -working_dir $app_path | Out-Null
+            Execute-Command -cmd "$node_path\npm" -arg "uninstall pm2 -g" -working_dir $app_path | Out-Null
             Write-Info "PM2 removed."
         }
     }

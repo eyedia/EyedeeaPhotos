@@ -76,8 +76,15 @@ Function Check-Admin {
     return $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
-Function Refresh-PathEnvironment {
+Function Refresh-PathEnvironment_not_used {
     [System.Environment]::SetEnvironmentVariable("Path", [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User"), "Machine")
+}
+
+Function Refresh-PathEnvironment {
+    $machinePath = [System.Environment]::GetEnvironmentVariable("Path", "Machine")
+    $userPath    = [System.Environment]::GetEnvironmentVariable("Path", "User")
+    $combined    = ($machinePath + ";" + $userPath).TrimEnd(';')
+    [System.Environment]::SetEnvironmentVariable("Path", $combined, "Process")
 }
 
 # ============================================================================
@@ -113,9 +120,9 @@ Function Install-EyedeeaPhotos {
     }
 
     # Check if Node.js is installed
-    $output = Execute-Command -cmd "node" -arg "-v" -working_dir $app_path
-    
-    if (-not $output.stdout) {
+    #$output = Execute-Command -cmd "node" -arg "-v" -working_dir $app_path
+    #if (-not $output.stdout) {
+    if (!(Test-Path "$node_path\node.exe")) {
         Write-Info "Node.js not found, installing..."
         try {
             Invoke-WebRequest $node_url -OutFile $node_file
@@ -123,6 +130,13 @@ Function Install-EyedeeaPhotos {
             Start-Sleep -Seconds 5
             Write-Info "Node.js installed."
             Refresh-PathEnvironment
+            # Re-query to get the newly installed path (optional)
+            $nodePath = & where.exe node 2>$null
+            if (-not [string]::IsNullOrWhiteSpace($nodePath)) {
+                Write-Info "Node found at: $nodePath"
+            } else {
+                Write-Warning-Custom -Message "Node was installed but could not be found in PATH."
+            }
         } catch {
             Write-Error-Custom -Message "Error installing Node.js: $($_.Exception.Message)" -Critical
             exit 1

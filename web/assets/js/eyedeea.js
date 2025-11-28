@@ -282,23 +282,24 @@ async function mt_dont_show() {
 }
 
 async function mt_download() {
-    get_photo(main.current).then(photo_info => {
-        if (photo_info) {
-            const a = document.createElement("a");
-            a.href = photo_info.url;
-            console.log(photo_info);
-            console.log("Downloading photo from url:", photo_info.url);
-            if (photo_info.meta_data)
-                a.download = photo_info.meta_data.filename;
-            else
-                a.download = "photo.jpg";
+    try {
+        const photo_info = await get_photo(main.current);
+        console.log(photo_info.meta_data.filename)
+        if (photo_info?.meta_data) {
+            const a = document.createElement("a");            
+            a.href = `${photo_url_server}/photos/${photo_info.meta_data.photo_id}?download=true&filename=${encodeURIComponent(photo_info.meta_data.filename)}`;
+            a.download = photo_info.meta_data.filename || "photo.jpg";
 
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
         }
-    });
+    } catch (error) {
+        console.error('Download failed:', error);
+    }
 }
+
+
 
 
 function toggle_lighten(element, toggle_color) {

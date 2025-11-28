@@ -4,186 +4,26 @@ import {
   get_random_photo as meta_get_random_photo, 
   get_photo_history, 
   get_config,
-  get_tag as meta_get_tag } from "../../meta/meta_view.mjs";
+  get_tag as meta_get_tag 
+} from "../../meta/meta_view.mjs";
 import { get_photo as fs_get_photo } from "../../sources/fs/fs_client.mjs";
-
-import { list_geo, 
-    get_photo as syno_get_photo,
-    add_tag as syno_add_tag } from "../../sources/synology/syno_client.mjs";
+import { 
+  list_geo, 
+  get_photo as syno_get_photo,
+  add_tag as syno_add_tag 
+} from "../../sources/synology/syno_client.mjs";
 import logger from "../../config_log.js";
 import constants from "../../constants.js";
-
 import { generateETag, cleanData } from '../../common.js';
 
-export const get_viewer_config = async (req, res) => {
+// ============ HELPER FUNCTIONS ============
 
-  try {
-    get_config((err, config) => {
-      if (err) {
-        logger.error(err.message);
-      } else {
-        res.json(config);
-      }
-    });
-  } catch (err) {
-    logger.error(err);
-    res.status(500).json({ error: err.message });
-  }
-};
+const DEFAULT_PHOTO_PATH = 'web/eyedeea_photos.jpg';
 
-export const get_photo = async (req, res) => {
-  meta_get_photo(req.params.photo_id, (err, photo) => {
-      if (err) {
-        logger.error(err);
-        return get_default_photo(res);
-      } else {
-        if (photo) {          
-          photo["photo_index"] = 0;
-          //photo_data.address = JSON.parse(photo_data.address);
-          if (photo.source_type == constants.SOURCE_TYPE_NAS) {
-            get_photo_from_synology(photo, req, res);
-          }else if (photo.source_type == constants.SOURCE_TYPE_FS){
-            fs_get_photo(photo, res);
-          } else {
-            logger.error(`The source type ${photo.source_id} was not configured, returning default photo.`);
-            return get_default_photo(res);
-          }
-        }else{
-          return get_default_photo(res);
-        }
-      }
-    });  
-}
-
-export const get_random_photo = async (req, res) => {
-  if (req.query.photo_index && !isNaN(parseInt(req.query.photo_index))) {
-    //UI requesting specific photos (max up to 12)
-    get_photo_history(req.query.limit, (err, rows) => {      
-      if (err) {
-        logger.error(err.message);
-        if(req.query.photo_id_only)
-          res.json({"photo_id": 0});
-        else
-          return get_default_photo(res);
-      } else {
-        if(req.query.photo_id_only){          
-          if(rows.length > 0)
-            res.json({"photo_id": rows[req.query.photo_index].photo_id});
-          else
-            res.json({"photo_id": 0})
-        }
-        else{
-          return return_photo_from_rows(req, res, rows);
-        }
-      }
-    });
-
-  } else {
-    meta_get_random_photo((err, rows) => {
-      if (err) {
-        logger.error(err);
-        return get_default_photo(res);
-      } else {
-        if (rows && rows.length > 0) {
-          let photo_data = rows[0];
-          photo_data["photo_index"] = 0;
-          photo_data.address = JSON.parse(photo_data.address);
-          if (photo_data.source_type == constants.SOURCE_TYPE_NAS) {             
-            get_photo_from_synology(photo_data, req, res, true);
-          }else if (photo_data.source_type == constants.SOURCE_TYPE_FS){
-            fs_get_photo(photo_data, res, true);
-          } else {
-            logger.error(`The source type ${photo_data.source_id} was not configured, returning default photo.`);
-            return get_default_photo(res);
-          }
-        }else{
-          return get_default_photo(res);
-        }
-      }
-    });
-  }
-}
-
-
-export const get_lined_up_photo_data = async (req, res) => {
-  try {
-    get_photo_history(req.query.limit, (err, rows) => {
-      if (err) {
-        logger.error(err.message);
-      } else {
-        if (req.query.photo_id_only) {
-          res.json(rows.map(row => row.photo_id));
-        }else{
-          res.json(rows);
-        }
-      }
-    });
-  } catch (error) {
-    logger.error(error);
-    res.status(500).send('Internal Server Error');
-  }
-};
-
-function return_photo_from_rows(req, res, rows){
-  if (rows && rows.length > 0) {
-    let photo_data = rows[req.query.photo_index];
-      if(photo_data){
-      photo_data["photo_index"] = parseInt(req.query.photo_index);
-      if (photo_data.source_type == constants.SOURCE_TYPE_NAS) {
-        get_photo_from_synology(photo_data, req, res);
-      }else if (photo_data.source_type == constants.SOURCE_TYPE_FS){
-        fs_get_photo(photo_data, res);
-      } else {              
-        return get_default_photo(res);
-      }
-  }else{
-    return get_default_photo(res);
-  }
-  }else{
-    return get_default_photo(res);
-  }
-}
-
-function get_photo_from_synology(photo_data, req, res, isCurrentPhoto = false) {
-  const etag = generateETag(photo_data);
-  const photo_data_x = cleanData(photo_data);
-  //syno get photo
-  syno_get_photo(photo_data, "xl", (err, response) => {
-    if (response && response.headers) {      
-      // Short cache (40s) for current photo, long cache (30min) for history
-      const maxAge = isCurrentPhoto ? 40 : 1800;      
-      res.writeHead(200, {
-        'Content-Type': response.headers.get('content-type'),
-        'Content-Length': response.data.length,
-        'photo-data': JSON.stringify(photo_data_x),
-        'Cache-Control': `public, max-age=${maxAge}`,
-        'ETag': etag
-      });
-      res.end(response.data);
-
-    } else {
-      fs.readFile('web/eyedeea_photos.jpg', (err, data) => {
-        if (err) {
-          res.writeHead(500, { 'Content-Type': 'text/plain' });
-          res.end('Error reading image file.');
-          return;
-        }
-        res.writeHead(200, { 'Content-Type': 'image/jpeg' });
-        res.set('Cache-Control', 'public, max-age=40');
-        res.set('ETag', etag);
-        res.end(data);
-      });
-    }
-  })
-    .catch(error => {
-      res.status(500).send(error);
-    });
-
-}
-
-function get_default_photo(res) {
-  fs.readFile('web/eyedeea_photos.jpg', (err, data) => {
+function readDefaultPhoto(res) {
+  fs.readFile(DEFAULT_PHOTO_PATH, (err, data) => {
     if (err) {
+      logger.error(`Error reading default photo: ${err.message}`);
       res.writeHead(500, { 'Content-Type': 'text/plain' });
       res.end('Error reading image file.');
       return;
@@ -193,34 +33,210 @@ function get_default_photo(res) {
   });
 }
 
-export const add_tag_dns = async (req, res) => {  
+function getContentDisposition(filename, isDownload) {
+  if (isDownload) {
+    return `attachment; filename="${filename}"`;
+  }
+  return `inline; filename="${filename}"`;
+}
+
+function sendPhotoData(res, photo_data, response, isCurrentPhoto = false, isDownload = false, filename = 'photo.jpg') {
+  if (!response?.headers) {
+    readDefaultPhoto(res);
+    return;
+  }
+
+  const etag = generateETag(photo_data);
+  const cleanedPhoto = cleanData(photo_data);
+  const maxAge = isCurrentPhoto ? 40 : 1800;
+  const contentDisposition = getContentDisposition(filename, isDownload);
+
+  res.writeHead(200, {
+    'Content-Type': response.headers.get('content-type'),
+    'Content-Length': response.data.length,
+    'photo-data': JSON.stringify(cleanedPhoto),
+    'Cache-Control': `public, max-age=${maxAge}`,
+    'ETag': etag,
+    'Content-Disposition': contentDisposition
+  });
+  res.end(response.data);
+}
+
+function getPhotoBySource(photo_data, req, res, isCurrentPhoto = false) {
+  const isDownload = req.query.download === 'true';
+  const filename = decodeURIComponent(req.query.filename || photo_data.meta_data?.filename || 'photo.jpg');
+
+  if (photo_data.source_type === constants.SOURCE_TYPE_NAS) {
+    syno_get_photo(photo_data, "xl", (err, response) => {
+      try {
+        sendPhotoData(res, photo_data, response, isCurrentPhoto, isDownload, filename);
+      } catch (error) {
+        logger.error(`Error sending photo from Synology: ${error.message}`);
+        readDefaultPhoto(res);
+      }
+    }).catch(error => {
+      logger.error(`Synology fetch error: ${error.message}`);
+      readDefaultPhoto(res);
+    });
+  } else if (photo_data.source_type === constants.SOURCE_TYPE_FS) {
+    fs_get_photo(photo_data, res, isDownload, filename);
+  } else {
+    logger.error(`Unsupported source type: ${photo_data.source_type}`);
+    readDefaultPhoto(res);
+  }
+}
+
+
+
+
+function processPhotoData(photo_data) {
+  return {
+    ...photo_data,
+    photo_index: 0,
+    address: typeof photo_data.address === 'string' ? JSON.parse(photo_data.address) : photo_data.address
+  };
+}
+
+// ============ EXPORTED ENDPOINTS ============
+
+export const get_viewer_config = async (req, res) => {
+  try {
+    get_config((err, config) => {
+      if (err) {
+        logger.error(`Config error: ${err.message}`);
+        res.status(500).json({ error: 'Failed to load config' });
+      } else {
+        res.json(config);
+      }
+    });
+  } catch (err) {
+    logger.error(`Get config error: ${err.message}`);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const get_photo = async (req, res) => {
+  meta_get_photo(req.params.photo_id, (err, photo) => {
+    if (err || !photo) {
+      logger.error(`Get photo error: ${err?.message || 'Photo not found'}`);
+      readDefaultPhoto(res);
+      return;
+    }
+
+    const processedPhoto = processPhotoData(photo);
+    getPhotoBySource(processedPhoto, req, res, false);
+  });
+};
+
+export const get_random_photo = async (req, res) => {
+  const photoIndex = parseInt(req.query.photo_index);
+  const limit = req.query.limit || 12;
+
+  if (!isNaN(photoIndex)) {
+    // UI requesting specific photos from history
+    get_photo_history(limit, (err, rows) => {
+      if (err) {
+        logger.error(`Photo history error: ${err.message}`);
+        if (req.query.photo_id_only) {
+          res.json({ photo_id: 0 });
+        } else {
+          readDefaultPhoto(res);
+        }
+        return;
+      }
+
+      if (req.query.photo_id_only) {
+        const photoId = rows?.[photoIndex]?.photo_id || 0;
+        res.json({ photo_id: photoId });
+      } else if (rows?.length > 0) {
+        const selectedPhoto = rows[photoIndex];
+        if (selectedPhoto) {
+          selectedPhoto.photo_index = photoIndex;
+          getPhotoBySource(selectedPhoto, req, res, false);
+        } else {
+          readDefaultPhoto(res);
+        }
+      } else {
+        readDefaultPhoto(res);
+      }
+    });
+  } else {
+    // Random photo
+    meta_get_random_photo((err, rows) => {
+      if (err || !rows?.length) {
+        logger.error(`Random photo error: ${err?.message || 'No photos found'}`);
+        readDefaultPhoto(res);
+        return;
+      }
+
+      const processedPhoto = processPhotoData(rows[0]);
+      getPhotoBySource(processedPhoto, req, res, true);
+    });
+  }
+};
+
+export const get_lined_up_photo_data = async (req, res) => {
+  try {
+    const limit = req.query.limit || 12;
+    get_photo_history(limit, (err, rows) => {
+      if (err) {
+        logger.error(`Photo history error: ${err.message}`);
+        res.status(500).json({ error: 'Failed to get photo history' });
+        return;
+      }
+
+      if (req.query.photo_id_only) {
+        res.json(rows?.map(row => row.photo_id) || []);
+      } else {
+        res.json(rows || []);
+      }
+    });
+  } catch (error) {
+    logger.error(`Get lined up photos error: ${error.message}`);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const add_tag_dns = async (req, res) => {
   meta_get_tag("eyedeea_dns", (err, e_tag) => {
     if (err) {
-      logger.error(err.message);
-    } else {
-      if(e_tag){
-        syno_add_tag(req.params.photo_id, e_tag.syno_id).then(response_data => {
-          res.json(response_data);
-        });
-      }else{
-        res.status(500).json({ error: "Something went wrong while adding tag!" });
-      }
+      logger.error(`Get DNS tag error: ${err.message}`);
+      res.status(500).json({ error: 'Failed to fetch tag' });
+      return;
     }
+
+    if (!e_tag?.syno_id) {
+      res.status(500).json({ error: 'DNS tag not configured' });
+      return;
+    }
+
+    syno_add_tag(req.params.photo_id, e_tag.syno_id)
+      .then(response_data => res.json(response_data))
+      .catch(error => {
+        logger.error(`Add DNS tag error: ${error.message}`);
+        res.status(500).json({ error: 'Failed to add tag' });
+      });
   });
-}
+};
 
 export const add_tag_mark = async (req, res) => {
   meta_get_tag("eyedeea_mark", (err, e_tag) => {
     if (err) {
-      logger.error(err.message);
-    } else {
-      if(e_tag){
-        syno_add_tag(req.params.photo_id, e_tag.syno_id).then(response_data => {
-          res.json(response_data);
-        });
-      }else{
-        res.status(500).json({ error: "Something went wrong while adding tag!" });
-      }
+      logger.error(`Get mark tag error: ${err.message}`);
+      res.status(500).json({ error: 'Failed to fetch tag' });
+      return;
     }
+
+    if (!e_tag?.syno_id) {
+      res.status(500).json({ error: 'Mark tag not configured' });
+      return;
+    }
+
+    syno_add_tag(req.params.photo_id, e_tag.syno_id)
+      .then(response_data => res.json(response_data))
+      .catch(error => {
+        logger.error(`Add mark tag error: ${error.message}`);
+        res.status(500).json({ error: 'Failed to add tag' });
+      });
   });
-}
+};

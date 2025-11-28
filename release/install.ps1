@@ -11,7 +11,7 @@ $app_path = Join-Path -Path $env:LOCALAPPDATA -ChildPath "EyediaTech\EyedeeaPhot
 $appdataRoaming = [Environment]::GetFolderPath("ApplicationData")
 $node_url = "https://nodejs.org/dist/v22.11.0/node-v22.11.0-x64.msi"
 $node_file = "$env:TEMP\node.msi"
-$node_path = "C:\Program Files\nodejs\"
+$node_path = "C:\Program Files\nodejs"
 $eyedeea_url = "http://127.0.0.1:8080/manage"
 
 # Global error tracking

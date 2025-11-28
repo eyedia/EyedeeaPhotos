@@ -120,9 +120,8 @@ Function Install-EyedeeaPhotos {
     }
 
     # Check if Node.js is installed
-    #$output = Execute-Command -cmd "node" -arg "-v" -working_dir $app_path
-    #if (-not $output.stdout) {
-    if (!(Test-Path "$node_path\node.exe")) {
+    $output = Execute-Command -cmd "node" -arg "-v" -working_dir $app_path
+    if (-not $output.stdout) {    
         Write-Info "Node.js not found, installing..."
         try {
             Invoke-WebRequest $node_url -OutFile $node_file

@@ -140,6 +140,44 @@ body {
   -webkit-text-size-adjust: none;
 }
 
+/* Responsive full-screen dialog styling */
+dialog#dialog::backdrop {
+  background: rgba(0,0,0,0.6);
+}
+
+dialog#dialog {
+  width: 100vw;
+  max-width: none;
+  height: 100svh;
+  max-height: none;
+  padding: 0;
+  border: none;
+}
+
+@media (min-width: 737px) {
+  dialog#dialog {
+    height: 100vh;
+  }
+}
+
+dialog#dialog .inner,
+dialog#dialog .col-6,
+dialog#dialog .col-12-xsmall {
+  padding: 10px 16px;
+}
+
+/* Ensure the create filter section is reachable on small portrait */
+dialog#dialog #divCreateFilter {
+  /* revert to normal flow; margins handled by content */
+}
+
+dialog#dialog .viewer {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100svh;
+}
+
 mark {
   background-color: transparent;
   color: inherit;

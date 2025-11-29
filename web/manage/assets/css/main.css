@@ -1,3 +1,127 @@
+/* ====== Fresh Header Layout ====== */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Nunito:wght@400;600&display=swap');
+#header .header-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0.5rem 1.2rem;
+  background: #fff;
+  border-radius: 0 0 16px 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  gap: 1.2rem;
+}
+
+#header .header-col-img {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+}
+
+#header .slideshow-icon {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  background: #f5f5f5;
+  flex-shrink: 0;
+}
+#header .slideshow-link {
+  display: inline-block;
+  line-height: 0;
+  cursor: pointer;
+}
+#header .slideshow-link:focus-visible img {
+  outline: 2px solid #0078d7;
+  outline-offset: 2px;
+}
+
+#header .header-col-caption {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+#header .logo {
+  text-decoration: none;
+  color: #222;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2em;
+  width: 100%;
+}
+
+#header h2 {
+  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin: 0 0 0.1em 0;
+  line-height: 1.08;
+  letter-spacing: 0.5px;
+  background: linear-gradient(90deg,#222 0%, #444 60%, #666 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+#header h3 {
+  font-size: 1.1rem;
+  font-weight: 400;
+  margin: 0;
+  color: #666;
+  letter-spacing: 0.03em;
+  align-self: flex-end;
+  text-align: right;
+}
+
+#header .header-col-caption .icons {
+  display: flex;
+  align-items: center;
+  gap: 0.9em;
+  margin: 0.4rem 0 0 0;
+  list-style: none;
+  padding: 0;
+}
+
+#header .icons .fa-icon {
+  font-size: 1.5em;
+  color: #444;
+  transition: color 0.2s;
+}
+#header .icons .fa-icon:hover {
+  color: #0078d7;
+}
+
+@media (max-width: 700px) {
+  #header .header-container {
+    padding: 0.5rem 0.8rem;
+    gap: 0.8rem;
+  }
+  #header .slideshow-icon {
+    width: 80px;
+    height: 80px;
+  }
+  #header h2 { font-size: 1.5rem; }
+  #header h3 { font-size: 1.05rem; }
+}
+
+@media (max-width: 400px) {
+  #header .header-col-img {
+    height: 60px;
+    flex-basis: 60px;
+  }
+  #header .slideshow-icon {
+    width: 60px;
+    height: 60px;
+  }
+  #header h2 {
+    font-size: 1.1rem;
+  }
+}
 @import url(fontawesome-all.min.css);
 @import url("https://fonts.googleapis.com/css?family=Open+Sans:400,600,400italic,600italic|Roboto+Slab:400,700");
 

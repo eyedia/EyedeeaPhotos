@@ -5,8 +5,8 @@
     <title>Eyedeea Photos - Sources</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <link rel="stylesheet" href="assets/css/fontawesome-all.min.css" />
     <link rel="stylesheet" href="assets/css/main.css" />
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="assets/css/search.css" />
     <style>
         #title {
@@ -29,21 +29,25 @@
 
                 <!-- Header -->
                 <header id="header">
-                    <div class="eyedeea-header">
-                        <a href="index.html" class="logo">                           
-                            <h2>Eyedeea Photos</h2>
-                            <h3>Source Settings</h3>
-                        </a>
+                    <div class="header-container">
+                        <div class="header-col header-col-img">
+                            <a href="../index.html" class="slideshow-link" title="Go back to slide show">
+                                <img src="../images/slideshow.jpg" id="img_slideshow" alt="Back to Slide Show" class="slideshow-icon" />
+                            </a>
+                        </div>
+                        <div class="header-col header-col-caption">
+                            <a href="../index.html" class="logo" title="Eyedeea Photos Home">                           
+                                <h2>Eyedeea Photos</h2>
+                                <h3>Source Settings</h3>
+                            </a>
+                            <ul class="icons">
+                                <li><a href="https://github.com/eyedia/EyedeeaPhotos" target="_blank"
+                                        class="fa-icon fab fa-github" aria-label="GitHub"></a></li>
+                                <li><a href="https://eyedeeaphotos.eyediatech.com/" target="_blank"
+                                        class="fa-icon fas fa-globe" aria-label="Website"></a></li>
+                            </ul>                    
+                        </div>
                     </div>
-                    <div class="slideshow">
-                        <img src="../images/slideshow.jpg" id="img_slideshow" alt="Back to Slide Show" class="slideshow-header-img" href="#" title="Go back to slide show" />
-                    </div>
-                    <ul class="icons">
-                        <li><a href="https://github.com/eyedia/EyedeeaPhotos" target="_blank"
-                                class="fa-icon fa fa-github"></a></li>
-                        <li><a href="https://eyedeeaphotos.eyediatech.com/" target="_blank"
-                                class="fa-icon fa fa-globe"></a></li>
-                    </ul>                    
                 </header>
                 <div id="notification" class="notification-container">N/A</div>
                 <!-- Content -->

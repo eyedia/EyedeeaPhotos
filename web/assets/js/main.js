@@ -501,12 +501,14 @@ main = (function ($) {
 			_.initViewer();
 			_.initEvents();
 
-			// Show first slide if xsmall isn't active.
-			breakpoints.on('>xsmall', function () {
+			// Show first slide even on xsmall (was only >xsmall before).
+			if (_.current === null)
+				_.switchTo(0, true);
 
+			// Retain original behavior: also re-show first slide when crossing from xsmall to larger.
+			breakpoints.on('>xsmall', function () {
 				if (_.current === null)
 					_.switchTo(0, true);
-
 			});
 
 		},

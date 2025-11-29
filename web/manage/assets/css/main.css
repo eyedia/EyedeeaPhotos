@@ -198,6 +198,45 @@ mark {
   color: inherit;
 }
 
+/* Responsive slideshow navigation and header images */
+.slideshow-nav-img {
+  display: block;
+  cursor: pointer;
+  margin: 0 auto;
+  max-width: 160px;
+  max-height: 110px;
+  width: 100%;
+  height: auto;
+  transition: box-shadow 0.2s;
+}
+.slideshow-header-img {
+  display: block;
+  cursor: pointer;
+  margin: 0 auto;
+  max-width: 200px;
+  max-height: 80px;
+  width: 100%;
+  height: auto;
+  transition: box-shadow 0.2s;
+}
+.slideshow-nav-img:hover, .slideshow-header-img:hover {
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+}
+
+@media (max-width: 600px) {
+  .slideshow-nav-img, .slideshow-header-img {
+    max-width: 120px;
+    max-height: 80px;
+  }
+}
+
+@media (max-width: 400px) {
+  .slideshow-nav-img, .slideshow-header-img {
+    max-width: 60px;
+    max-height: 36px;
+  }
+}
+
 input::-moz-focus-inner {
   border: 0;
   padding: 0;
@@ -2063,11 +2102,14 @@ header.major {
     padding: 20px 0;
 }
 
-header.major img {
-    width: 50vw;
-    max-width: 200px;
-    height: auto;
-    object-fit: contain;
+.slideshow-header-img {
+  width: 50vw !important;
+  max-width: 200px !important;
+  min-width: 80px;
+  height: auto !important;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
 }
 
 

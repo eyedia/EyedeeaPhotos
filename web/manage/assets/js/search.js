@@ -139,8 +139,15 @@ const updateFooter = (loading) => {
         }else{
             load_more.classList.remove("show");
         }
-        if(divCreateFilter)
+        if(divCreateFilter){
             divCreateFilter.classList.remove("hidden");
+            // Ensure the Save section is fully visible on tall portrait viewports
+            try {
+                requestAnimationFrame(() => {
+                    divCreateFilter.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                });
+            } catch (e) { /* no-op */ }
+        }
     }else{
         footer.textContent = "No photos found!";
         load_more.classList.remove("show");

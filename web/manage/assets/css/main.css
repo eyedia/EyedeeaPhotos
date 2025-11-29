@@ -152,6 +152,9 @@ dialog#dialog {
   max-height: none;
   padding: 0;
   border: none;
+  box-sizing: border-box;
+  overflow: auto;
+  padding-bottom: 24px;
 }
 
 @media (min-width: 737px) {
@@ -168,7 +171,19 @@ dialog#dialog .col-12-xsmall {
 
 /* Ensure the create filter section is reachable on small portrait */
 dialog#dialog #divCreateFilter {
-  /* revert to normal flow; margins handled by content */
+  margin: 16px 0 32px 0;
+}
+
+/* Leave room for sticky Save area so last row isn't covered */
+/* gallery uses natural flow; no extra padding needed */
+
+/* Make the Save button fill width on tight screens */
+/* keep default button width */
+
+@supports (height: 100dvh) {
+  dialog#dialog {
+    height: 100dvh;
+  }
 }
 
 dialog#dialog .viewer {

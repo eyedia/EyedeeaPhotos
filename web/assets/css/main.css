@@ -1119,6 +1119,18 @@ body.is-preload-1 #main {
     filter: brightness(0.1);      /* darken the SVG */
 }
 
+.config-container .material-icons.main-image {
+    font-size: 48px;
+    color: #fff;
+    cursor: pointer;
+    transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.config-container .material-icons.main-image:hover {
+    transform: scale(1.1);
+    color: #4CAF50;
+}
+
 /* Configuration Menu(Right) -- End*/
 
 /* Footer */

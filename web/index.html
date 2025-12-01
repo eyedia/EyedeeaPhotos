@@ -31,17 +31,15 @@
 	<div id="main">
 
 		<!-- Configuration Menu(Right) -->
-		<div id="configNav" class="config-container">
-			<div class="center-wrapper">
-				<a href="/manage">
-					<img src="./images/manage.png" class="main-image" title="Configuration" alt="Configuration">
-				</a>
-			</div>
-			<img src="./assets/css/images/arrow.svg" class="close-btn" alt="Close" title="Close"
-				onclick="closeConfigNav()">
+	<div id="configNav" class="config-container">
+		<div class="center-wrapper">
+			<a href="/manage" style="text-decoration: none;">
+				<i class="material-icons main-image" title="Configuration" style="font-size: 48px; color: #666;">settings</i>
+			</a>
 		</div>
-
-		<!-- Thumbnail -->
+		<i class="material-icons close-btn" title="Close" style="font-size: 48px; color: #b4b3b3; cursor: pointer;"
+			onclick="closeConfigNav()">arrow_forward</i>
+	</div>		<!-- Thumbnail -->
 		<section id="thumbnails">
 			<article id="article-00">
 				<a id="a-00" class="thumbnail" href="api/view?photo_index=0"><img id="img-00"

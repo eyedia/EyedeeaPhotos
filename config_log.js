@@ -33,11 +33,24 @@ const infoTransport = new winston.transports.DailyRotateFile({
 
 const consoleTransport = new winston.transports.Console({
   format: winston.format.combine(winston.format.colorize(), logFormat),
+  level: constants.LOG_LEVEL,
+});
+
+const debugTransport = new winston.transports.DailyRotateFile({
+  filename: path.join(log_dir,"debug-%DATE%.log"),
+  datePattern: "YYYY-MM-DD",
+  level: "debug",
+  maxSize: "20m",
+  maxFiles: "7d",
+  zippedArchive: true,
 });
 
 const logger = winston.createLogger({
   format: logFormat,
-  transports: [errorTransport, infoTransport, consoleTransport],
+  level: constants.LOG_LEVEL,
+  transports: [errorTransport, infoTransport, debugTransport, consoleTransport],
 });
+
+console.log(`Logger initialized with level: ${constants.LOG_LEVEL}`);
 
 export default logger;

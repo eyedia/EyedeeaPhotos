@@ -50,8 +50,7 @@ if (!is_jest_running) {
       logger.error(err.message);
     } else {
       random_photo_set_interval = config.refresh_server;
-    }
-    logger.info(`Server side refresh is set to: ${random_photo_set_interval}`);
+    }    
     cron.schedule(random_photo_set_interval, () => {
       set_random_photo();
     });

@@ -166,7 +166,7 @@ export function set_random_photo() {
 
             });
         } else {
-            logger.info(`${number_of_already_set_photos} random photos are waiting to be picked up, not setting any new!`);
+            logger.debug(`${number_of_already_set_photos} random photos are waiting to be picked up, not setting any new!`);
         }
 
         set_current_photo((err, rows) => {
@@ -224,7 +224,7 @@ function set_current_photo(callback) {
                     }
                 });
             }else{
-                logger.warn("Already one photo was set to current, the operation was ignored.");
+                logger.debug("Already one photo was set to current, the operation was ignored.");
             }
         }
     });

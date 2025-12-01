@@ -8,6 +8,9 @@ const SOURCE_TYPE_FS = "fs";
 const ORG = 'EyediaTech';
 const APP_NAME = 'EyedeeaPhotos';
 
+// Log levels: 'error', 'warn', 'info', 'debug'
+const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
+
 const platform = os.platform();
 const is_jest_running = process.env.JEST_WORKER_ID !== undefined
 
@@ -68,6 +71,7 @@ export default {
     SOURCE_TYPE_FS,
     app_log_dir,
     app_db_file,
-    app_thumbnail_dir
+    app_thumbnail_dir,
+    LOG_LEVEL
 };
 

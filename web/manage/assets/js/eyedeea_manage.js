@@ -350,9 +350,9 @@ async function loadDirectories(drivePath, maxDepth = 0) {
     }
     
     try {
-        // Encode the drive path for URL
+        // Use query parameter to avoid URL encoding issues with slashes
         const encodedPath = encodeURIComponent(drivePath);
-        const response = await fetch(`/api/drives/${encodedPath}/directories?max_depth=${maxDepth}`);
+        const response = await fetch(`/api/drives/directories?path=${encodedPath}&max_depth=${maxDepth}`);
         
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
@@ -460,7 +460,7 @@ async function toggleDirectory(directory, liElement, expandIcon) {
         // Load subdirectories
         try {
             const encodedPath = encodeURIComponent(directory.path);
-            const response = await fetch(`/api/drives/${encodedPath}/directories?max_depth=0`);
+            const response = await fetch(`/api/drives/directories?path=${encodedPath}&max_depth=0`);
             
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);

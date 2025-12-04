@@ -29,6 +29,12 @@ app.use(cors({
 app.use(express.static('web'));
 app.use(express.json());
 
+// Request logging middleware
+app.use((req, res, next) => {
+  logger.info(`${req.method} ${req.url} - ${req.ip}`);
+  next();
+});
+
 const isSafeMode = process.argv.includes('--safe-mode');
 if (!isSafeMode) {
 app.use('/api/docs', api_doc_router);
@@ -42,9 +48,33 @@ app.use('/api/sources/:id', source_scan_router);
 app.use('/api/sources/:id/browse', source_browser_router);
 app.use('/api/drives', drive_router);
 
+// 404 handler for API routes
+app.use('/api/*', (req, res) => {
+  logger.warn(`404 Not Found: ${req.method} ${req.originalUrl}`);
+  res.status(404).json({
+    error: 'Not Found',
+    message: `The requested endpoint ${req.originalUrl} does not exist`,
+    method: req.method
+  });
+});
+
+// General error handler
+app.use((err, req, res, next) => {
+  logger.error(`Unhandled error: ${err.message}`);
+  logger.error(`Stack trace: ${err.stack}`);
+  res.status(err.status || 500).json({
+    error: 'Internal Server Error',
+    message: err.message
+  });
+});
+
 const PORT = process.env.PORT || 8080;
 let random_photo_set_interval = "*/25 * * * * *";
 const is_jest_running = process.env.JEST_WORKER_ID !== undefined
+
+const server = app.listen(PORT, '0.0.0.0', () => {
+  logger.info(`Server listening on all interfaces at port ${PORT}`);
+});
 
 if (!is_jest_running) {
   get_config((err, config) => {
@@ -58,10 +88,6 @@ if (!is_jest_running) {
     });
   });
 }
-
-const server = app.listen(PORT, '0.0.0.0', () => {
-  logger.info(`Server listening on all interfaces at port ${PORT}`);
-});
 
 export default { server };
 

@@ -44,14 +44,18 @@ export const list_drives = async (req, res) => {
 
 /**
  * Get directories from a specific drive/path (hierarchical)
- * GET /api/drives/:drive_id/directories
+ * GET /api/drives/directories?path=/path/to/drive
  * Query params:
+ *   - path: Drive path to scan (supports both query param and URL param for backward compatibility)
  *   - max_depth: Maximum directory depth to traverse (default: 0 = root only, max: 5)
  */
 export const get_directories = async (req, res) => {
   try {
-    const driveId = req.params.drive_id;
+    // Support both query param (new) and path param (legacy)
+    const driveId = req.query.path || req.params.drive_id;
     let maxDepth = req.query.max_depth !== undefined ? parseInt(req.query.max_depth) : 0; // Default to 0 (root only)
+
+    logger.info(`GET /api/drives/directories - Request received: path=${driveId}, max_depth=${maxDepth}`);
 
     // Enforce maximum depth limit to prevent CPU overload
     const MAX_DEPTH_LIMIT = 5;
@@ -64,9 +68,10 @@ export const get_directories = async (req, res) => {
     }
 
     if (!driveId) {
+      logger.warn('Drive path is required but not provided');
       return res.status(400).json({
-        error: 'Drive ID is required',
-        details: 'Please provide a drive ID in the URL path'
+        error: 'Drive path is required',
+        details: 'Please provide a drive path using ?path= query parameter or in the URL path'
       });
     }
 
@@ -83,12 +88,13 @@ export const get_directories = async (req, res) => {
       note: maxDepth === 0 ? 'Showing root level directories only. Use max_depth parameter to show subdirectories.' : ''
     });
   } catch (error) {
-    logger.error(`Error getting directories: ${error.message}`);
+    logger.error(`Error getting directories for path '${req.query.path || req.params.drive_id}': ${error.message}`);
+    logger.error(`Stack trace: ${error.stack}`);
     res.status(500).json({
       error: 'Failed to get directories',
       message: error.message,
       details: {
-        requested_drive: req.params.drive_id,
+        requested_path: req.query.path || req.params.drive_id,
         max_depth: req.query.max_depth,
         suggestion: 'For Windows, use drive letter like "C" or "C:". For Linux, use full path like "/media/deb/109F-FC75". Add ?max_depth=1 to see subdirectories.'
       }
@@ -98,14 +104,18 @@ export const get_directories = async (req, res) => {
 
 /**
  * Get directories from a specific drive/path (flattened/non-hierarchical)
- * GET /api/drives/:drive_id/directories/flat
+ * GET /api/drives/directories/flat?path=/path/to/drive
  * Query params:
+ *   - path: Drive path to scan (supports both query param and URL param for backward compatibility)
  *   - max_depth: Maximum directory depth to traverse (default: 3, max: 5)
  */
 export const get_directories_flat = async (req, res) => {
   try {
-    const driveId = req.params.drive_id;
+    // Support both query param (new) and path param (legacy)
+    const driveId = req.query.path || req.params.drive_id;
     let maxDepth = parseInt(req.query.max_depth) || 3;
+
+    logger.info(`GET /api/drives/directories/flat - Request received: path=${driveId}, max_depth=${maxDepth}`);
 
     // Enforce maximum depth limit to prevent CPU overload
     const MAX_DEPTH_LIMIT = 5;
@@ -118,9 +128,10 @@ export const get_directories_flat = async (req, res) => {
     }
 
     if (!driveId) {
+      logger.warn('Drive path is required but not provided');
       return res.status(400).json({
-        error: 'Drive ID is required',
-        details: 'Please provide a drive ID in the URL path'
+        error: 'Drive path is required',
+        details: 'Please provide a drive path using ?path= query parameter or in the URL path'
       });
     }
 
@@ -136,12 +147,13 @@ export const get_directories_flat = async (req, res) => {
       total_directories: directories.length
     });
   } catch (error) {
-    logger.error(`Error getting flat directories: ${error.message}`);
+    logger.error(`Error getting flat directories for path '${req.query.path || req.params.drive_id}': ${error.message}`);
+    logger.error(`Stack trace: ${error.stack}`);
     res.status(500).json({
       error: 'Failed to get directories',
       message: error.message,
       details: {
-        requested_drive: req.params.drive_id,
+        requested_path: req.query.path || req.params.drive_id,
         max_depth: req.query.max_depth,
         suggestion: 'For Windows, use drive letter like "C" or "C:". For Linux, use full path like "/media/deb/109F-FC75"'
       }

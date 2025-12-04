@@ -98,17 +98,18 @@ if [ ! -d "$WWW_DIR" ]; then
     handle_error $LINENO "Directory $WWW_DIR does not exist"
 fi
 
-if [ ! -f "$JSON_FILE" ]; then
-    handle_error $LINENO "Configuration file $JSON_FILE not found in current directory"
-fi
-
 if [ -d "$APP_DIR_FULL" ]; then
     echo "🔄 Removing existing installation..."
     rm -rf "$APP_DIR_FULL" || handle_error $LINENO "Failed to remove existing app directory"
 fi
 
 mkdir -p "$APP_DIR_FULL" || handle_error $LINENO "Failed to create app directory"
-cp "$JSON_FILE" "$APP_DIR_FULL" || handle_error $LINENO "Failed to copy JSON file"
+
+# Copy input.json if it exists in current directory
+if [ -f "$JSON_FILE" ]; then
+    cp "$JSON_FILE" "$APP_DIR_FULL" || handle_error $LINENO "Failed to copy JSON file"
+    echo "✅ Configuration file copied"
+fi
 
 echo "✅ Application directory prepared at $APP_DIR_FULL"
 

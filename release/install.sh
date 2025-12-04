@@ -19,7 +19,7 @@ echo "🚀 Starting Eyedeea Photos Setup..."
 # 1. GENERATE AND SET ENVIRONMENT VARIABLES
 # ============================================================================
 echo "📝 Generating EYEDEEA_KEY..."
-key) || handle_error $LINENO "Failed to generate EYEDEEA_KEY"
+key_hex=$(openssl rand -hex 32) || handle_error $LINENO "Failed to generate EYEDEEA_KEY"
 export EYEDEEA_KEY="$key_hex"
 
 # Update shell configuration files
@@ -87,7 +87,9 @@ else
 fi
 
 # ============================================================================
-# 6. PREPARE APPLICATIONW_DIR="/var/www/html"
+# 6. PREPARE APPLICATION
+# ============================================================================
+WWW_DIR="/var/www/html"
 JSON_FILE="input.json"
 APP_DIR="EyedeeaPhotos"
 APP_DIR_FULL="$WWW_DIR/$APP_DIR"
@@ -162,12 +164,23 @@ pm2 delete "Eyedeea Photos" 2>/dev/null || true
 # Create PM2 ecosystem config with environment variables
 cd "$APP_DIR_FULL" || handle_error $LINENO "Failed to change directory for PM2"
 
-if pm2 start "$APP_ENTRY" \
-    --name "Eyedeea Photos" \
-    --env EYEDEEA_KEY="$EYEDEEA_KEY" \
-    --log "$LOG_DIR/app.log" \
-    --error "$LOG_DIR/error.log" \
-    > /dev/null 2>&1; then
+# Create ecosystem config file to ensure environment variables are persisted
+cat > ecosystem.config.js << EOF
+module.exports = {
+  apps: [{
+    name: 'Eyedeea Photos',
+    script: '$APP_ENTRY',
+    env: {
+      EYEDEEA_KEY: '$EYEDEEA_KEY'
+    },
+    error_file: '$LOG_DIR/error.log',
+    out_file: '$LOG_DIR/app.log',
+    log_date_format: 'YYYY-MM-DD HH:mm:ss Z'
+  }]
+};
+EOF
+
+if pm2 start ecosystem.config.js > /dev/null 2>&1; then
     echo "✅ Eyedeea Photos started with PM2"
 else
     handle_error $LINENO "Failed to start Eyedeea Photos with PM2"

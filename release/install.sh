@@ -238,6 +238,28 @@ fi
 
 # Save PM2 process list
 pm2 save || handle_error $LINENO "Failed to save PM2 configuration"
+
+# Enable and start the PM2 systemd service
+PM2_SERVICE="pm2-$USER"
+if sudo systemctl is-enabled "$PM2_SERVICE" &> /dev/null; then
+    echo "🔄 Restarting PM2 systemd service..."
+    sudo systemctl restart "$PM2_SERVICE" || handle_error $LINENO "Failed to restart PM2 service"
+else
+    echo "🚀 Starting PM2 systemd service..."
+    sudo systemctl enable "$PM2_SERVICE" || handle_error $LINENO "Failed to enable PM2 service"
+    sudo systemctl start "$PM2_SERVICE" || handle_error $LINENO "Failed to start PM2 service"
+fi
+
+# Wait a moment for the service to fully start
+sleep 2
+
+# Verify the service is running
+if sudo systemctl is-active --quiet "$PM2_SERVICE"; then
+    echo "✅ PM2 systemd service is running"
+else
+    echo "⚠️ Warning: PM2 service may not be active. Check: sudo systemctl status $PM2_SERVICE"
+fi
+
 echo "✅ PM2 startup configured"
 
 # ============================================================================

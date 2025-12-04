@@ -57,8 +57,8 @@ if (!is_jest_running) {
   });
 }
 
-const server = app.listen(PORT, () => {
-  logger.info(`Server listening on port ${PORT}`);
+const server = app.listen(PORT, '0.0.0.0', () => {
+  logger.info(`Server listening on all interfaces at port ${PORT}`);
 });
 
 export default { server };

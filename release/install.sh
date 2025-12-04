@@ -170,9 +170,14 @@ fi
 # ============================================================================
 echo "📂 Creating log and data directories..."
 
+
 LOG_DIR="/var/log/EyediaTech/EyedeeaPhotos"
 sudo mkdir -p "$LOG_DIR" || handle_error $LINENO "Failed to create log directory"
 sudo chmod -R 777 "$LOG_DIR" || handle_error $LINENO "Failed to set log directory permissions"
+
+LOG_DIR_2="/var/log/EyedeeaPhotos" #todo
+sudo mkdir -p "$LOG_DIR_2" || handle_error $LINENO "Failed to create log directory 2"
+sudo chmod -R 777 "$LOG_DIR_2" || handle_error $LINENO "Failed to set log directory permissions 2"
 
 DATA_DIR="/var/lib/EyedeeaPhotos/data"
 sudo mkdir -p "$DATA_DIR" || handle_error $LINENO "Failed to create data directory"
@@ -249,15 +254,28 @@ sudo -u "$ACTUAL_USER" pm2 save || handle_error $LINENO "Failed to save PM2 conf
 PM2_SERVICE="pm2-$ACTUAL_USER"
 echo "🚀 Configuring PM2 systemd service for $ACTUAL_USER..."
 
-# Run pm2 startup to generate the systemd service
-# This creates /etc/systemd/system/pm2-$ACTUAL_USER.service
-sudo -u "$ACTUAL_USER" pm2 startup systemd -u "$ACTUAL_USER" --hp "$ACTUAL_HOME" 2>&1 | tail -5
+# Run pm2 startup and execute the generated command
+echo "Running pm2 startup command..."
+STARTUP_OUTPUT=$(sudo -u "$ACTUAL_USER" pm2 startup systemd -u "$ACTUAL_USER" --hp "$ACTUAL_HOME" 2>&1)
+echo "$STARTUP_OUTPUT"
 
-# Reload systemd to recognize the new service
+# Extract and execute the sudo command from the output
+STARTUP_CMD=$(echo "$STARTUP_OUTPUT" | grep "sudo env" | head -1)
+if [ -n "$STARTUP_CMD" ]; then
+    echo "Executing: $STARTUP_CMD"
+    eval "$STARTUP_CMD" || handle_error $LINENO "Failed to execute PM2 startup command"
+else
+    echo "⚠️  No startup command found in output, service may already be configured"
+fi
+
+# Reload systemd to recognize the service
 sudo systemctl daemon-reload || handle_error $LINENO "Failed to reload systemd"
 
 # Enable the PM2 service to start on boot
-sudo systemctl enable "$PM2_SERVICE" || handle_error $LINENO "Failed to enable PM2 service"
+sudo systemctl enable "$PM2_SERVICE" 2>/dev/null || echo "ℹ️  Service already enabled"
+
+# Stop any running instance to ensure clean start
+sudo systemctl stop "$PM2_SERVICE" 2>/dev/null || true
 
 # Start the PM2 systemd service
 sudo systemctl start "$PM2_SERVICE" || handle_error $LINENO "Failed to start PM2 service"
@@ -268,13 +286,16 @@ sleep 3
 # Verify the service is running
 if sudo systemctl is-active --quiet "$PM2_SERVICE"; then
     echo "✅ PM2 systemd service is running"
+    
+    # Verify apps are running
+    sudo -u "$ACTUAL_USER" pm2 status
 else
     echo "❌ PM2 service failed to start. Checking status..."
     sudo systemctl status "$PM2_SERVICE" || true
     handle_error $LINENO "PM2 service is not running"
 fi
 
-echo "✅ PM2 startup configured"
+echo "✅ PM2 startup configured and verified"
 
 # ============================================================================
 # 12. VERIFY SETUP

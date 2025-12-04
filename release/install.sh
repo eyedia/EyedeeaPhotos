@@ -248,9 +248,6 @@ ACTUAL_HOME=$(eval echo ~"$ACTUAL_USER")
 echo "ℹ️  Running PM2 configuration for user: $ACTUAL_USER"
 echo "ℹ️  Home directory: $ACTUAL_HOME"
 
-# Save PM2 process list as the actual user
-sudo -u "$ACTUAL_USER" pm2 save || handle_error $LINENO "Failed to save PM2 configuration"
-
 # Configure PM2 systemd startup for the actual user
 PM2_SERVICE="pm2-$ACTUAL_USER"
 echo "🚀 Configuring PM2 systemd service for $ACTUAL_USER..."
@@ -264,39 +261,55 @@ echo "$STARTUP_OUTPUT"
 STARTUP_CMD=$(echo "$STARTUP_OUTPUT" | grep "sudo env" | head -1)
 if [ -n "$STARTUP_CMD" ]; then
     echo "Executing: $STARTUP_CMD"
-    eval "$STARTUP_CMD" || handle_error $LINENO "Failed to execute PM2 startup command"
+    eval "$STARTUP_CMD" || echo "⚠️ Warning: Startup command may have failed, continuing..."
 else
-    echo "⚠️  No startup command found in output, service may already be configured"
+    echo "ℹ️  No startup command found, service may already exist"
 fi
 
 # Reload systemd to recognize the service
 sudo systemctl daemon-reload || handle_error $LINENO "Failed to reload systemd"
 
 # Enable the PM2 service to start on boot
-sudo systemctl enable "$PM2_SERVICE" 2>/dev/null || echo "ℹ️  Service already enabled"
+sudo systemctl enable "$PM2_SERVICE" || handle_error $LINENO "Failed to enable PM2 service"
 
-# Stop any running instance to ensure clean start
-sudo systemctl stop "$PM2_SERVICE" 2>/dev/null || true
+# Save PM2 process list AFTER systemd service is configured
+echo "💾 Saving PM2 process list..."
+sudo -u "$ACTUAL_USER" pm2 save || handle_error $LINENO "Failed to save PM2 configuration"
 
-# Start the PM2 systemd service
-sudo systemctl start "$PM2_SERVICE" || handle_error $LINENO "Failed to start PM2 service"
+# Restart the PM2 systemd service to pick up the saved configuration
+echo "🔄 Restarting PM2 systemd service..."
+sudo systemctl restart "$PM2_SERVICE" || handle_error $LINENO "Failed to restart PM2 service"
 
-# Wait for the service to fully start
-sleep 3
+# Wait for the service to fully start and resurrect apps
+sleep 5
 
 # Verify the service is running
 if sudo systemctl is-active --quiet "$PM2_SERVICE"; then
     echo "✅ PM2 systemd service is running"
     
+    # Wait a bit more for apps to resurrect
+    sleep 2
+    
     # Verify apps are running
+    echo "📊 Current PM2 status:"
     sudo -u "$ACTUAL_USER" pm2 status
+    
+    # Show systemd service status for debugging
+    echo ""
+    echo "🔍 Systemd service status:"
+    sudo systemctl status "$PM2_SERVICE" --no-pager | head -15
 else
     echo "❌ PM2 service failed to start. Checking status..."
-    sudo systemctl status "$PM2_SERVICE" || true
+    sudo systemctl status "$PM2_SERVICE" --no-pager || true
     handle_error $LINENO "PM2 service is not running"
 fi
 
 echo "✅ PM2 startup configured and verified"
+echo ""
+echo "📝 To verify PM2 persists after reboot:"
+echo "   sudo reboot"
+echo "   # After reboot:"
+echo "   pm2 status"
 
 # ============================================================================
 # 12. VERIFY SETUP

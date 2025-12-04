@@ -48,10 +48,7 @@ is_installed() {
 if ! command -v node &> /dev/null; then
     echo "📦 Installing Node.js..."
     
-    # Download and setup NodeSource repository
-    curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - || handle_error $LINENO "Failed to setup NodeSource repository"
-    
-    # Update package lists and install Node.js
+    # Install Node.js (repository should already be configured)
     sudo apt update && sudo apt install -y nodejs || handle_error $LINENO "Failed to install Node.js"
     
     echo "✅ Node.js installed successfully ($(node -v))"

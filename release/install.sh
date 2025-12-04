@@ -214,6 +214,7 @@ module.exports = {
   apps: [{
     name: 'Eyedeea Photos',
     script: '$APP_ENTRY',
+    cwd: '$APP_DIR_FULL/node_modules/eyedeeaphotos',
     env: {
       EYEDEEA_KEY: '$EYEDEEA_KEY'
     },

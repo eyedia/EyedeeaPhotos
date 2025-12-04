@@ -170,7 +170,6 @@ fi
 # ============================================================================
 echo "📂 Creating log and data directories..."
 
-
 LOG_DIR="/var/log/EyediaTech/EyedeeaPhotos"
 sudo mkdir -p "$LOG_DIR" || handle_error $LINENO "Failed to create log directory"
 sudo chmod -R 777 "$LOG_DIR" || handle_error $LINENO "Failed to set log directory permissions"
@@ -181,8 +180,21 @@ sudo chmod -R 777 "$LOG_DIR_2" || handle_error $LINENO "Failed to set log direct
 
 DATA_DIR="/var/lib/EyedeeaPhotos/data"
 sudo mkdir -p "$DATA_DIR" || handle_error $LINENO "Failed to create data directory"
-sudo chown -R "$USER:$USER" "$DATA_DIR" || handle_error $LINENO "Failed to set data directory ownership"
+sudo chown -R "$ACTUAL_USER:$ACTUAL_USER" "$DATA_DIR" || handle_error $LINENO "Failed to set data directory ownership"
 sudo chmod -R 755 "$DATA_DIR" || handle_error $LINENO "Failed to set data directory permissions"
+
+# Ensure database directory exists and has proper permissions
+DB_DIR="$DATA_DIR"
+sudo mkdir -p "$DB_DIR" || handle_error $LINENO "Failed to create database directory"
+sudo chown -R "$ACTUAL_USER:$ACTUAL_USER" "$DB_DIR" || handle_error $LINENO "Failed to set database directory ownership"
+sudo chmod -R 755 "$DB_DIR" || handle_error $LINENO "Failed to set database directory permissions"
+
+# Find and fix any existing database files
+if [ -f "$DB_DIR/eyedeea_photos.db" ]; then
+    sudo chown "$ACTUAL_USER:$ACTUAL_USER" "$DB_DIR/eyedeea_photos.db" || handle_error $LINENO "Failed to set database ownership"
+    sudo chmod 644 "$DB_DIR/eyedeea_photos.db" || handle_error $LINENO "Failed to set database permissions"
+    echo "✅ Fixed permissions on existing database"
+fi
 
 echo "✅ Log and data directories created"
 

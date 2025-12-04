@@ -11,6 +11,7 @@ import source_scan_router from './api/routers/source_scan_router.js';
 import source_browser_router from './api/routers/source_browser_router.js';
 import system_router from './api/routers/system_router.js';
 import api_doc_router from './api/routers/api_doc_router.js';
+import drive_router from './api/routers/drive_router.js';
 
 
 process.on('uncaughtException', (err) => {
@@ -39,6 +40,7 @@ app.use('/api/view/filters', view_filter_router);
 app.use('/api/sources', source_router);
 app.use('/api/sources/:id', source_scan_router);
 app.use('/api/sources/:id/browse', source_browser_router);
+app.use('/api/drives', drive_router);
 
 const PORT = process.env.PORT || 8080;
 let random_photo_set_interval = "*/25 * * * * *";

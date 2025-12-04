@@ -230,40 +230,36 @@ echo "✅ Eyedeea Photos started with PM2"
 # ============================================================================
 echo "⚙️ Configuring PM2 to start on system boot..."
 
-# Generate and execute the startup script
-STARTUP_CMD=$(pm2 startup systemd -u "$USER" --hp /home/"$USER" 2>&1 | grep "sudo env" || true)
-if [ -n "$STARTUP_CMD" ]; then
-    eval "$STARTUP_CMD" || echo "⚠️ Warning: Startup command execution may require manual review"
-fi
-
 # Save PM2 process list
 pm2 save || handle_error $LINENO "Failed to save PM2 configuration"
 
-# Kill current PM2 daemon to force systemd to take over
-pm2 kill
-
-# Enable and start the PM2 systemd service
+# Configure PM2 systemd startup
 PM2_SERVICE="pm2-$USER"
-echo "🚀 Enabling and starting PM2 systemd service..."
-sudo systemctl enable "$PM2_SERVICE" || handle_error $LINENO "Failed to enable PM2 service"
-sudo systemctl restart "$PM2_SERVICE" || handle_error $LINENO "Failed to restart PM2 service"
+echo "🚀 Configuring PM2 systemd service..."
 
-# Wait for the service to fully start and resurrect apps
+# Run pm2 startup to generate the systemd service
+# This creates /etc/systemd/system/pm2-$USER.service
+pm2 startup systemd -u "$USER" --hp /home/"$USER" 2>&1 | tail -5
+
+# Reload systemd to recognize the new service
+sudo systemctl daemon-reload || handle_error $LINENO "Failed to reload systemd"
+
+# Enable the PM2 service to start on boot
+sudo systemctl enable "$PM2_SERVICE" || handle_error $LINENO "Failed to enable PM2 service"
+
+# Start the PM2 systemd service
+sudo systemctl start "$PM2_SERVICE" || handle_error $LINENO "Failed to start PM2 service"
+
+# Wait for the service to fully start
 sleep 3
 
 # Verify the service is running
 if sudo systemctl is-active --quiet "$PM2_SERVICE"; then
     echo "✅ PM2 systemd service is running"
-    
-    # Resurrect saved apps
-    pm2 resurrect || echo "⚠️ Warning: Failed to resurrect apps, but they should start from systemd"
-    
-    # Show final status
-    echo ""
-    echo "📊 Final PM2 Status:"
-    pm2 status
 else
-    echo "⚠️ Warning: PM2 service may not be active. Check: sudo systemctl status $PM2_SERVICE"
+    echo "❌ PM2 service failed to start. Checking status..."
+    sudo systemctl status "$PM2_SERVICE" || true
+    handle_error $LINENO "PM2 service is not running"
 fi
 
 echo "✅ PM2 startup configured"

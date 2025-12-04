@@ -84,6 +84,39 @@ else
     echo "✅ Apache2 is already installed"
 fi
 
+# Enable required Apache modules
+echo "⚙️ Enabling Apache proxy modules..."
+sudo a2enmod proxy proxy_http rewrite || handle_error $LINENO "Failed to enable Apache modules"
+
+# Configure Apache virtual host
+echo "⚙️ Configuring Apache virtual host..."
+APACHE_CONF="/etc/apache2/sites-available/000-default.conf"
+
+sudo tee "$APACHE_CONF" > /dev/null << 'EOF'
+#/etc/apache2/sites-available/000-default.conf
+<VirtualHost *:80>
+   ServerName eyedeea
+   ServerAlias eyedeea.photos
+   ServerAdmin deb@localhost
+   ErrorLog ${APACHE_LOG_DIR}/error.log
+   CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+   ProxyRequests Off
+   ProxyPreserveHost On
+   ProxyVia Full
+   <Proxy *>
+      Require all granted
+   </Proxy>
+      ProxyPass / http://127.0.0.1:8080/
+      ProxyPassReverse / http://127.0.0.1:8080/
+</VirtualHost>
+EOF
+
+# Restart Apache to apply changes
+echo "🔄 Restarting Apache..."
+sudo systemctl restart apache2 || handle_error $LINENO "Failed to restart Apache2"
+echo "✅ Apache2 configured and restarted"
+
 # ============================================================================
 # 6. PREPARE APPLICATION
 # ============================================================================
@@ -179,23 +212,26 @@ module.exports = {
 };
 EOF
 
-if pm2 start ecosystem.config.js > /dev/null 2>&1; then
-    echo "✅ Eyedeea Photos started with PM2"
-else
-    handle_error $LINENO "Failed to start Eyedeea Photos with PM2"
-fi
+# Start PM2 daemon explicitly and start application
+echo "🎯 Starting PM2 and application..."
+pm2 ping || handle_error $LINENO "Failed to start PM2 daemon"
+pm2 start ecosystem.config.js || handle_error $LINENO "Failed to start Eyedeea Photos with PM2"
+echo "✅ Eyedeea Photos started with PM2"
 
 # ============================================================================
 # 11. CONFIGURE PM2 STARTUP ON BOOT
 # ============================================================================
 echo "⚙️ Configuring PM2 to start on system boot..."
 
-if pm2 startup systemd -u "$USER" --hp /home/"$USER" > /dev/null 2>&1; then
-    pm2 save > /dev/null 2>&1 || handle_error $LINENO "Failed to save PM2 configuration"
-    echo "✅ PM2 startup configured"
-else
-    echo "⚠️ Warning: PM2 startup configuration may require manual setup"
+# Generate and execute the startup script
+STARTUP_CMD=$(pm2 startup systemd -u "$USER" --hp /home/"$USER" 2>&1 | grep "sudo env" || true)
+if [ -n "$STARTUP_CMD" ]; then
+    eval "$STARTUP_CMD" || echo "⚠️ Warning: Startup command execution may require manual review"
 fi
+
+# Save PM2 process list
+pm2 save || handle_error $LINENO "Failed to save PM2 configuration"
+echo "✅ PM2 startup configured"
 
 # ============================================================================
 # 12. VERIFY SETUP

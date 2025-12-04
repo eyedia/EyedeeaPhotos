@@ -221,25 +221,37 @@ EOF
 
 # Start PM2 daemon explicitly and start application
 echo "🎯 Starting PM2 and application..."
-pm2 ping || handle_error $LINENO "Failed to start PM2 daemon"
-pm2 start ecosystem.config.js || handle_error $LINENO "Failed to start Eyedeea Photos with PM2"
-echo "✅ Eyedeea Photos started with PM2"
+
+# Determine the actual user running the script (not root if using sudo)
+ACTUAL_USER="${SUDO_USER:-$(whoami)}"
+
+# Ensure PM2 is started as the actual user
+sudo -u "$ACTUAL_USER" pm2 ping || handle_error $LINENO "Failed to start PM2 daemon"
+sudo -u "$ACTUAL_USER" pm2 start ecosystem.config.js || handle_error $LINENO "Failed to start Eyedeea Photos with PM2"
+echo "✅ Eyedeea Photos started with PM2 (user: $ACTUAL_USER)"
 
 # ============================================================================
 # 11. CONFIGURE PM2 STARTUP ON BOOT
 # ============================================================================
 echo "⚙️ Configuring PM2 to start on system boot..."
 
-# Save PM2 process list
-pm2 save || handle_error $LINENO "Failed to save PM2 configuration"
+# Determine the actual user running the script (not root if using sudo)
+ACTUAL_USER="${SUDO_USER:-$(whoami)}"
+ACTUAL_HOME=$(eval echo ~"$ACTUAL_USER")
 
-# Configure PM2 systemd startup
-PM2_SERVICE="pm2-$USER"
-echo "🚀 Configuring PM2 systemd service..."
+echo "ℹ️  Running PM2 configuration for user: $ACTUAL_USER"
+echo "ℹ️  Home directory: $ACTUAL_HOME"
+
+# Save PM2 process list as the actual user
+sudo -u "$ACTUAL_USER" pm2 save || handle_error $LINENO "Failed to save PM2 configuration"
+
+# Configure PM2 systemd startup for the actual user
+PM2_SERVICE="pm2-$ACTUAL_USER"
+echo "🚀 Configuring PM2 systemd service for $ACTUAL_USER..."
 
 # Run pm2 startup to generate the systemd service
-# This creates /etc/systemd/system/pm2-$USER.service
-pm2 startup systemd -u "$USER" --hp /home/"$USER" 2>&1 | tail -5
+# This creates /etc/systemd/system/pm2-$ACTUAL_USER.service
+sudo -u "$ACTUAL_USER" pm2 startup systemd -u "$ACTUAL_USER" --hp "$ACTUAL_HOME" 2>&1 | tail -5
 
 # Reload systemd to recognize the new service
 sudo systemctl daemon-reload || handle_error $LINENO "Failed to reload systemd"

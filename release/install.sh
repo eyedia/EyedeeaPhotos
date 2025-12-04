@@ -339,3 +339,8 @@ if command -v xdg-open &> /dev/null; then
 fi
 
 echo "✨ Eyedeea Photos is ready to use!"
+
+# If PM2 is not set properly, execute these manually:
+#  pm2 start /var/www/html/EyedeeaPhotos/ecosystem.config.js
+#  pm2 save
+#  pm2 startup

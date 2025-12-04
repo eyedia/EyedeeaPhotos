@@ -24,6 +24,14 @@ export const create_or_update = async (req, res) => {
         return;
       }
     }
+    
+    // Validate source name: required, at least 3 characters, not just spaces
+    const sourceName = req.body.name ? req.body.name.trim() : "";
+    if (!sourceName || sourceName.length < 3) {
+      res.status(400).json({ error: "Source name is required and must be at least 3 characters long" });
+      return;
+    }
+    
     if (!req.body.hasOwnProperty("config")) {
       req.body["config"] = null;
     }

@@ -69,48 +69,75 @@
                         <header class="main">
                             <h2 id="title">Add New Photo Source</h2>
                         </header>
-                        <div class="col-6 col-12-xsmall">                            
+                        <div class="col-12">                            
                                 <div class="row gtr-uniform">
-                                    <div class="col-6 col-12-xsmall">
-                                        <label for="name">Name</label>
-                                        <input type="text" id="source_name" name="source_name"
-                                            oninput="validate_fields()">
-                                    </div>
-                                    <div class="col-6 col-12-xsmall">
+                                    <div class="col-12 col-12-xsmall">
                                         <label for="type">Type</label>
                                         <select id="source_type" name="source_type" onchange="toggleFields()">
-                                            <option value="">Select</option>
-                                            <option value="nas">Synology Photos</option>
+                                            <option value="">Select Source Type</option>
                                             <option value="fs">File System</option>
+                                            <option value="nas">Synology Photos</option>
                                         </select>
                                     </div>
 
                                     <div id="nasFields" class="col-12 hidden">
-                                        <div class="col-6 col-12-xsmall">
+                                        <div class="col-12 col-12-xsmall">
                                             <label for="url">URL</label>
-                                            <input type="text" id="url" name="url" oninput="validate_fields()">
+                                            <input type="text" id="url" name="url" placeholder="https://your-nas-url.com" oninput="validate_fields()">
                                         </div>
-                                        <div class="col-6 col-12-xsmall">
+                                        <div class="col-12 col-12-xsmall">
                                             <label for="username">User</label>
                                             <input type="text" id="username" name="username"
+                                                placeholder="Username"
                                                 oninput="validate_fields()">
                                         </div>
-                                        <div class="col-6">
+                                        <div class="col-12 col-12-xsmall">
                                             <label for="password">Password</label>
                                             <input type="password" id="password" name="password"
+                                                placeholder="Password"
                                                 oninput="validate_fields()">
                                         </div>
                                     </div>
 
                                     <div id="fsFields" class="col-12 hidden">
                                         <div class="col-12">
-                                            <label for="directory">Directory</label>
+                                            <label for="directory">Selected Directory</label>
                                             <input type="text" id="directory" name="directory"
+                                                placeholder="Browse and select a directory below or type/paste the path"
                                                 oninput="validate_fields()">
                                         </div>
+                                        <div class="col-12">
+                                            <div id="driveBrowser" class="drive-browser">
+                                                <div class="drive-browser-container">
+                                                    <div class="drive-list-panel">
+                                                        <h4>Available Drives</h4>
+                                                        <div id="driveList" class="drive-list">
+                                                            <div class="loading">Loading drives...</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="directory-tree-panel">
+                                                        <h4>Directories</h4>
+                                                        <div id="directoryTree" class="directory-tree">
+                                                            <div class="empty-state">Select a drive to browse</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="col-12">
-                                        <a id="add" class="button primary icon solid fa-save">Add</a>
+
+                                    <div class="col-12" id="sourceNameButtonRow">
+                                        <div class="row gtr-uniform">
+                                            <div class="col-8 col-12-xsmall">
+                                                <label for="source_name">Name</label>
+                                                <input type="text" id="source_name" name="source_name"
+                                                    placeholder="Enter a name for this source"
+                                                    oninput="validate_fields()">
+                                            </div>
+                                            <div class="col-4 col-12-xsmall" style="display: flex; align-items: flex-end;">
+                                                <a id="add" class="button primary icon solid fa-save" style="width: 100%;">Add</a>
+                                            </div>
+                                        </div>
                                         <div id="message" class="message hidden"></div>
                                     </div>
                                 </div>

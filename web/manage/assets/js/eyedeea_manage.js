@@ -147,7 +147,8 @@ function validate_fields() {
     const directory = document.getElementById("directory");
     const add = document.getElementById("add");
 
-    if (!source_name.value.trim() || !source_type.value) {
+    const nameValue = source_name.value.trim();
+    if (nameValue.length < 3 || !source_type.value) {
         add.disabled = true;
         return;
     }
@@ -207,8 +208,272 @@ function toggleFields(do_not_validate) {
     var source_type = document.getElementById("source_type").value;
     document.getElementById("nasFields").classList.toggle("hidden", source_type !== "nas");
     document.getElementById("fsFields").classList.toggle("hidden", source_type !== "fs");
+    
+    // Load drives when File System is selected
+    if (source_type === "fs") {
+        loadDrives();
+    }
+    
     if (!do_not_validate)
         validate_fields();
+}
+
+// Drive Browser State
+let driveBrowserState = {
+    selectedDrive: null,
+    loadedDirectories: new Map(), // path -> directories array
+    expandedPaths: new Set()
+};
+
+// Load available drives from API
+async function loadDrives() {
+    const driveList = document.getElementById('driveList');
+    driveList.innerHTML = '<div class="loading">Loading drives...</div>';
+    
+    try {
+        const response = await fetch('/api/drives');
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (!data.drives || data.drives.length === 0) {
+            driveList.innerHTML = '<div class="empty-state">No drives found</div>';
+            return;
+        }
+        
+        driveList.innerHTML = '';
+        data.drives.forEach(drive => {
+            const driveItem = createDriveItem(drive);
+            driveList.appendChild(driveItem);
+        });
+    } catch (error) {
+        console.error('Error loading drives:', error);
+        driveList.innerHTML = '<div class="empty-state">Error loading drives</div>';
+    }
+}
+
+// Create drive item element
+function createDriveItem(drive) {
+    const div = document.createElement('div');
+    div.className = 'drive-item';
+    div.dataset.drivePath = drive.path;
+    
+    const icon = document.createElement('span');
+    icon.className = 'drive-icon';
+    icon.textContent = getDriveIcon(drive.type);
+    
+    const info = document.createElement('div');
+    info.className = 'drive-info';
+    
+    const path = document.createElement('div');
+    path.className = 'drive-name';
+    path.textContent = drive.path;
+    
+    info.appendChild(path);
+    div.appendChild(icon);
+    div.appendChild(info);
+    
+    div.addEventListener('click', () => selectDrive(drive, div));
+    
+    return div;
+}
+
+// Get icon for drive type
+function getDriveIcon(type) {
+    switch (type) {
+        case 'fixed':
+        case 'nvme':
+            return '💾';
+        case 'removable':
+        case 'usb_or_disk':
+            return '🔌';
+        case 'network':
+            return '🌐';
+        default:
+            return '📁';
+    }
+}
+
+// Select a drive and load its directories
+async function selectDrive(drive, element) {
+    // Update UI
+    document.querySelectorAll('.drive-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+    element.classList.add('selected');
+    
+    driveBrowserState.selectedDrive = drive;
+    driveBrowserState.loadedDirectories.clear();
+    driveBrowserState.expandedPaths.clear();
+    
+    // Load root directories
+    await loadDirectories(drive.path);
+}
+
+// Load directories for a given path
+async function loadDirectories(drivePath, maxDepth = 0) {
+    const directoryTree = document.getElementById('directoryTree');
+    
+    if (maxDepth === 0) {
+        directoryTree.innerHTML = '<div class="loading">Loading directories...</div>';
+    }
+    
+    try {
+        // Encode the drive path for URL
+        const encodedPath = encodeURIComponent(drivePath);
+        const response = await fetch(`/api/drives/${encodedPath}/directories?max_depth=${maxDepth}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (maxDepth === 0) {
+            // Root level - replace entire tree
+            if (!data.directories || data.directories.length === 0) {
+                directoryTree.innerHTML = '<div class="empty-state">No directories found</div>';
+                return;
+            }
+            
+            directoryTree.innerHTML = '';
+            const ul = document.createElement('ul');
+            ul.className = 'directory-tree';
+            
+            data.directories.forEach(dir => {
+                const li = createDirectoryItem(dir);
+                ul.appendChild(li);
+            });
+            
+            directoryTree.appendChild(ul);
+        }
+        
+        // Cache the loaded directories
+        driveBrowserState.loadedDirectories.set(drivePath, data.directories);
+        
+        return data.directories;
+    } catch (error) {
+        console.error('Error loading directories:', error);
+        if (maxDepth === 0) {
+            directoryTree.innerHTML = '<div class="empty-state">Error loading directories</div>';
+        }
+        return [];
+    }
+}
+
+// Create directory item element
+function createDirectoryItem(directory, level = 0) {
+    const li = document.createElement('li');
+    li.className = 'directory-item';
+    li.dataset.path = directory.path;
+    li.dataset.depth = directory.depth || level;
+    
+    const header = document.createElement('div');
+    header.className = 'directory-item-header';
+    
+    // Expand icon (+ or -)
+    const expandIcon = document.createElement('span');
+    expandIcon.className = 'directory-expand-icon';
+    expandIcon.innerHTML = '&#9654;'; // Right arrow
+    expandIcon.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleDirectory(directory, li, expandIcon);
+    });
+    
+    // Folder icon
+    const folderIcon = document.createElement('span');
+    folderIcon.className = 'directory-icon';
+    folderIcon.textContent = '📁';
+    
+    // Directory name
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'directory-name';
+    nameSpan.textContent = directory.name;
+    nameSpan.title = directory.path;
+    
+    header.appendChild(expandIcon);
+    header.appendChild(folderIcon);
+    header.appendChild(nameSpan);
+    
+    // Click to select directory
+    header.addEventListener('click', (e) => {
+        if (e.target !== expandIcon) {
+            selectDirectory(directory, header);
+        }
+    });
+    
+    li.appendChild(header);
+    
+    // Create container for children
+    const childrenUl = document.createElement('ul');
+    childrenUl.className = 'directory-children';
+    li.appendChild(childrenUl);
+    
+    return li;
+}
+
+// Toggle directory expansion
+async function toggleDirectory(directory, liElement, expandIcon) {
+    const childrenUl = liElement.querySelector('.directory-children');
+    const isExpanded = childrenUl.classList.contains('expanded');
+    
+    if (isExpanded) {
+        // Collapse
+        childrenUl.classList.remove('expanded');
+        expandIcon.classList.remove('expanded');
+        driveBrowserState.expandedPaths.delete(directory.path);
+    } else {
+        // Expand
+        expandIcon.classList.add('loading');
+        
+        // Load subdirectories
+        try {
+            const encodedPath = encodeURIComponent(directory.path);
+            const response = await fetch(`/api/drives/${encodedPath}/directories?max_depth=0`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            // Clear and populate children
+            childrenUl.innerHTML = '';
+            
+            if (data.directories && data.directories.length > 0) {
+                data.directories.forEach(subdir => {
+                    const childLi = createDirectoryItem(subdir, (directory.depth || 0) + 1);
+                    childrenUl.appendChild(childLi);
+                });
+                
+                childrenUl.classList.add('expanded');
+                expandIcon.classList.add('expanded');
+                driveBrowserState.expandedPaths.add(directory.path);
+            }
+        } catch (error) {
+            console.error('Error loading subdirectories:', error);
+        } finally {
+            expandIcon.classList.remove('loading');
+        }
+    }
+}
+
+// Select a directory
+function selectDirectory(directory, headerElement) {
+    // Update UI
+    document.querySelectorAll('.directory-item-header').forEach(header => {
+        header.classList.remove('selected');
+    });
+    headerElement.classList.add('selected');
+    
+    // Update the directory input field
+    const directoryInput = document.getElementById('directory');
+    directoryInput.value = directory.path;
+    
+    // Trigger validation
+    validate_fields();
 }
 
 

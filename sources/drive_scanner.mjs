@@ -180,8 +180,8 @@ async function getWindowsDrives() {
         const stats = fs.statSync(drivePath);
         
         drives.push({
-          id: driveLetter,
-          name: driveLetter,
+          id: drivePath,  // Use full path like C:\ instead of just C
+          name: drivePath,
           path: drivePath,
           type: 'local',
           accessible: true,

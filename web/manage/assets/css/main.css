@@ -270,27 +270,56 @@ dialog#dialog::backdrop {
 }
 
 dialog#dialog {
-  width: 100vw;
-  max-width: none;
-  height: 100svh;
-  max-height: none;
-  padding: 0;
+  width: 90vw;
+  max-width: 95%;
+  height: 90vh;
+  max-height: 90vh;
+  padding: 20px;
+  margin: auto;
   border: none;
   box-sizing: border-box;
-  overflow: auto;
-  padding-bottom: 24px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  left: 50%;
+  right: auto;
+  top: 0;
+  bottom: 0;
+  transform: translateX(-50%);
+  margin-top: 40px;
 }
 
 @media (min-width: 737px) {
   dialog#dialog {
-    height: 100vh;
+    height: 90vh;
+    padding: 30px;
+    margin-top: 40px;
   }
 }
 
 dialog#dialog .inner,
 dialog#dialog .col-6,
+dialog#dialog .col-12,
 dialog#dialog .col-12-xsmall {
-  padding: 10px 16px;
+  padding: 10px 0;
+}
+
+dialog#dialog section {
+  padding-bottom: 60px;
+  min-height: 100%;
+}
+
+dialog#dialog #sourceNameButtonRow {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+}
+
+dialog#dialog #sourceNameButtonRow .row {
+  margin-left: 0 !important;
+  width: 100%;
+}
+
+dialog#dialog #sourceNameButtonRow .row > * {
+  padding-left: 0 !important;
 }
 
 /* Ensure the create filter section is reachable on small portrait */
@@ -4051,4 +4080,247 @@ button:disabled,
   opacity: 1;
   transition: opacity 0.5s ease, max-height 0.5s ease;
   overflow: hidden;
+}
+
+/* Drive Browser Styles */
+.drive-browser {
+  margin-top: 1em;
+  border: 1px solid rgba(210, 215, 217, 0.75);
+  border-radius: 0.375em;
+  background: #fafbfb;
+  padding: 0;
+}
+
+.drive-browser-container {
+  display: flex;
+  gap: 0;
+  min-height: 300px;
+  max-height: 40vh;
+  overflow: hidden;
+}
+
+.drive-list-panel,
+.directory-tree-panel {
+  padding: 1em;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: #fff;
+  -webkit-overflow-scrolling: touch;
+}
+
+.drive-list-panel {
+  flex: 0 0 35%;
+  border-right: 1px solid rgba(210, 215, 217, 0.75);
+}
+
+.directory-tree-panel {
+  flex: 1;
+}
+
+.drive-browser h4 {
+  margin: 0 0 0.75em 0;
+  font-size: 0.9em;
+  color: #3d4449;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.075em;
+}
+
+.drive-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.drive-item {
+  padding: 0.75em;
+  margin: 0.25em 0;
+  border: 1px solid rgba(210, 215, 217, 0.5);
+  border-radius: 0.25em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.drive-item:hover {
+  background: #f5f6f7;
+  border-color: #f56a6a;
+}
+
+.drive-item.selected {
+  background: #d0d0d0;
+  color: #333;
+  border-color: #999;
+}
+
+.drive-item .drive-icon {
+  font-size: 1.2em;
+  flex-shrink: 0;
+}
+
+.drive-item .drive-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.drive-item .drive-name {
+  font-weight: 600;
+  font-size: 0.9em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.drive-item .drive-path {
+  font-size: 0.75em;
+  opacity: 0.7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.directory-tree {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.directory-item {
+  margin: 0.25em 0;
+}
+
+.directory-item-header {
+  display: flex;
+  align-items: center;
+  padding: 0.5em;
+  border-radius: 0.25em;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  gap: 0.5em;
+  position: relative;
+}
+
+.directory-item-header:hover {
+  background: #f5f6f7;
+}
+
+.directory-item-header.selected {
+  background: #d0d0d0;
+  color: #333;
+}
+
+.directory-expand-icon {
+  flex-shrink: 0;
+  width: 1.2em;
+  text-align: center;
+  font-size: 0.8em;
+  cursor: pointer;
+  color: #7f888f;
+  transition: transform 0.2s ease;
+}
+
+.directory-expand-icon.expanded {
+  transform: rotate(90deg);
+}
+
+.directory-expand-icon.loading {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.directory-icon {
+  flex-shrink: 0;
+  font-size: 1em;
+  color: #f56a6a;
+}
+
+.directory-name {
+  flex: 1;
+  font-size: 0.85em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.directory-children {
+  list-style: none;
+  padding-left: 1.5em;
+  margin: 0;
+  display: none;
+}
+
+.directory-children.expanded {
+  display: block;
+}
+
+.empty-state,
+.loading {
+  padding: 2em;
+  text-align: center;
+  color: #9fa3a6;
+  font-style: italic;
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 980px) {
+  .drive-browser-container {
+    flex-direction: column;
+    max-height: 70vh;
+  }
+  
+  .drive-list-panel {
+    flex: 0 0 auto;
+    border-right: none;
+    border-bottom: 1px solid rgba(210, 215, 217, 0.75);
+    max-height: 200px;
+  }
+  
+  .directory-tree-panel {
+    flex: 1;
+  }
+}
+
+@media screen and (max-width: 736px) {
+  .drive-browser-container {
+    max-height: 50vh;
+  }
+  
+  .drive-list-panel {
+    max-height: 150px;
+  }
+  
+  .drive-item {
+    padding: 0.5em;
+    font-size: 0.9em;
+  }
+  
+  .directory-item-header {
+    padding: 0.4em;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .drive-browser {
+    margin-top: 0.5em;
+  }
+  
+  .drive-browser h4 {
+    font-size: 0.85em;
+  }
+  
+  .drive-item .drive-name,
+  .directory-name {
+    font-size: 0.8em;
+  }
 }

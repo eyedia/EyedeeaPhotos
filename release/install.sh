@@ -47,13 +47,14 @@ is_installed() {
 # ============================================================================
 if ! command -v node &> /dev/null; then
     echo "📦 Installing Node.js..."
-    if wget -qO- https://deb.nodesource.com/setup_22.x | sudo -E bash - && \
-       sudo apt update > /dev/null 2>&1 && \
-       sudo apt install -y nodejs npm > /dev/null 2>&1; then
-        echo "✅ Node.js installed successfully"
-    else
-        handle_error $LINENO "Failed to install Node.js"
-    fi
+    
+    # Download and setup NodeSource repository
+    curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - || handle_error $LINENO "Failed to setup NodeSource repository"
+    
+    # Update package lists and install Node.js
+    sudo apt update && sudo apt install -y nodejs || handle_error $LINENO "Failed to install Node.js"
+    
+    echo "✅ Node.js installed successfully ($(node -v))"
 else
     echo "✅ Node.js is already installed ($(node -v))"
 fi

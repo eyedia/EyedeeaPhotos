@@ -2,10 +2,6 @@ import request from 'supertest';
 import { jest } from '@jest/globals';
 import server from '../../app.js';
 
-afterAll((done) => {
-  server.server.close(done);
-});
-
 jest.mock('tough-cookie', () => {
   return {
     CookieJar: jest.fn(() => ({})),
@@ -18,4 +14,17 @@ describe('Server Status', () => {
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ status: 'up' });
   });
+});
+
+afterAll((done) => {
+  if (server && server.server) {
+    server.server.close((err) => {
+      if (err) {
+        console.error('Error closing server:', err);
+      }
+      done();
+    });
+  } else {
+    done();
+  }
 });

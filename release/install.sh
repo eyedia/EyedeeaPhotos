@@ -92,6 +92,13 @@ sudo a2enmod proxy proxy_http rewrite || handle_error $LINENO "Failed to enable 
 echo "⚙️ Configuring Apache virtual host..."
 APACHE_CONF="/etc/apache2/sites-available/000-default.conf"
 
+# Backup existing Apache configuration
+if [ -f "$APACHE_CONF" ]; then
+    BACKUP_CONF="${APACHE_CONF}.backup.$(date +%Y%m%d_%H%M%S)"
+    sudo cp "$APACHE_CONF" "$BACKUP_CONF" || handle_error $LINENO "Failed to backup Apache configuration"
+    echo "✅ Backup created: $BACKUP_CONF"
+fi
+
 sudo tee "$APACHE_CONF" > /dev/null << 'EOF'
 #/etc/apache2/sites-available/000-default.conf
 <VirtualHost *:80>

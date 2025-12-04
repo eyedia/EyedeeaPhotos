@@ -90,7 +90,9 @@ async function save_source(url, data) {
 
         if (!response.ok) {
             btn_update.classList.remove("disabled");
-            throw new Error(`HTTP error! Status: ${response.status}`);
+            const errorData = await response.json().catch(() => ({}));
+            const errorMsg = errorData.error || `HTTP error! Status: ${response.status}`;
+            throw new Error(errorMsg);
         }
 
         const responseData = await response.json();
@@ -131,6 +133,7 @@ async function save_source(url, data) {
         return responseData;
     } catch (error) {
         console.error("Error:", error.message);
+        btn_update.classList.remove("disabled");
         messageDiv.textContent = error.message;
         messageDiv.className = "message error";
         messageDiv.classList.remove("hidden");
@@ -146,26 +149,52 @@ function validate_fields() {
     const password = document.getElementById("password");
     const directory = document.getElementById("directory");
     const add = document.getElementById("add");
+    const messageDiv = document.getElementById("message");
 
     const nameValue = source_name.value.trim();
-    if (nameValue.length < 3 || !source_type.value) {
+    
+    // Check name first
+    if (!nameValue) {
         add.disabled = true;
+        messageDiv.textContent = "Source name is required";
+        messageDiv.className = "message error";
+        messageDiv.classList.remove("hidden");
         return;
     }
+    
+    if (nameValue.length < 3) {
+        add.disabled = true;
+        messageDiv.textContent = "Source name must be at least 3 characters long";
+        messageDiv.className = "message error";
+        messageDiv.classList.remove("hidden");
+        return;
+    }
+    
+    // Check type
+    if (!source_type.value) {
+        add.disabled = true;
+        messageDiv.textContent = "Please select a source type";
+        messageDiv.className = "message error";
+        messageDiv.classList.remove("hidden");
+        return;
+    }
+    
+    // Clear message and check type-specific fields
+    messageDiv.classList.add("hidden");
+    
     if (source_type.value === 'nas') {
         if (!url.value.trim() || !username.value.trim() || !password.value.trim()) {
             add.disabled = true;
             return;
         }
         add.disabled = !is_valid_url(url.value);
-        add.disabled = false;
     } else if (source_type.value === 'fs') {
-        if (!directory.value.trim()) {
+        const directoryValue = directory.value.trim();
+        if (!directoryValue) {
             add.disabled = true;
             return;
         }
-        add.disabled = !is_valid_dir(directory.value);
-        add.disabled = false;
+        add.disabled = !is_valid_dir(directoryValue);
     } else {
         add.disabled = true;
         return;

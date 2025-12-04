@@ -303,9 +303,27 @@ dialog#dialog .col-12-xsmall {
   padding: 10px 0;
 }
 
+/* Fix left overflow for all form elements in dialog */
+dialog#dialog .row {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+dialog#dialog .row > * {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+dialog#dialog .inner {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
 dialog#dialog section {
   padding-bottom: 60px;
   min-height: 100%;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }
 
 dialog#dialog #sourceNameButtonRow {
@@ -4122,7 +4140,7 @@ button:disabled,
   font-size: 0.9em;
   color: #3d4449;
   font-weight: 600;
-  text-transform: uppercase;
+  text-transform: none;
   letter-spacing: 0.075em;
 }
 

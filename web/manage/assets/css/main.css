@@ -4355,13 +4355,14 @@ button:disabled,
 
 /* Version display in footer */
 #app-version {
-  font-size: 0.85em;
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.8em;
+  opacity: 0.7;
   margin-top: 0.5em;
+  color: #9fa3a6;
 }
 
 #update-badge {
-  color: #4CAF50;
+  color: #f56a6a;
   cursor: pointer;
   font-weight: bold;
   margin-left: 0.5em;
@@ -4369,7 +4370,7 @@ button:disabled,
 }
 
 #update-badge:hover {
-  color: #66BB6A;
+  color: #ff6b6b;
   text-decoration: underline;
 }
 

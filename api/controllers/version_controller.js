@@ -1,3 +1,13 @@
+/**
+ * Eyedeea Photos - Version Management API
+ * Copyright (c) 2024 Eyedia Technologies
+ * 
+ * This file is part of Eyedeea Photos.
+ * Eyedeea Photos is licensed under the GNU General Public License v3.0
+ * 
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';

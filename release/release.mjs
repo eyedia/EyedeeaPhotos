@@ -1,6 +1,16 @@
 #!/usr/bin/env node
 
 /**
+ * Eyedeea Photos - Release Management Script
+ * Copyright (c) 2024 Eyedia Technologies
+ * 
+ * This file is part of Eyedeea Photos.
+ * Eyedeea Photos is licensed under the GNU General Public License v3.0
+ * 
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
+/**
  * Release script for EyedeeaPhotos
  * Automates version bumping, changelog generation, and npm publishing
  * Usage: npm run release [patch|minor|major]

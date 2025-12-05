@@ -1,6 +1,16 @@
 #!/usr/bin/env node
 
 /**
+ * Eyedeea Photos - Automatic Update Script
+ * Copyright (c) 2024 Eyedia Technologies
+ * 
+ * This file is part of Eyedeea Photos.
+ * Eyedeea Photos is licensed under the GNU General Public License v3.0
+ * 
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
+/**
  * Auto-update script for EyedeeaPhotos
  * Checks for updates and installs them automatically
  * Can be run manually or via cron job

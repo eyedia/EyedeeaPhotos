@@ -53,7 +53,7 @@ export const get_directories = async (req, res) => {
   try {
     // Support both query param (new) and path param (legacy)
     const driveId = req.query.path || req.params.drive_id;
-    let maxDepth = req.query.max_depth !== undefined ? parseInt(req.query.max_depth) : 0; // Default to 0 (root only)
+    let maxDepth = req.query.max_depth !== undefined ? Number.parseInt(req.query.max_depth) : 0; // Default to 0 (root only)
 
     logger.info(`GET /api/drives/directories - Request received: path=${driveId}, max_depth=${maxDepth}`);
 
@@ -67,7 +67,7 @@ export const get_directories = async (req, res) => {
       maxDepth = 0;
     }
 
-    if (!driveId) {
+    if (driveId === undefined || driveId === null || driveId === '') {
       logger.warn('Drive path is required but not provided');
       return res.status(400).json({
         error: 'Drive path is required',
@@ -113,7 +113,7 @@ export const get_directories_flat = async (req, res) => {
   try {
     // Support both query param (new) and path param (legacy)
     const driveId = req.query.path || req.params.drive_id;
-    let maxDepth = parseInt(req.query.max_depth) || 3;
+    let maxDepth = Number.parseInt(req.query.max_depth) || 3;
 
     logger.info(`GET /api/drives/directories/flat - Request received: path=${driveId}, max_depth=${maxDepth}`);
 
@@ -127,7 +127,7 @@ export const get_directories_flat = async (req, res) => {
       maxDepth = 0;
     }
 
-    if (!driveId) {
+    if (driveId === undefined || driveId === null || driveId === '') {
       logger.warn('Drive path is required but not provided');
       return res.status(400).json({
         error: 'Drive path is required',

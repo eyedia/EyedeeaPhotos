@@ -8,7 +8,8 @@ import {
   get_drive_directories,
   get_drive_directories_flat,
   validate_path,
-  normalize_drive_path
+  normalize_drive_path,
+  sanitize_user_path
 } from '../../sources/drive_scanner.mjs';
 import logger from '../../config_log.js';
 
@@ -55,7 +56,7 @@ export const get_directories = async (req, res) => {
     const driveId = req.query.path || req.params.drive_id;
     let maxDepth = req.query.max_depth !== undefined ? Number.parseInt(req.query.max_depth) : 0; // Default to 0 (root only)
 
-    logger.info(`GET /api/drives/directories - Request received: path=${driveId}, max_depth=${maxDepth}`);
+    logger.info(`GET /api/drives/directories - Request received: path=${safeDriveId}, max_depth=${maxDepth}`);
 
     // Enforce maximum depth limit to prevent CPU overload
     const MAX_DEPTH_LIMIT = 5;
@@ -75,13 +76,15 @@ export const get_directories = async (req, res) => {
       });
     }
 
-    logger.debug(`Fetching directories for drive: ${driveId}, maxDepth: ${maxDepth}`);
+    const safeDriveId = sanitize_user_path(driveId);
 
-    const directories = await get_drive_directories(driveId, maxDepth);
+    logger.debug(`Fetching directories for drive: ${safeDriveId}, maxDepth: ${maxDepth}`);
+
+    const directories = await get_drive_directories(safeDriveId, maxDepth);
 
     res.json({
-      drive: driveId,
-      normalized_path: normalize_drive_path(driveId),
+      drive: safeDriveId,
+      normalized_path: normalize_drive_path(safeDriveId),
       max_depth: maxDepth,
       directories: directories,
       total_directories: countTotalDirs(directories),
@@ -115,7 +118,17 @@ export const get_directories_flat = async (req, res) => {
     const driveId = req.query.path || req.params.drive_id;
     let maxDepth = Number.parseInt(req.query.max_depth) || 3;
 
-    logger.info(`GET /api/drives/directories/flat - Request received: path=${driveId}, max_depth=${maxDepth}`);
+    if (driveId === undefined || driveId === null || driveId === '') {
+      logger.warn('Drive path is required but not provided');
+      return res.status(400).json({
+        error: 'Drive path is required',
+        details: 'Please provide a drive path using ?path= query parameter or in the URL path'
+      });
+    }
+
+    const safeDriveId = sanitize_user_path(driveId);
+
+    logger.info(`GET /api/drives/directories/flat - Request received: path=${safeDriveId}, max_depth=${maxDepth}`);
 
     // Enforce maximum depth limit to prevent CPU overload
     const MAX_DEPTH_LIMIT = 5;
@@ -127,21 +140,13 @@ export const get_directories_flat = async (req, res) => {
       maxDepth = 0;
     }
 
-    if (driveId === undefined || driveId === null || driveId === '') {
-      logger.warn('Drive path is required but not provided');
-      return res.status(400).json({
-        error: 'Drive path is required',
-        details: 'Please provide a drive path using ?path= query parameter or in the URL path'
-      });
-    }
+    logger.debug(`Fetching flat directory list for drive: ${safeDriveId}, maxDepth: ${maxDepth}`);
 
-    logger.debug(`Fetching flat directory list for drive: ${driveId}, maxDepth: ${maxDepth}`);
-
-    const directories = await get_drive_directories_flat(driveId, maxDepth);
+    const directories = await get_drive_directories_flat(safeDriveId, maxDepth);
 
     res.json({
-      drive: driveId,
-      normalized_path: normalize_drive_path(driveId),
+      drive: safeDriveId,
+      normalized_path: normalize_drive_path(safeDriveId),
       max_depth: maxDepth,
       directories: directories,
       total_directories: directories.length

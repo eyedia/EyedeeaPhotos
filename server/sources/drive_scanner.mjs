@@ -6,7 +6,7 @@
 import os from 'os';
 import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import logger from '../config_log.js';
 import constants from '../constants.js';
 
@@ -30,6 +30,19 @@ export const normalize_drive_path = (drivePath) => {
   }
   // For Linux/Mac or already formatted Windows paths, return as-is
   return drivePath;
+};
+
+// Defensive normalization of user-provided paths
+export const sanitize_user_path = (rawPath) => {
+  if (typeof rawPath !== 'string') {
+    throw new Error('Path must be a string');
+  }
+  const trimmed = rawPath.trim();
+  if (trimmed.includes('\0')) {
+    throw new Error('Path contains invalid characters');
+  }
+  // Normalize to collapse ../ sequences; caller decides allowed roots
+  return path.normalize(trimmed);
 };
 
 /**
@@ -60,10 +73,11 @@ export const get_available_drives = async () => {
  */
 export const get_drive_directories = async (drivePath, maxDepth = 2, currentDepth = 0) => {
   try {
-    // Normalize the drive path for the current platform
-    const normalizedPath = normalize_drive_path(drivePath);
+    // Normalize and sanitize the drive path for the current platform
+    const sanitizedPath = sanitize_user_path(drivePath);
+    const normalizedPath = normalize_drive_path(sanitizedPath);
     
-    logger.debug(`get_drive_directories: input='${drivePath}', normalized='${normalizedPath}', depth=${currentDepth}`);
+    logger.debug(`get_drive_directories: input='${drivePath}', sanitized='${sanitizedPath}', normalized='${normalizedPath}', depth=${currentDepth}`);
 
     // Validate the path exists and is accessible
     if (!fs.existsSync(normalizedPath)) {
@@ -127,6 +141,7 @@ export const get_drive_directories = async (drivePath, maxDepth = 2, currentDept
 export const get_drive_directories_flat = async (drivePath, maxDepth = 3) => {
   try {
     const directories = [];
+    const sanitizedRoot = sanitize_user_path(drivePath);
     
     const traverse = async (currentPath, depth = 0) => {
       if (depth > maxDepth) return;
@@ -144,7 +159,7 @@ export const get_drive_directories_flat = async (drivePath, maxDepth = 3) => {
               name: entry.name,
               path: fullPath,
               depth: depth,
-              relative_path: path.relative(drivePath, fullPath)
+              relative_path: path.relative(sanitizedRoot, fullPath)
             });
 
             await traverse(fullPath, depth + 1);
@@ -155,7 +170,7 @@ export const get_drive_directories_flat = async (drivePath, maxDepth = 3) => {
       }
     };
 
-    await traverse(drivePath);
+    await traverse(sanitizedRoot);
     return directories;
   } catch (error) {
     logger.error(`Error getting flat directory list from ${drivePath}: ${error.message}`);
@@ -259,7 +274,7 @@ async function getMacDrives() {
 
   try {
     // Use 'df' command to list mounted filesystems
-    const output = execSync('df -h', { encoding: 'utf-8' });
+    const output = execFileSync('df', ['-h'], { encoding: 'utf-8' });
     const lines = output.split('\n').slice(1); // Skip header
 
     for (const line of lines) {

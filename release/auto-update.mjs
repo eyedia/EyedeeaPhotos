@@ -16,7 +16,7 @@
  * Can be run manually or via cron job
  */
 
-import { execSync } from 'child_process';
+import { execSync, execFileSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -79,7 +79,7 @@ function getLatestVersion(packageName) {
     if (!/^[a-z0-9@./_-]+$/i.test(packageName)) {
       throw new Error(`Invalid package name: ${packageName}`);
     }
-    const output = execSync(`npm view ${packageName} version`, { encoding: 'utf8' });
+    const output = execFileSync('npm', ['view', packageName, 'version'], { encoding: 'utf8' });
     return output.trim();
   } catch (error) {
     log(`Error getting latest version: ${error.message}`);
@@ -109,7 +109,7 @@ function updatePackage(packageName) {
     if (!/^[a-z0-9@./_-]+$/i.test(packageName)) {
       throw new Error(`Invalid package name: ${packageName}`);
     }
-    execSync(`npm install -g ${packageName}@latest`, { 
+    execFileSync('npm', ['install', '-g', `${packageName}@latest`], { 
       stdio: 'inherit',
       cwd: __dirname 
     });
@@ -126,13 +126,13 @@ function restartService() {
   try {
     // If running as PM2 process
     try {
-      execSync('pm2 restart eyedeeaphotos', { stdio: 'inherit', shell: '/bin/bash' });
+      execFileSync('pm2', ['restart', 'eyedeeaphotos'], { stdio: 'inherit' });
       log('Service restarted via PM2');
       return true;
     } catch {
       // Not running under PM2, try systemd
       try {
-        execSync('sudo systemctl restart eyedeeaphotos', { stdio: 'inherit', shell: '/bin/bash' });
+        execFileSync('sudo', ['systemctl', 'restart', 'eyedeeaphotos'], { stdio: 'inherit' });
         log('Service restarted via systemd');
         return true;
       } catch {

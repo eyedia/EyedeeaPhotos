@@ -117,6 +117,42 @@ I end up setting up NAS. But, you can simply migrate your photos to an external 
 
 > **_NOTE:_**  *Remember he IP address of the server. Henceforth we will call this device as **Eyedeea Photos** server.*
 
+## Automatic Updates
+
+Eyedeea Photos includes an automatic update system to keep your installation current with the latest features and security patches.
+
+### Setting Up Auto-Updates
+
+**Linux (Cron Job):**
+```bash
+cd release
+bash setup-cron.sh
+```
+
+**Windows (Task Scheduler):**
+```powershell
+cd release
+powershell -ExecutionPolicy Bypass -File setup-task.ps1
+```
+
+Choose your preferred update frequency:
+- Daily (recommended for production)
+- Weekly
+- Twice monthly
+- Custom schedule
+
+The update system will:
+- Check npm registry for new versions
+- Download and install updates automatically
+- Restart the service (PM2 or systemd)
+- Log all activity to `logs/auto-update.log`
+
+### Version Display
+
+The current version is displayed in the footer of the management interface. An "Update available" badge appears when a newer version is published, allowing you to track your deployment status.
+
+For detailed documentation on release management, see [release/README.md](release/README.md).
+
 ## Access Eyedeea Photos
 After installing, make sure that you triggered scan mannually. And once scanning is completed, you can access it.
 

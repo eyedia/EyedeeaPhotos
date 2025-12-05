@@ -15,6 +15,7 @@ function setSlideShowUrlLink() {
 
 document.addEventListener('DOMContentLoaded', async function () {
     setSlideShowUrlLink();
+    fetchAppVersion();
     let pathArray = window.location.pathname.split("/");
     const documentName = pathArray[pathArray.length - 1];
     await get_sources();
@@ -1069,4 +1070,52 @@ function viewImage(event) {
     const photo_data = JSON.parse(event.target.getAttribute('photo-data'));
     currently_viewing = event.target;
     updateImage(photo_data.photo_id);
+}
+
+// Fetch and display application version
+async function fetchAppVersion() {
+    try {
+        const response = await fetch('/api/version');
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        const versionText = document.getElementById('version-text');
+        if (versionText) {
+            versionText.textContent = `v${data.version}`;
+        }
+        
+        // Check for updates after fetching version
+        await checkForUpdates();
+    } catch (error) {
+        console.error('Error fetching version:', error);
+        const versionText = document.getElementById('version-text');
+        if (versionText) {
+            versionText.textContent = 'Version unavailable';
+        }
+    }
+}
+
+// Check for available updates
+async function checkForUpdates() {
+    try {
+        const response = await fetch('/api/version/check-updates');
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        const updateBadge = document.getElementById('update-badge');
+        
+        if (data.updateAvailable && updateBadge) {
+            updateBadge.classList.remove('hidden');
+            updateBadge.title = `Update to v${data.latestVersion} available`;
+            
+            // Also log for admin awareness
+            console.info(`Update available: v${data.currentVersion} → v${data.latestVersion}`);
+        }
+    } catch (error) {
+        console.error('Error checking for updates:', error);
+    }
 }

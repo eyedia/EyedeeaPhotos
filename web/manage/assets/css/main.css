@@ -4352,3 +4352,29 @@ button:disabled,
   z-index: 0;
   height: fit-content;
 }
+
+/* Version display in footer */
+#app-version {
+  font-size: 0.85em;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 0.5em;
+}
+
+#update-badge {
+  color: #4CAF50;
+  cursor: pointer;
+  font-weight: bold;
+  margin-left: 0.5em;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+#update-badge:hover {
+  color: #66BB6A;
+  text-decoration: underline;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+

@@ -49,6 +49,35 @@ export function create_or_update(source, callback) {
         });
 }
 
+
+export function delete_source(source, callback) {   
+
+    let query = `select * from source where id = ? COLLATE NOCASE`;
+    meta_db.get(query, [source.id],
+        (err, meta_source) => {
+            if (err) {
+                logger.error(err.message);
+            } else {
+                if (meta_source) {
+                    meta_db.run(
+                        `UPDATE source set [is_deleted] = 1, updated_at = strftime('%Y-%m-%d %H:%M:%S', 'now') where id = ?`,
+                        [source.id],
+                        function (err) {
+                            if (err) {
+                                logger.error('Error deleting data:', err);
+                                callback(err, null, 500);
+                            } else {                               
+                                callback(null, meta_source, 200);
+                            }
+                        });
+                } else {
+                    callback(null, null);
+                }
+            }
+        });
+}
+
+
 export function update_cache(source, callback) {
     let plan_text_cache = source.cache;
     if (source.cache)
@@ -82,12 +111,12 @@ export function update_cache(source, callback) {
 
 
 export function list(callback) {
-    let query = `select * from source`;
+    let query = `select * from source where is_deleted = 0`;    
     meta_db.all(query, (err, rows) => {
         if (err) {
             logger.error(err.message);
             callback(err, null);
-        } else {
+        } else {            
             callback(null, rows);
         }
     });

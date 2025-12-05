@@ -19,6 +19,7 @@ export function get_source_summary(callback) {
         GROUP BY p.source_id
     ) photo_count ON s.id = photo_count.source_id
     LEFT JOIN scan_log sl ON s.id = sl.source_id
+    WHERE s.is_deleted = 0
     GROUP BY s.id, s.name
     ORDER BY s.created_at;`;
 

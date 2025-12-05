@@ -1,5 +1,6 @@
 import {
   create_or_update as meta_create_or_update,
+  delete_source as meta_delete,
   get as meta_get,
   list as meta_list,
   get_dirs as meta_get_dirs,
@@ -172,5 +173,47 @@ export const get_photos_from_a_dir = async (req, res) => {
     }else{
       res.status(500).json({ message: "Internal Server Error" });
     }
+  }
+};
+
+/**
+ * Delete a source by ID
+ * DELETE /api/sources/:id
+ */
+export const delete_source = async (req, res) => {
+  try {
+    const source_id = req.params.id;
+
+    if (!source_id) {
+      logger.warn('Delete source called without ID');
+      return res.status(400).json({
+        error: 'Source ID is required',
+        details: 'Please provide a source ID in the URL path'
+      });
+    }
+
+    logger.info(`DELETE /api/sources/${source_id} - Request received`);
+
+    // Call meta function to delete the source
+    meta_delete({ id: source_id, _delete: true }, (err, result, status_code) => {
+      if (err) {
+        logger.error(`Error deleting source ${source_id}: ${err.message}`);
+        res.status(500).json({
+          error: 'Failed to delete source',
+          message: err.message
+        });
+      } else {
+        logger.info(`Source ${source_id} deleted successfully`);
+        res.status(204).send(); // 204 No Content for successful deletion
+      }
+    });
+
+  } catch (error) {
+    logger.error(`Unexpected error deleting source: ${error.message}`);
+    logger.error(`Stack trace: ${error.stack}`);
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: error.message
+    });
   }
 };

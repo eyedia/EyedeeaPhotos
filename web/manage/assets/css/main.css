@@ -4342,3 +4342,13 @@ button:disabled,
     font-size: 0.8em;
   }
 }
+
+.source-checkbox {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: auto;
+  height: auto;
+  z-index: 0;
+  height: fit-content;
+}

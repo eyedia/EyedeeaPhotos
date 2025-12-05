@@ -789,6 +789,10 @@ function renderTableSummary(data) {
     
     data.details.forEach(item => {
         const row = `<tr>            
+            <td>
+                <input type="radio" id="source-select-${item.source_id}" name="source-select" class="source-checkbox" data-source-id="${item.source_id}" data-source-name="${item.name}" onchange="handleSourceCheckboxChange()">
+                <label for="source-select-${item.source_id}"></label>
+            </td>
             <td><a href='/manage/source.html?id=${item.source_id}'>${item.name}</a></td>
             <td>${item.total_photos}</td>
             <td class='hide-mobile'>${item.last_scanned_at}</td>
@@ -796,6 +800,97 @@ function renderTableSummary(data) {
 
         tableBody.innerHTML += row;
     });
+}
+
+// Handle source checkbox changes - radio buttons enforce single selection
+function handleSourceCheckboxChange() {
+    const checkedRadio = document.querySelector('.source-checkbox:checked');
+    const deleteBtn = document.getElementById('deleteSourceBtn');
+    
+    // Enable delete button only if a source is selected
+    deleteBtn.disabled = !checkedRadio;
+}
+
+// Handle delete button click
+function handleDeleteClick(event) {
+    event.preventDefault();
+    
+    const checkbox = document.querySelector('.source-checkbox:checked');
+    if (!checkbox) {
+        return;
+    }
+    
+    const sourceId = checkbox.dataset.sourceId;
+    const sourceName = checkbox.dataset.sourceName;
+    
+    // Store for use in confirmDelete
+    window.selectedSourceId = sourceId;
+    window.selectedSourceName = sourceName;
+    
+    // Show confirmation dialog
+    document.getElementById('deleteMessage').textContent = `Are you sure you want to delete '${sourceName}'?`;
+    document.getElementById('deleteError').classList.add('hidden');
+    document.getElementById('deleteYesBtn').disabled = false;
+    document.getElementById('deleteDialog').showModal();
+}
+
+// Confirm and execute delete
+async function confirmDelete() {
+    const sourceId = window.selectedSourceId;
+    const sourceName = window.selectedSourceName;
+    const deleteYesBtn = document.getElementById('deleteYesBtn');
+    const deleteError = document.getElementById('deleteError');
+    
+    try {
+        deleteYesBtn.disabled = true;
+        deleteError.classList.add('hidden');
+        
+        const response = await fetch(`/api/sources/${sourceId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            const errorMsg = errorData.error || `HTTP error! Status: ${response.status}`;
+            throw new Error(errorMsg);
+        }
+        
+        // Success - close dialog and refresh
+        document.getElementById('deleteDialog').close();
+        
+        // Clear selection state and disable delete button
+        const deleteBtn = document.getElementById('deleteSourceBtn');
+        deleteBtn.disabled = true;
+        
+        // Refresh data
+        get_sources(); // Refresh sidebar menu
+        get_system_summary(); // Refresh main table
+        
+        // Show success notification
+        const notification = document.getElementById("notification");
+        if (notification) {
+            notification.innerText = `Source "${sourceName}" deleted successfully`;
+            notification.style.display = "block";
+            notification.className = "message success";
+            setTimeout(() => {
+                notification.classList.add("hidden");
+                setTimeout(() => {
+                    notification.style.display = "none";
+                    notification.style.opacity = "1";
+                }, 1000);
+            }, 5000);
+        }
+        
+    } catch (error) {
+        console.error("Error deleting source:", error.message);
+        deleteError.textContent = `Error: ${error.message}`;
+        deleteError.className = "message error";
+        deleteError.classList.remove("hidden");
+        deleteYesBtn.disabled = false;
+    }
 }
 
 

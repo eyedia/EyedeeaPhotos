@@ -10,7 +10,7 @@ echo "=== EyedeeaPhotos Auto-Update Cron Setup ==="
 echo ""
 
 # Check if script exists
-if [ ! -f "$AUTO_UPDATE_SCRIPT" ]; then
+if [[ ! -f "$AUTO_UPDATE_SCRIPT" ]]; then
     echo "Error: auto-update.mjs not found at $AUTO_UPDATE_SCRIPT"
     exit 1
 fi
@@ -61,7 +61,7 @@ if crontab -l 2>/dev/null | grep -q "auto-update.mjs"; then
     echo ""
     echo "Existing auto-update cron job found."
     read -p "Replace it? (y/n): " replace
-    if [ "$replace" != "y" ]; then
+    if [[ "$replace" != "y" ]]; then
         echo "Installation cancelled"
         exit 0
     fi

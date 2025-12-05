@@ -7,6 +7,21 @@ import logger from '../config_log.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Promise-based helpers to avoid deeply nested callbacks
+const runAsync = (sql, params = []) => new Promise((resolve, reject) => {
+  meta_db.run(sql, params, function(err) {
+    if (err) return reject(err);
+    resolve(this);
+  });
+});
+
+const execAsync = (sql) => new Promise((resolve, reject) => {
+  meta_db.exec(sql, (err) => {
+    if (err) return reject(err);
+    resolve();
+  });
+});
+
 /**
  * Create migrations tracking table
  */
@@ -49,45 +64,21 @@ function getAppliedMigrations() {
  * Apply a single migration within a transaction
  */
 async function applyMigration(version, name, sql) {
-  return new Promise((resolve, reject) => {
-    meta_db.serialize(() => {
-      meta_db.run('BEGIN TRANSACTION', (err) => {
-        if (err) return reject(err);
-      });
-      
-      // Execute the migration SQL
-      meta_db.exec(sql, (err) => {
-        if (err) {
-          logger.error(`Migration ${version} (${name}) failed:`, err);
-          meta_db.run('ROLLBACK');
-          reject(err);
-        } else {
-          // Record migration as applied
-          meta_db.run(
-            'INSERT INTO schema_migrations (version, name) VALUES (?, ?)', 
-            [version, name], 
-            (err) => {
-              if (err) {
-                logger.error(`Failed to record migration ${version}:`, err);
-                meta_db.run('ROLLBACK');
-                reject(err);
-              } else {
-                meta_db.run('COMMIT', (err) => {
-                  if (err) {
-                    logger.error(`Failed to commit migration ${version}:`, err);
-                    reject(err);
-                  } else {
-                    logger.info(`✓ Migration ${version} (${name}) applied successfully`);
-                    resolve();
-                  }
-                });
-              }
-            }
-          );
-        }
-      });
-    });
-  });
+  try {
+    await runAsync('BEGIN TRANSACTION');
+    await execAsync(sql);
+    await runAsync('INSERT INTO schema_migrations (version, name) VALUES (?, ?)', [version, name]);
+    await runAsync('COMMIT');
+    logger.info(`✓ Migration ${version} (${name}) applied successfully`);
+  } catch (err) {
+    logger.error(`Migration ${version} (${name}) failed:`, err);
+    try {
+      await runAsync('ROLLBACK');
+    } catch (rollbackErr) {
+      logger.error(`Rollback failed for migration ${version}:`, rollbackErr);
+    }
+    throw err;
+  }
 }
 
 /**

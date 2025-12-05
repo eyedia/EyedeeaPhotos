@@ -313,7 +313,7 @@ function toggle_lighten(element, toggle_color) {
 }
 
 function closeConfigNav() {
-    var body = document.body;
+    const body = document.body;
 
     if (body.classList.contains('fullscreen')) {       
         body.classList.remove('fullscreen');

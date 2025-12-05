@@ -93,7 +93,7 @@ echo "⚙️ Configuring Apache virtual host..."
 APACHE_CONF="/etc/apache2/sites-available/000-default.conf"
 
 # Backup existing Apache configuration
-if [ -f "$APACHE_CONF" ]; then
+if [[ -f "$APACHE_CONF" ]]; then
     BACKUP_CONF="${APACHE_CONF}.backup.$(date +%Y%m%d_%H%M%S)"
     sudo cp "$APACHE_CONF" "$BACKUP_CONF" || handle_error $LINENO "Failed to backup Apache configuration"
     echo "✅ Backup created: $BACKUP_CONF"
@@ -134,11 +134,11 @@ APP_DIR_FULL="$WWW_DIR/$APP_DIR"
 
 echo "📁 Preparing application directory..."
 
-if [ ! -d "$WWW_DIR" ]; then
+if [[ ! -d "$WWW_DIR" ]]; then
     handle_error $LINENO "Directory $WWW_DIR does not exist"
 fi
 
-if [ -d "$APP_DIR_FULL" ]; then
+if [[ -d "$APP_DIR_FULL" ]]; then
     echo "🔄 Removing existing installation..."
     rm -rf "$APP_DIR_FULL" || handle_error $LINENO "Failed to remove existing app directory"
 fi
@@ -146,7 +146,7 @@ fi
 mkdir -p "$APP_DIR_FULL" || handle_error $LINENO "Failed to create app directory"
 
 # Copy input.json if it exists in current directory
-if [ -f "$JSON_FILE" ]; then
+if [[ -f "$JSON_FILE" ]]; then
     cp "$JSON_FILE" "$APP_DIR_FULL" || handle_error $LINENO "Failed to copy JSON file"
     echo "✅ Configuration file copied"
 fi

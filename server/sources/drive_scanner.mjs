@@ -12,6 +12,18 @@ import constants from '../constants.js';
 
 const platform = os.platform();
 
+const isHiddenEntry = (entryName) => entryName.startsWith('.');
+
+const ensureDirectoryExists = (normalizedPath, rawPath) => {
+  if (!fs.existsSync(normalizedPath)) {
+    throw new Error(`Path does not exist: '${normalizedPath}' (input: '${rawPath}')`);
+  }
+  const stats = fs.statSync(normalizedPath);
+  if (!stats.isDirectory()) {
+    throw new Error(`Path is not a directory: '${normalizedPath}'`);
+  }
+};
+
 /**
  * Normalize drive path for the current platform
  * Windows: 'C' -> 'C:\', 'C:' -> 'C:\', 'C:\' -> 'C:\'
@@ -80,50 +92,41 @@ export const get_drive_directories = async (drivePath, maxDepth = 2, currentDept
     logger.debug(`get_drive_directories: input='${drivePath}', sanitized='${sanitizedPath}', normalized='${normalizedPath}', depth=${currentDepth}`);
 
     // Validate the path exists and is accessible
-    if (!fs.existsSync(normalizedPath)) {
-      throw new Error(`Path does not exist: '${normalizedPath}' (input: '${drivePath}')`);
-    }
-
-    const stats = fs.statSync(normalizedPath);
-    if (!stats.isDirectory()) {
-      throw new Error(`Path is not a directory: '${normalizedPath}'`);
-    }
+    ensureDirectoryExists(normalizedPath, drivePath);
 
     // Read directory contents
     const entries = fs.readdirSync(normalizedPath, { withFileTypes: true });
-    
     const directories = [];
 
-    for (const entry of entries) {
-      try {
-        // Skip hidden files/folders (starting with . on Linux, or system files on Windows)
-        if (entry.name.startsWith('.')) continue;
+    const buildDirInfo = async (entry) => {
+      const fullPath = path.join(normalizedPath, entry.name);
+      const dirInfo = {
+        name: entry.name,
+        path: fullPath,
+        depth: currentDepth,
+        subdirs: []
+      };
 
-        const fullPath = path.join(normalizedPath, entry.name);
-        
-        if (entry.isDirectory()) {
-          const dirInfo = {
-            name: entry.name,
-            path: fullPath,
-            depth: currentDepth,
-            subdirs: []
-          };
-
-          // Recursively get subdirectories if maxDepth not reached
-          if (currentDepth < maxDepth) {
-            try {
-              dirInfo.subdirs = await get_drive_directories(fullPath, maxDepth, currentDepth + 1);
-            } catch (subError) {
-              logger.warn(`Could not read subdirectories of ${fullPath}: ${subError.message}`);
-              // Continue with other directories even if one fails
-            }
-          }
-
-          directories.push(dirInfo);
+      if (currentDepth < maxDepth) {
+        try {
+          dirInfo.subdirs = await get_drive_directories(fullPath, maxDepth, currentDepth + 1);
+        } catch (subError) {
+          logger.warn(`Could not read subdirectories of ${fullPath}: ${subError.message}`);
         }
+      }
+
+      return dirInfo;
+    };
+
+    for (const entry of entries) {
+      if (isHiddenEntry(entry.name)) continue;
+      if (!entry.isDirectory()) continue;
+
+      try {
+        const dirInfo = await buildDirInfo(entry);
+        directories.push(dirInfo);
       } catch (entryError) {
         logger.warn(`Error processing entry ${entry.name}: ${entryError.message}`);
-        // Continue with other entries
       }
     }
 

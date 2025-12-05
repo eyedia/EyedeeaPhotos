@@ -98,19 +98,22 @@ async function get_photo(photo_index) {
     }
     
     const response = await fetch(photo_url);
+    let photo_info;
+
     if (!response.ok) {
         console.error(`HTTP error! status: ${response.status}`);
         const photo_data = {
             "folder_name": "Eyedeea Photos",
             "photo_index": photo_index
         };
-        let photo_info = {
+        photo_info = {
             "url": "/eyedeea_photos.jpg",
             "orientation": "L",
             "meta_data": photo_data,
-        }
+        };
         return photo_info;
     }
+
     photo_info = await save_photo_from_respose(response);    
     return photo_info;
 }

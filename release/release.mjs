@@ -16,7 +16,7 @@
  * Usage: npm run release [patch|minor|major]
  */
 
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -46,14 +46,14 @@ function success(message) {
   console.log(`\x1b[32m[Success]\x1b[0m ${message}`);
 }
 
-function exec(command, silent = false) {
+function exec(command, args = [], silent = false) {
   try {
-    return execSync(command, { 
+    return execFileSync(command, args, {
       encoding: 'utf8',
       stdio: silent ? 'pipe' : 'inherit'
     });
   } catch (err) {
-    error(`Command failed: ${command}`);
+    error(`Command failed: ${command} ${args.join(' ')}`);
     throw err;
   }
 }
@@ -67,21 +67,21 @@ function getCurrentVersion() {
 
 function bumpVersion(type) {
   log(`Bumping ${type} version...`);
-  const output = exec(`npm version ${type} --no-git-tag-version`, true);
+  const output = exec('npm', ['version', type, '--no-git-tag-version'], true);
   const newVersion = output.trim().replace('v', '');
   success(`Version bumped to ${newVersion}`);
   return newVersion;
 }
 
 function checkGitStatus() {
-  const status = exec('git status --porcelain', true);
+  const status = exec('git', ['status', '--porcelain'], true);
   return status.trim();
 }
 
 function runTests() {
   log('Running tests...');
   try {
-    exec('npm test');
+    exec('npm', ['test']);
     success('All tests passed');
     return true;
   } catch {
@@ -93,7 +93,7 @@ function runTests() {
 async function updateDependencies() {
   log('Checking for dependency updates...');
   try {
-    exec('npm outdated');
+    exec('npm', ['outdated']);
   } catch {
     // npm outdated returns non-zero if updates are available
   }
@@ -101,8 +101,8 @@ async function updateDependencies() {
   const answer = await question('Update dependencies? (y/n): ');
   if (answer.toLowerCase() === 'y') {
     log('Updating dependencies...');
-    exec('npm update');
-    exec('npm audit fix');
+    exec('npm', ['update']);
+    exec('npm', ['audit', 'fix']);
     success('Dependencies updated');
   }
 }
@@ -116,9 +116,10 @@ function generateChangelog(version) {
   // Get commits since last tag
   let commits = '';
   try {
-    commits = exec('git log $(git describe --tags --abbrev=0)..HEAD --oneline', true);
+    const lastTag = exec('git', ['describe', '--tags', '--abbrev=0'], true).trim();
+    commits = exec('git', ['log', `${lastTag}..HEAD`, '--oneline'], true);
   } catch {
-    commits = exec('git log --oneline -10', true);
+    commits = exec('git', ['log', '--oneline', '-10'], true);
   }
   
   const newEntry = `\n## [${version}] - ${date}\n\n### Changes\n${commits}\n`;
@@ -145,25 +146,25 @@ function generateChangelog(version) {
 
 function commitAndTag(version) {
   log('Committing changes...');
-  exec('git add .');
-  exec(`git commit -m "chore: release v${version}"`);
+  exec('git', ['add', '.']);
+  exec('git', ['commit', '-m', `chore: release v${version}`]);
   
   log('Creating git tag...');
-  exec(`git tag -a v${version} -m "Release v${version}"`);
+  exec('git', ['tag', '-a', `v${version}`, '-m', `Release v${version}`]);
   
   success('Changes committed and tagged');
 }
 
 function publishToNpm() {
   log('Publishing to npm...');
-  exec('npm publish');
+  exec('npm', ['publish']);
   success('Published to npm');
 }
 
 function pushToGitHub() {
   log('Pushing to GitHub...');
-  exec('git push origin main');
-  exec('git push origin --tags');
+  exec('git', ['push', 'origin', 'main']);
+  exec('git', ['push', 'origin', '--tags']);
   success('Pushed to GitHub');
 }
 

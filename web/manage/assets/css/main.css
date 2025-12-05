@@ -4350,7 +4350,6 @@ button:disabled,
   width: auto;
   height: auto;
   z-index: 0;
-  height: fit-content;
 }
 
 /* Version display in footer */

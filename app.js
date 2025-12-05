@@ -4,6 +4,7 @@ import cron from "node-cron";
 import cors from 'cors';
 import logger from "./config_log.js";
 import { set_random_photo, get_config } from "./meta/meta_view.mjs";
+import { runMigrations } from "./meta/migration_manager.mjs";
 import view_filter_router from './api/routers/view_filter_router.js';
 import view_router from './api/routers/view_router.js';
 import source_router from './api/routers/source_router.js';
@@ -18,6 +19,9 @@ process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err);
   logger.error(err);
 });
+
+// Run database migrations before starting server
+await runMigrations();
 
 const app = express(helmet());
 app.disable('x-powered-by')

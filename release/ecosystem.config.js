@@ -1,7 +1,7 @@
 module.exports = {
   apps: [{
     name: 'Eyedeea Photos',
-    script: '/var/www/html/EyedeeaPhotos/node_modules/eyedeeaphotos/app.js',
+    script: '/var/www/html/EyedeeaPhotos/node_modules/eyedeeaphotos/server/app.js',
     cwd: '/var/www/html/EyedeeaPhotos/node_modules/eyedeeaphotos',
     autorestart: true,
     env: {

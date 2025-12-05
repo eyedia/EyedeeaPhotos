@@ -12,7 +12,7 @@
     "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
     "migrate:create": "node server/meta/create_migration.mjs",
     "release": "node release/release.mjs",
-    "check-updates": "node release/auto-update.mjs"
+    "check-updates": "node server/deployment/auto-update.mjs"
   },
   "repository": {
     "type": "git",

@@ -8,8 +8,8 @@ Write-Host ""
 
 # Get script directory
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$ProjectDir = Split-Path -Parent $ScriptDir
-$AutoUpdateScript = Join-Path $ScriptDir "auto-update.mjs"
+$ProjectRoot = Split-Path -Parent $ScriptDir
+$AutoUpdateScript = Join-Path $ProjectRoot "server/deployment/auto-update.mjs"
 
 # Check if script exists
 if (-not (Test-Path $AutoUpdateScript)) {
@@ -57,7 +57,7 @@ switch ($choice) {
 
 # Task settings
 $TaskName = "EyedeeaPhotos-AutoUpdate"
-$Action = New-ScheduledTaskAction -Execute $NodePath -Argument "`"$AutoUpdateScript`"" -WorkingDirectory $ProjectDir
+$Action = New-ScheduledTaskAction -Execute $NodePath -Argument "`"$AutoUpdateScript`"" -WorkingDirectory $ProjectRoot
 $Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
 
 # Check if task already exists
@@ -81,7 +81,7 @@ Write-Host "✓ Scheduled task created successfully!" -ForegroundColor Green
 Write-Host "  Task Name: $TaskName"
 Write-Host "  Schedule: $Description"
 Write-Host ""
-Write-Host "Logs will be written to: $ProjectDir\logs\auto-update.log"
+Write-Host "Logs will be written to: $ProjectRoot\logs\auto-update.log"
 Write-Host ""
 Write-Host "To view the task: taskschd.msc"
 Write-Host "To run manually: schtasks /Run /TN `"$TaskName`""

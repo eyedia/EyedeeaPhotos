@@ -2,9 +2,11 @@
 
 # Setup auto-update cron job for EyedeeaPhotos
 # Run this script once to install the cron job
+# This should be run from the deployed npm package location
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-AUTO_UPDATE_SCRIPT="$SCRIPT_DIR/auto-update.mjs"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+AUTO_UPDATE_SCRIPT="$PROJECT_ROOT/server/deployment/auto-update.mjs"
 
 echo "=== EyedeeaPhotos Auto-Update Cron Setup ==="
 echo ""
@@ -54,7 +56,7 @@ esac
 NODE_PATH=$(which node)
 
 # Create cron job
-CRON_JOB="$CRON_SCHEDULE cd $SCRIPT_DIR/.. && $NODE_PATH $AUTO_UPDATE_SCRIPT >> $SCRIPT_DIR/../logs/auto-update.log 2>&1"
+CRON_JOB="$CRON_SCHEDULE cd $PROJECT_ROOT && $NODE_PATH $AUTO_UPDATE_SCRIPT >> $PROJECT_ROOT/logs/auto-update.log 2>&1"
 
 # Check if cron job already exists
 if crontab -l 2>/dev/null | grep -q "auto-update.mjs"; then
@@ -77,7 +79,7 @@ echo "✓ Cron job installed successfully!"
 echo "  Schedule: $DESCRIPTION"
 echo "  Command: $CRON_JOB"
 echo ""
-echo "Logs will be written to: $SCRIPT_DIR/../logs/auto-update.log"
+echo "Logs will be written to: $PROJECT_ROOT/logs/auto-update.log"
 echo ""
 echo "To view your cron jobs: crontab -l"
 echo "To remove this cron job: crontab -e (then delete the line with auto-update.mjs)"

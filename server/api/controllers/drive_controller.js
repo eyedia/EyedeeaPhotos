@@ -56,8 +56,6 @@ export const get_directories = async (req, res) => {
     const driveId = req.query.path || req.params.drive_id;
     let maxDepth = req.query.max_depth !== undefined ? Number.parseInt(req.query.max_depth) : 0; // Default to 0 (root only)
 
-    logger.info(`GET /api/drives/directories - Request received: path=${safeDriveId}, max_depth=${maxDepth}`);
-
     // Enforce maximum depth limit to prevent CPU overload
     const MAX_DEPTH_LIMIT = 5;
     if (maxDepth > MAX_DEPTH_LIMIT) {
@@ -77,6 +75,8 @@ export const get_directories = async (req, res) => {
     }
 
     const safeDriveId = sanitize_user_path(driveId);
+
+    logger.info(`GET /api/drives/directories - Request received: path=${safeDriveId}, max_depth=${maxDepth}`);
 
     logger.debug(`Fetching directories for drive: ${safeDriveId}, maxDepth: ${maxDepth}`);
 

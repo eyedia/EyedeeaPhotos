@@ -21,7 +21,7 @@ const __dirname = path.dirname(__filename);
  */
 export const get_version = async (req, res) => {
   try {
-    const packageJsonPath = path.join(__dirname, '../../package.json');
+    const packageJsonPath = path.join(__dirname, '../../../package.json');
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
     
     res.json({
@@ -40,7 +40,7 @@ export const get_version = async (req, res) => {
  */
 export const check_updates = async (req, res) => {
   try {
-    const packageJsonPath = path.join(__dirname, '../../package.json');
+    const packageJsonPath = path.join(__dirname, '../../../package.json');
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
     const currentVersion = packageJson.version;
     const packageName = packageJson.name;

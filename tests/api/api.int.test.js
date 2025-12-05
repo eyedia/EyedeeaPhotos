@@ -1,12 +1,15 @@
 import request from 'supertest';
 import { jest } from '@jest/globals';
-import server from '../../app.js';
 
-jest.mock('tough-cookie', () => {
+jest.unstable_mockModule('tough-cookie', () => {
   return {
-    CookieJar: jest.fn(() => ({})),
+    default: {
+      CookieJar: jest.fn(() => ({})),
+    },
   };
 });
+
+import server from '../../server/app.js';
 
 describe('Server Status', () => {
   it('Check server status', async () => {

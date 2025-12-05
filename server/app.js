@@ -10,6 +10,18 @@
  * SPDX-License-Identifier: GPL-3.0-only
  */
 
+/**
+ * Eyedeea Photos - Photo Curation Application
+ * Copyright (c) 2024 Eyedia Technologies
+ * 
+ * This file is part of Eyedeea Photos.
+ * Eyedeea Photos is licensed under the GNU General Public License v3.0
+ * 
+ * For premium features, see: LICENSE.COMMERCIAL
+ * 
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+
 import express from "express";
 import helmet from "helmet";
 import cron from "node-cron";

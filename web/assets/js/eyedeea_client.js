@@ -81,23 +81,27 @@ async function get_photo(photo_index) {
     //console.time("ts_get_photo_" + photo_index);
     let photo_url = photo_url_server;
     let photo_url_id_only = undefined;
-    if (photo_index) {
+    if (photo_index !== undefined && photo_index !== null) {
+        // Always bypass cache for the newest photo (index 0) to avoid stale display in production
+        const bypassCache = (photo_index === 0);
         photo_url = photo_url + `?photo_index=${photo_index}`;
         photo_url_id_only = photo_url + `&photo_id_only=true`;    
-    
-        const response_id = await fetch(photo_url_id_only);
+        
+        const response_id = await fetch(photo_url_id_only, { cache: 'no-store' });
         if (response_id.ok) {
             const json_data = await response_id.json();
-            const cache_data = await retrieve_photo_from_cache(json_data.photo_id);
-            if (cache_data != null) {
-                //console.timeEnd("ts_get_photo_" + photo_index);                
-                cache_data.meta_data.photo_index = photo_index;
-                return cache_data;
+            if (!bypassCache) {
+                const cache_data = await retrieve_photo_from_cache(json_data.photo_id);
+                if (cache_data != null) {
+                    //console.timeEnd("ts_get_photo_" + photo_index);                
+                    cache_data.meta_data.photo_index = photo_index;
+                    return cache_data;
+                }
             }
         }
     }
     
-    const response = await fetch(photo_url);
+    const response = await fetch(photo_url, { cache: 'no-store' });
     let photo_info;
 
     if (!response.ok) {

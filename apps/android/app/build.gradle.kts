@@ -3,6 +3,10 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+val keystorePassword by project
+val keyAlias by project
+val keyPassword by project
+
 android {
     namespace = "com.eyediatech.eyedeeaphotos"
     compileSdk = 34
@@ -10,9 +14,9 @@ android {
     signingConfigs {
         create("release") {
             storeFile = file("D:/Work/Eyedeea-Core/android/eyedeea_photos")
-            storePassword = "Mogambo#55"
-            keyAlias = "key0"
-            keyPassword = "Mogambo#55"
+            storePassword = keystorePassword as String
+            keyAlias = keyAlias as String
+            keyPassword = keyPassword as String
         }
     }
 

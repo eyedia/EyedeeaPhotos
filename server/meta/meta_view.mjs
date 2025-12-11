@@ -185,54 +185,102 @@ export function set_random_photo() {
 
 
 function set_current_photo(callback) {
-
-    meta_db.all("SELECT photo_id FROM view_log WHERE current = 1", (err, rows) => {
+    // Always rotate to a new current photo on each invocation.
+    // Pick a random candidate from the pool of not-yet-picked (status = 0).
+    const pickQuery = "SELECT photo_id FROM view_log WHERE status = 0 ORDER BY RANDOM() LIMIT 1";
+    meta_db.all(pickQuery, (err, rows) => {
         if (err) {
-            callback(err, null);
-        } else {
-            if (rows.length == 0) {
-                let query = "SELECT photo_id FROM view_log WHERE status = 0 ORDER BY RANDOM() LIMIT 1";
-                meta_db.all(query, (err, rows) => {
-                    if (err) {
-                        if(callback)
-                            callback(err, null);
-                    } else {
-                        if (rows.length >= 1) {
-                            meta_db.run(
-                                `UPDATE view_log set current = 1, status = 0,
-                                    update_sequence = (select ifnull(max(update_sequence),0) + 1 from view_log),
-                                    updated_at = strftime('%Y-%m-%d %H:%M:%S', 'now') 
-                                    where photo_id = ?`,
-                                [rows[0]["photo_id"]],
-                                function (err) {
-                                    if (err) {
-                                        logger.error('Error updating data:', err);
-                                    } else {
-                                        meta_db.run(
-                                            `UPDATE view_log set current = 0 where photo_id != ?`,
-                                            [rows[0]["photo_id"]],
-                                            function (err) {
-                                                if (err) {
-                                                    logger.error('Error updating data:', err);
-                                                } else {
-                                                    callback(null, null);
-                                                }
-                                            });
-                                    }
-                                });
-                        } else {                            
-                            if(callback)                               
-                                callback({"message":"Fatal error! No random photo was set."}, null);
-                        }
+            if (callback) callback(err, null);
+            return;
+        }
+
+        if (rows.length >= 1) {
+            const newPhotoId = rows[0]["photo_id"];
+
+            // Promote the new photo to current and reset its status to 0 (waiting/displayable)
+            meta_db.run(
+                `UPDATE view_log SET current = 1, status = 0,
+                 update_sequence = (SELECT ifnull(max(update_sequence),0) + 1 FROM view_log),
+                 updated_at = strftime('%Y-%m-%d %H:%M:%S', 'now')
+                 WHERE photo_id = ?`,
+                [newPhotoId],
+                function (updateErr) {
+                    if (updateErr) {
+                        logger.error('Error updating data:', updateErr);
+                        if (callback) callback(updateErr, null);
+                        return;
                     }
-                });
-            }else{
-                logger.debug("Already one photo was set to current, the operation was ignored.");
-            }
+
+                    // Demote any other photo from current.
+                    meta_db.run(
+                        `UPDATE view_log SET current = 0 WHERE photo_id != ?`,
+                        [newPhotoId],
+                        function (demoteErr) {
+                            if (demoteErr) {
+                                logger.error('Error updating data:', demoteErr);
+                                if (callback) callback(demoteErr, null);
+                            } else {
+                                if (callback) callback(null, null);
+                            }
+                        }
+                    );
+                }
+            );
+        } else {
+            // No candidate with status = 0. Try to reset statuses to allow rotation again.
+            // This can happen if all photos have been marked picked (status = 1).
+            meta_db.run(
+                `UPDATE view_log SET status = 0 WHERE status = 1`,
+                [],
+                function (resetErr) {
+                    if (resetErr) {
+                        logger.error('Error resetting statuses:', resetErr);
+                        if (callback) callback(resetErr, null);
+                        return;
+                    }
+                    // Retry once after resetting statuses.
+                    meta_db.all(pickQuery, (retryErr, retryRows) => {
+                        if (retryErr) {
+                            if (callback) callback(retryErr, null);
+                            return;
+                        }
+                        if (retryRows.length >= 1) {
+                            const newPhotoIdRetry = retryRows[0]["photo_id"];
+                            meta_db.run(
+                                `UPDATE view_log SET current = 1, status = 0,
+                                 update_sequence = (SELECT ifnull(max(update_sequence),0) + 1 FROM view_log),
+                                 updated_at = strftime('%Y-%m-%d %H:%M:%S', 'now')
+                                 WHERE photo_id = ?`,
+                                [newPhotoIdRetry],
+                                function (updateErr2) {
+                                    if (updateErr2) {
+                                        logger.error('Error updating data:', updateErr2);
+                                        if (callback) callback(updateErr2, null);
+                                        return;
+                                    }
+                                    meta_db.run(
+                                        `UPDATE view_log SET current = 0 WHERE photo_id != ?`,
+                                        [newPhotoIdRetry],
+                                        function (demoteErr2) {
+                                            if (demoteErr2) {
+                                                logger.error('Error updating data:', demoteErr2);
+                                                if (callback) callback(demoteErr2, null);
+                                            } else {
+                                                if (callback) callback(null, null);
+                                            }
+                                        }
+                                    );
+                                }
+                            );
+                        } else {
+                            if (callback) callback({ message: "Fatal error! No random photo was set." }, null);
+                        }
+                    });
+                }
+            );
         }
     });
 }
-
 
 export function get_tag(name, callback) {
     let query = `select * from tag where name = '${name}' COLLATE NOCASE`;

@@ -23,57 +23,61 @@ export function get_photo(photo_id, callback) {
 }
 
 export function get_random_photo(callback) {
-    let query = `select p.id, p.source_id, p.photo_id, p.filename, p.folder_id, p.folder_name, 
-                p.time, p.type, p.orientation, p.cache_key, p.tags, p.address, s.type as 'source_type'
-                from photo p
-                inner join source s on p.source_id = s.id
-                where p.photo_id in (SELECT photo_id FROM view_log WHERE current = 1)`;
-    meta_db.all(query, (err, rows) => {
+    // Always fetch the current photo directly from view_log to avoid stale picks
+    const query = `
+        SELECT p.id, p.source_id, p.photo_id, p.filename, p.folder_id, p.folder_name,
+               p.time, p.type, p.orientation, p.cache_key, p.tags, p.address,
+               s.type AS source_type, vl.status, vl.current
+        FROM view_log vl
+        INNER JOIN photo p ON p.photo_id = vl.photo_id
+        INNER JOIN source s ON p.source_id = s.id
+        WHERE vl.current = 1
+        ORDER BY vl.update_sequence DESC
+        LIMIT 1`;
+
+    meta_db.get(query, (err, row) => {
         if (err) {
             callback(err, null);
-        } else {
-            if (rows.length >= 1) {
-                rows[0].address = JSON.parse(JSON.stringify(rows[0].address));
-                if (rows[0].status == 1) {
-                    //already picked up, return the records                    
-                    callback(null, rows);
-                } else {
-                    //update that the photo has been picked_up
-                    meta_db.run(
-                        `UPDATE view_log set status = 1 where photo_id = ?`,
-                        [rows[0].photo_id],
-                        function (err) {
-                            if (err) {
-                                logger.error('Error updating data:', err);
-                            } else {
-                                callback(null, rows);
-                            }
-                        });
-                }
-            } else {
-                logger.error("Fatal error! No photo was set to current. This issue was taken care for the next cycle.");
-                 
-                //This case occurred only once, when view_log had a photo_id which never existed in the photo table.
-                //if can clear all non existent photo_id from the view_log, we should be good.
-                 meta_db.run(
-                    `delete from view_log where photo_id not in (select photo_id from photo)`,
-                    [],
-                    function (err) {
-                        if (err) {
-                            logger.error('Error updating data:', err);
-                        } else {
-                            set_current_photo((err, rows) => {
-                                if (err) {
-                                    callback(err, null);
-                                }else{
-                                    callback(null, rows);
-                                }
-                            });
-                            
-                        }
-                    });
+            return;
+        }
+
+        if (row) {
+            if (row.address) {
+                row.address = JSON.parse(JSON.stringify(row.address));
             }
 
+            // Mark as picked-up (status = 1)
+            meta_db.run(
+                `UPDATE view_log SET status = 1 WHERE photo_id = ?`,
+                [row.photo_id],
+                (updateErr) => {
+                    if (updateErr) {
+                        logger.error('Error updating view_log status:', updateErr);
+                    }
+                    callback(null, [row]);
+                }
+            );
+        } else {
+            logger.error("Fatal error! No photo was set to current. Attempting recovery by clearing invalid entries and re-setting current.");
+
+            meta_db.run(
+                `DELETE FROM view_log WHERE photo_id NOT IN (SELECT photo_id FROM photo)`,
+                [],
+                (cleanupErr) => {
+                    if (cleanupErr) {
+                        logger.error('Error during cleanup of view_log:', cleanupErr);
+                        callback(cleanupErr, null);
+                        return;
+                    }
+                    set_current_photo((setErr, rows) => {
+                        if (setErr) {
+                            callback(setErr, null);
+                        } else {
+                            callback(null, rows);
+                        }
+                    });
+                }
+            );
         }
     });
 }
@@ -182,12 +186,11 @@ export function set_random_photo() {
 
 function set_current_photo(callback) {
 
-    meta_db.all("SELECT photo_id FROM view_log WHERE status = 0 and current = 1", (err, rows) => {
+    meta_db.all("SELECT photo_id FROM view_log WHERE current = 1", (err, rows) => {
         if (err) {
             callback(err, null);
         } else {
             if (rows.length == 0) {
-                //let query = "SELECT * FROM photo WHERE photo_id = 39672";
                 let query = "SELECT photo_id FROM view_log WHERE status = 0 ORDER BY RANDOM() LIMIT 1";
                 meta_db.all(query, (err, rows) => {
                     if (err) {
@@ -196,8 +199,8 @@ function set_current_photo(callback) {
                     } else {
                         if (rows.length >= 1) {
                             meta_db.run(
-                                `UPDATE view_log set current = 1, 
-                                    update_sequence = (select max(update_sequence) + 1 from view_log),
+                                `UPDATE view_log set current = 1, status = 0,
+                                    update_sequence = (select ifnull(max(update_sequence),0) + 1 from view_log),
                                     updated_at = strftime('%Y-%m-%d %H:%M:%S', 'now') 
                                     where photo_id = ?`,
                                 [rows[0]["photo_id"]],

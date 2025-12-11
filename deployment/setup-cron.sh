@@ -6,7 +6,7 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-AUTO_UPDATE_SCRIPT="$PROJECT_ROOT/server/deployment/auto-update.mjs"
+AUTO_UPDATE_SCRIPT="$PROJECT_ROOT/deployment/auto-update.mjs"
 
 echo "=== EyedeeaPhotos Auto-Update Cron Setup ==="
 echo ""

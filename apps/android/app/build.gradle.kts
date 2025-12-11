@@ -7,6 +7,15 @@ android {
     namespace = "com.eyediatech.eyedeeaphotos"
     compileSdk = 34
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("D:/Work/Eyedeea-Core/android/eyedeea_photos")
+            storePassword = "Mogambo#55"
+            keyAlias = "key0"
+            keyPassword = "Mogambo#55"
+        }
+    }
+
     flavorDimensions += "platform"
 
     productFlavors {
@@ -55,6 +64,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
         getByName("debug") {
             isDebuggable = true
@@ -106,4 +116,33 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+}
+
+tasks.register("buildAndCopyApks") {
+    group = "Build"
+    description = "Builds and copies release APKs for all platforms."
+    dependsOn(tasks.named("assembleFiretvRelease"), tasks.named("assembleMobileRelease"))
+
+    doLast {
+        val destinationDir = rootProject.file("../../release")
+        destinationDir.mkdirs()
+
+        // Copy FireTV APK
+        copy {
+            from(file("build/outputs/apk/firetv/release")) {
+                include("*.apk")
+            }
+            into(destinationDir)
+            rename { "ep_f.apk" }
+        }
+
+        // Copy Mobile APK
+        copy {
+            from(file("build/outputs/apk/mobile/release")) {
+                include("*.apk")
+            }
+            into(destinationDir)
+            rename { "ep_a.apk" }
+        }
+    }
 }

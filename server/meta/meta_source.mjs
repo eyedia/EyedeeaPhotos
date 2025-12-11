@@ -32,18 +32,34 @@ export function create_or_update(source, callback) {
                             }
                         });
                 } else {
-                    meta_db.run(
-                        `UPDATE source set url = ?, user = ?, password = ?, config = ?, cache = ?, updated_at = strftime('%Y-%m-%d %H:%M:%S', 'now') where name = ?`,
-                        [source.url, source.user, source.password, source.config, undefined, source.name],
-                        function (err) {
-                            if (err) {
-                                logger.error('Error updating data:', err);
-                                callback(err, null, 500);
-                            } else {
-                                source["id"] = meta_source.id;
-                                callback(null, source, 200);
-                            }
-                        });
+                    // If the source exists but is soft-deleted, undelete and update its details.
+                    if (meta_source.is_deleted === 1) {
+                        meta_db.run(
+                            `UPDATE source SET type = ?, url = ?, user = ?, password = ?, config = ?, cache = NULL, is_deleted = 0, updated_at = strftime('%Y-%m-%d %H:%M:%S', 'now') WHERE id = ?`,
+                            [source.type, source.url, source.user, source.password, source.config, meta_source.id],
+                            function (err) {
+                                if (err) {
+                                    logger.error('Error undeleting data:', err);
+                                    callback(err, null, 500);
+                                } else {
+                                    source["id"] = meta_source.id;
+                                    callback(null, source, 200);
+                                }
+                            });
+                    } else {
+                        meta_db.run(
+                            `UPDATE source SET type = ?, url = ?, user = ?, password = ?, config = ?, cache = NULL, updated_at = strftime('%Y-%m-%d %H:%M:%S', 'now') WHERE name = ?`,
+                            [source.type, source.url, source.user, source.password, source.config, source.name],
+                            function (err) {
+                                if (err) {
+                                    logger.error('Error updating data:', err);
+                                    callback(err, null, 500);
+                                } else {
+                                    source["id"] = meta_source.id;
+                                    callback(null, source, 200);
+                                }
+                            });
+                    }
                 }
             }
         });

@@ -29,6 +29,10 @@ main = (function ($) {
 			// Side of main wrapper (must match "misc.main-side" in _vars.scss).
 			mainSide: 'right'
 
+			// Autoplay settings.
+			, autoplayInterval: 12000 // ms between slides
+			, autoplayResumeAfter: 20000 // ms idle before resuming after user interaction
+
 		},
 
 		/**
@@ -84,6 +88,12 @@ main = (function ($) {
 		 * @var {array}
 		 */
 		slides: [],
+
+		/**
+		 * Autoplay timers.
+		 */
+		autoplayTimer: null,
+		autoplayIdleTimer: null,
 
 		/**
 		 * Current slide index.
@@ -353,10 +363,12 @@ main = (function ($) {
 			// Nav.
 			_.$navNext.on('click', function () {
 				_.next();
+				_.kickAutoplay();
 			});
 
 			_.$navPrevious.on('click', function () {
 				_.previous();
+				_.kickAutoplay();
 			});
 
 			// Keyboard shortcuts.
@@ -381,6 +393,7 @@ main = (function ($) {
 
 					// Call shortcut.
 					(_.keys[event.keyCode])();
+					_.kickAutoplay();
 
 				}
 
@@ -409,6 +422,7 @@ main = (function ($) {
 
 					// Switch to this thumbnail's slide.
 					_.switchTo($this.data('index'));
+					_.kickAutoplay();
 
 				});
 
@@ -504,6 +518,7 @@ main = (function ($) {
 			// Show first slide even on xsmall (was only >xsmall before).
 			if (_.current === null)
 				_.switchTo(0, true);
+			_.startAutoplay();
 
 			// Retain original behavior: also re-show first slide when crossing from xsmall to larger.
 			breakpoints.on('>xsmall', function () {
@@ -740,7 +755,35 @@ main = (function ($) {
 
 			// Switch.
 			_.switchTo(i);
+			_.kickAutoplay();
 
+		},
+
+		startAutoplay: function () {
+			if (_.autoplayTimer) return;
+			_.autoplayTimer = window.setInterval(function () {
+				if (_.slides.length === 0) return;
+				if (_.$body.hasClass('fullscreen')) return;
+				_.next();
+			}, _.settings.autoplayInterval);
+		},
+
+		stopAutoplay: function () {
+			if (_.autoplayTimer) {
+				window.clearInterval(_.autoplayTimer);
+				_.autoplayTimer = null;
+			}
+		},
+
+		kickAutoplay: function () {
+			// Pause immediately and schedule resume after idle period.
+			_.stopAutoplay();
+			if (_.autoplayIdleTimer) {
+				window.clearTimeout(_.autoplayIdleTimer);
+			}
+			_.autoplayIdleTimer = window.setTimeout(function () {
+				_.startAutoplay();
+			}, _.settings.autoplayResumeAfter);
 		},
 
 		/**

@@ -51,13 +51,23 @@ function sendPhotoData(res, photo_data, response, isCurrentPhoto = false, isDown
   const maxAge = isCurrentPhoto ? 40 : 1800;
   const contentDisposition = getContentDisposition(filename, isDownload);
 
+  // For the current photo, enforce no-store to avoid any stale caching by proxies/browsers.
+  const cacheHeaders = isCurrentPhoto
+    ? {
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
+      'Pragma': 'no-cache'
+    }
+    : {
+      'Cache-Control': `public, max-age=${maxAge}`
+    };
+
   res.writeHead(200, {
     'Content-Type': response.headers.get('content-type'),
     'Content-Length': response.data.length,
     'photo-data': JSON.stringify(cleanedPhoto),
-    'Cache-Control': `public, max-age=${maxAge}`,
     'ETag': etag,
-    'Content-Disposition': contentDisposition
+    'Content-Disposition': contentDisposition,
+    ...cacheHeaders
   });
   res.end(response.data);
 }
@@ -131,6 +141,10 @@ export const get_photo = async (req, res) => {
 export const get_random_photo = async (req, res) => {
   const photoIndex = parseInt(req.query.photo_index);
   const limit = req.query.limit || 12;
+
+  // Enforce no-cache for all /api/view responses to avoid stale photos being served by intermediaries.
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
 
   if (!isNaN(photoIndex)) {
     // UI requesting specific photos from history

@@ -15,10 +15,11 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_gravity="top|start"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginStart="-10dp"
+        android:layout_marginTop="-10dp"
         android:padding="12dp"
         android:src="@drawable/ic_settings"
-        android:contentDescription="@string/app_name"/>
+        android:contentDescription="@string/app_name"
+        android:alpha="0.1"/>
 
 </FrameLayout>

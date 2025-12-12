@@ -1,11 +1,20 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
 }
 
-val keystorePassword by project
-val keyAlias by project
-val keyPassword by project
+// Manually load properties to bypass environment issues
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    val properties = Properties()
+    properties.load(FileInputStream(localPropertiesFile))
+    properties.forEach { (key, value) ->
+        project.extra.set(key.toString(), value.toString())
+    }
+}
 
 android {
     namespace = "com.eyediatech.eyedeeaphotos"
@@ -13,10 +22,14 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file("D:/Work/Eyedeea-Core/android/eyedeea_photos")
-            storePassword = keystorePassword as String
-            keyAlias = keyAlias as String
-            keyPassword = keyPassword as String
+            if (project.extra.has("keyAlias") && project.extra.has("keystorePassword") && project.extra.has("keyPassword")) {
+                storeFile = file("D:/Work/Eyedeea-Core/android/eyedeea_photos_v2.jks")
+                storePassword = project.extra.get("keystorePassword") as String
+                keyAlias = project.extra.get("keyAlias") as String
+                keyPassword = project.extra.get("keyPassword") as String
+            } else {
+                // This block is left empty intentionally. The build will fail later with a clear message if signing is attempted without configuration.
+            }
         }
     }
 
@@ -25,12 +38,10 @@ android {
     productFlavors {
         create("firetv") {
             dimension = "platform"
-            // No downloads for Fire TV
             buildConfigField("boolean", "ENABLE_DOWNLOADS", "false")
         }
         create("mobile") {
             dimension = "platform"
-            // Enable downloads for mobile
             buildConfigField("boolean", "ENABLE_DOWNLOADS", "true")
             applicationIdSuffix = ".mobile"
         }
@@ -57,7 +68,6 @@ android {
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
-
         vectorDrawables.useSupportLibrary = true
     }
 
@@ -111,12 +121,9 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.webkit:webkit:1.9.0")
     implementation("androidx.leanback:leanback:1.2.0-alpha04")
-
-    // Optional: Add these if you need them
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
@@ -131,7 +138,6 @@ tasks.register("buildAndCopyApks") {
         val destinationDir = rootProject.file("../../release")
         destinationDir.mkdirs()
 
-        // Copy FireTV APK
         copy {
             from(file("build/outputs/apk/firetv/release")) {
                 include("*.apk")
@@ -140,7 +146,6 @@ tasks.register("buildAndCopyApks") {
             rename { "ep_f.apk" }
         }
 
-        // Copy Mobile APK
         copy {
             from(file("build/outputs/apk/mobile/release")) {
                 include("*.apk")
@@ -148,5 +153,16 @@ tasks.register("buildAndCopyApks") {
             into(destinationDir)
             rename { "ep_a.apk" }
         }
+    }
+}
+
+tasks.register("printMyProperties") {
+    group = "debug"
+    doLast {
+        println("== Gradle Property Check ==")
+        println("Has keystorePassword: " + project.extra.has("keystorePassword"))
+        println("Has keyAlias: " + project.extra.has("keyAlias"))
+        println("Has keyPassword: " + project.extra.has("keyPassword"))
+        println("===========================")
     }
 }

@@ -110,6 +110,7 @@ function refresh_pic() {
                         e_a.setAttribute("orientation_v2", photo_info.orientation);
                         e_a.setAttribute("orientation", photo_data.orientation);
                         e_a.setAttribute("photo_id", photo_data.photo_id);
+                        e_a.setAttribute("data-filename", photo_data.filename);
 
                         const e_title = document.createElement('h2');
                         e_title.setAttribute("id", `title-${id_suffix}`);
@@ -283,17 +284,33 @@ async function mt_dont_show() {
 
 async function mt_download() {
     try {
-        const photo_info = await get_photo(main.current);
-        console.log(photo_info.meta_data.filename)
-        if (photo_info?.meta_data) {
-            const a = document.createElement("a");            
-            a.href = `${photo_url_server}/photos/${photo_info.meta_data.photo_id}?download=true&filename=${encodeURIComponent(photo_info.meta_data.filename)}`;
-            a.download = photo_info.meta_data.filename || "photo.jpg";
-
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+        const currentSlide = main.slides[main.current];
+        
+        if (!currentSlide || !currentSlide.photo_id) {
+            console.error('Current slide or photo_id not available');
+            return;
         }
+
+        // Get filename from the thumbnail anchor element (stored during refresh_pic)
+        const thumbnails = document.querySelectorAll('a.thumbnail');
+        let filename = 'photo.jpg';
+        
+        for (const thumb of thumbnails) {
+            if (thumb.getAttribute('photo_id') === currentSlide.photo_id) {
+                filename = thumb.getAttribute('data-filename') || 'photo.jpg';
+                break;
+            }
+        }
+
+        console.log(`Downloading photo: ${currentSlide.photo_id}, filename: ${filename}`);
+
+        const a = document.createElement("a");
+        a.href = `${photo_url_server}/photos/${currentSlide.photo_id}?download=true&filename=${encodeURIComponent(filename)}`;
+        a.download = filename;
+
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     } catch (error) {
         console.error('Download failed:', error);
     }

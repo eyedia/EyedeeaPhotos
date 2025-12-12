@@ -44,7 +44,8 @@ function create_tables(callback) {
 			password TEXT,
             config TEXT,
             cache TEXT,
-            active_scan BOOL DEFAULT 0,            
+            active_scan BOOL DEFAULT 0,
+            is_deleted BOOL DEFAULT 0
             created_at TEXT DEFAULT CURRENT_TIMESTAMP,
 			updated_at TEXT
             );`,

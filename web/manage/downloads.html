@@ -1,0 +1,340 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <title>Eyedeea Photos</title>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/x-icon" href="../favicon.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <link rel="stylesheet" href="assets/css/fontawesome-all.min.css" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <link rel="stylesheet" href="assets/css/search.css" />
+    <style>
+        /* Align radio buttons vertically in table cells */
+        #source-summary-table-body td:first-child {
+            vertical-align: middle;
+        }
+        #source-summary-table-body input[type="radio"] + label {
+            margin-bottom: 0;
+            line-height: 1.5;
+        }
+        #source-summary-table-body input[type="radio"] + label:before {
+            top: 35%;
+            transform: translateY(-65%);
+        }
+        
+        /* Downloads table styling */
+        .downloads-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5em;
+        }
+
+        .downloads-table thead {
+            background-color: #f4f4f4;
+        }
+
+        .downloads-table th {
+            padding: 1em;
+            text-align: left;
+            font-weight: bold;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .downloads-table td {
+            padding: 1.5em 1em;
+            border-bottom: 1px solid #eee;
+        }
+
+        .downloads-table th:first-child,
+        .downloads-table td:first-child {
+            width: 35%;
+        }
+
+        .downloads-table tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .downloads-table a {
+            color: #0066cc;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .downloads-table a:hover {
+            text-decoration: underline;
+        }
+
+        .download-icon {
+            margin-right: 0.5em;
+        }
+
+        .coming-soon {
+            color: #999;
+            font-style: italic;
+        }
+        
+        /* Make delete dialog smaller */
+        #deleteDialog {
+            max-width: 500px;
+            width: 90vw;
+            padding: 1.5em;
+        }
+        
+        #deleteDialog section {
+            max-height: none;
+            overflow: visible;
+            padding: 0;
+        }
+        
+        #deleteDialog .col-12 {
+            padding: 0;
+            margin-bottom: 1em;
+        }
+        
+        #deleteDialog header.main {
+            margin-bottom: 1em;
+        }
+        
+        #deleteDialog h2 {
+            margin-bottom: 0;
+        }
+
+        /* Download notification */
+        #downloadNotification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 2em;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            text-align: center;
+            min-width: 300px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        #downloadNotification.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #downloadNotification .notification-logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1em;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        #downloadNotification h3 {
+            margin: 0.5em 0;
+            color: #333;
+        }
+
+        #downloadNotification p {
+            margin: 0;
+            color: #666;
+            font-size: 0.95em;
+        }
+    </style>
+</head>
+
+<body class="is-preload">
+
+    <!-- Wrapper -->
+    <div id="wrapper">
+
+        <!-- Main -->
+        <div id="main">
+            <div class="inner">
+
+                <!-- Header -->
+                <header id="header">
+                    <div class="header-container">
+                        <div class="header-col header-col-img">
+                            <a href="../index.html" class="slideshow-link" title="Go back to slide show">
+                                <img src="../images/slideshow.jpg" id="img_slideshow" alt="Back to Slide Show" class="slideshow-icon" />
+                            </a>
+                        </div>
+                        <div class="header-col header-col-caption">
+                            <a href="../index.html" class="logo" title="Eyedeea Photos Home">                            
+                                <h2>Eyedeea Photos</h2>
+                                <h3>Downloads</h3>
+                            </a>
+                            <ul class="icons">
+                                <li><a href="https://github.com/eyedia/EyedeeaPhotos" target="_blank"
+                                    class="fa-icon fab fa-github" aria-label="GitHub"></a></li>
+                                <li><a href="https://eyedeeaphotos.eyediatech.com/" target="_blank"
+                                    class="fa-icon fas fa-globe" aria-label="Website"></a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </header>               
+                <!-- Content -->
+                <div style="height: 10px;"></div>
+                <div class="col-12">
+                    <h3>Available Downloads</h3>
+                    <p>Download and install Eyedeea Photos apps for your devices, or get sample photos to get started.</p>
+                </div>
+
+                <table class="downloads-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <a href="https://www.tinyurl.com/e-photos-f" class="download-link" data-name="Eyedeea Photos Fire TV App" title="Download Fire TV App">
+                                    <i class="fas fa-download download-icon"></i>Eyedeea Photos Fire TV App
+                                </a>
+                            </td>
+                            <td>
+                                Install this app on your Fire TV to enjoy your photos on a large screen. Perfect for displaying your photo collection, 
+                                memories, and slideshows in the comfort of your living room.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <a href="https://www.tinyurl.com/e-photos-a" class="download-link" data-name="Eyedeea Photos Android App" title="Download Android App">
+                                    <i class="fas fa-download download-icon"></i>Eyedeea Photos Android App
+                                </a>
+                            </td>
+                            <td>
+                                Install this app on your Android phone or tablet to view and manage your photos on the go. 
+                                Browse through your photo library, create filters, and enjoy organized access to all your memories.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="coming-soon">
+                                    <i class="fas fa-apple download-icon"></i>Eyedeea Photos iOS App
+                                </span>
+                            </td>
+                            <td>
+                                Coming soon! Until the native iOS app is available, you can use the iOS default browser to access Eyedeea Photos 
+                                and enjoy a seamless web experience on your iPhone or iPad.
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <a href="#" class="download-link" data-name="Sample Photos" title="Download Sample Photos">
+                                    <i class="fas fa-images download-icon"></i>Sample Photos
+                                </a>
+                            </td>
+                            <td>
+                                Sample photos sourced from the internet to help you get started right away. 
+                                Download these to quickly test Eyedeea Photos functionality, then replace them with your own photos in the sample folder.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Download Notification -->
+                <div id="downloadNotification">
+                    <img src="../images/slideshow.jpg" id="img_slideshow" alt="Back to Slide Show" class="slideshow-icon" />
+                    <h3>Download Started!</h3>
+                    <p id="downloadName"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div id="sidebar">
+            <div class="inner">
+
+                <!-- Search -->
+                <section id="search" class="alt">
+                    <searchbox method="post" action="#">
+                        <input type="text" id="g_search_keywords" onkeypress="g_search_entery_key(event)"
+                            placeholder="Search" />
+                    </searchbox>
+                </section>
+                <!-- Menu -->
+                <nav id="menu">                    
+                    <ul>
+                        <li><a href="index.html">System</a></li>
+                        <li><a href="player.html">Filters</a></li>
+                        <li><a href="photos.html">Photos</a></li>
+                        <li>
+                            <span id="nav_sources_ctr" class="opener active">Sources</span>
+                            <ul id="nav_sources">
+                                <!-- Dynamically filled-->
+                            </ul>
+                        </li>
+                        <li><a href="logs.html">Logs</a></li>
+                        <li><a href="downloads.html">Downloads</a></li>
+                        <li><a href="../">Back</a></li>
+                    </ul>
+                </nav>
+                <!-- Footer -->
+                <footer id="footer">
+                    <p class="copyright">&copy; Eyedia Technologies. Licensed under <a href="https://github.com/eyedia/EyedeeaPhotos/blob/main/LICENSE" target="_blank">GNU General Public License v3.0</a>.</p>
+                    <p id="app-version">
+                        <span id="version-text">Loading version...</span>
+                        <span id="update-badge" class="hidden" onclick="checkForUpdates()"> • Update available!</span>
+                    </p>
+                </footer>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/browser.min.js"></script>
+    <script src="assets/js/breakpoints.min.js"></script>
+    <script src="assets/js/util.js"></script>
+    <script src="assets/js/manage_main.js"></script>
+    <script src="assets/js/paginated_table.js"></script>
+    <script src="assets/js/eyedeea_manage.js"></script>
+    
+    <script>
+        // Handle download link clicks
+        document.querySelectorAll('.download-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                const name = this.getAttribute('data-name');
+                
+                // If it's a real URL, trigger download and show notification
+                if (href && href !== '#') {
+                    e.preventDefault();
+                    showDownloadNotification(name);
+                    
+                    // Trigger the download
+                    const a = document.createElement('a');
+                    a.href = href;
+                    a.click();
+                } else {
+                    // For placeholder links, just show the notification
+                    e.preventDefault();
+                    showDownloadNotification(name);
+                }
+            });
+        });
+        
+        function showDownloadNotification(name) {
+            const notification = document.getElementById('downloadNotification');
+            const nameElement = document.getElementById('downloadName');
+            
+            nameElement.textContent = name;
+            notification.classList.add('show');
+            
+            // Hide notification after 3 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+
+</html>

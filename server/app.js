@@ -50,6 +50,7 @@ await runMigrations();
 
 const app = express(helmet());
 app.disable('x-powered-by')
+app.set('trust proxy', true);
 app.use(cors({
   credentials: true,
   origin: true
@@ -58,9 +59,31 @@ app.use(cors({
 app.use(express.static('web'));
 app.use(express.json());
 
+// Helper function to get the real client IP
+function getClientIp(req) {
+  // Check X-Forwarded-For header (proxy/load balancer)
+  const xForwardedFor = req.get('x-forwarded-for');
+  if (xForwardedFor) {
+    return xForwardedFor.split(',')[0].trim();
+  }
+  // Check X-Real-IP header (Nginx, etc.)
+  const xRealIp = req.get('x-real-ip');
+  if (xRealIp) {
+    return xRealIp;
+  }
+  // Check CF-Connecting-IP header (Cloudflare)
+  const cfConnectingIp = req.get('cf-connecting-ip');
+  if (cfConnectingIp) {
+    return cfConnectingIp;
+  }
+  // Fallback to Express's req.ip (respects 'trust proxy' setting)
+  return req.ip || 'unknown';
+}
+
 // Request logging middleware
 app.use((req, res, next) => {
-  logger.info(`${req.method} ${req.url} - ${req.ip}`);
+  const clientIp = getClientIp(req);
+  logger.info(`${req.method} ${req.url} - ${clientIp}`);
   next();
 });
 

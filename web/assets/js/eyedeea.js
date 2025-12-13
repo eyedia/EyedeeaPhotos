@@ -249,7 +249,8 @@ function set_orientation(photo_data) {
 function mt_hangle_tool_click(id) {
 
     switch (id) {
-        case "mt_trash_it":            
+        case "mt_trash_it":
+            mt_trash_it();
             break;
         case "mt_mark_it":
             break;
@@ -315,6 +316,10 @@ async function mt_download() {
         console.error('Download failed:', error);
     }
 }
+
+async function mt_trash_it() {
+    
+ }
 
 
 

@@ -407,9 +407,19 @@ export async function get_photo(photo_data, size = "sm", callback) {
         callback(null, response);
       })
       .catch(function (error) {
-        let err_info = "Error getting photo from Synology. The server returned ";
-        err_info += error + ". ";
-        err_info += `The request was for ${photo_data.photo_id}, ${photo_data.cache_key}`;
+        const status = error.response?.status;
+        const status_text = error.response?.statusText;
+        const message = error.message || String(error);
+        const err_info = [
+          "Error getting photo from Synology",
+          `source_id=${photo_data.source_id}`,
+          `photo_id=${photo_data.photo_id}`,
+          `cache_key=${photo_data.cache_key}`,
+          status ? `status=${status}` : null,
+          status_text ? `status_text=${status_text}` : null,
+          error.code ? `code=${error.code}` : null,
+          `message=${message}`
+        ].filter(Boolean).join('; ');
         logger.error(err_info);
         callback(err_info, null);
       });

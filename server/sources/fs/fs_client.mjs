@@ -204,6 +204,7 @@ export async function get_photo(photo_data, res, isCurrentPhoto = false) {
     const maxAge = isCurrentPhoto ? 40 : 1800;
     fs.readFile(photo_data.filename, (err, data) => {
         if (err) {
+            logger.error(`File read failed for path: ${photo_data.filename} | code: ${err.code || 'unknown'} | msg: ${err.message}`);
             res.writeHead(500, { 'Content-Type': 'text/plain' });
             res.end('Error reading image file.');
             return;

@@ -128,7 +128,7 @@ export const get_viewer_config = async (req, res) => {
 export const get_photo = async (req, res) => {
   meta_get_photo(req.params.photo_id, (err, photo) => {
     if (err || !photo) {
-      logger.error(`Get photo error: ${err?.message || 'Photo not found'}`);
+      logger.error(`Get photo error: ${err?.message || 'Photo not found'} | photo_id: ${req.params.photo_id}`);
       readDefaultPhoto(res);
       return;
     }

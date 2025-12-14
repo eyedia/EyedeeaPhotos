@@ -7,14 +7,19 @@ const MAX_MEMORY_CACHE = 24;
 
 async function cache_incoming_photos() {
     console.time("cache_photos");
-    const total = 13;
-    const CONCURRENT_REQUESTS = 5; // Increase concurrent requests
+    const CONCURRENT_REQUESTS = 5;
     
     try {
-        const response = await fetch(photo_url_server + `/photos?photo_id_only=true&limit=${total}`);
+        const response = await fetch(photo_url_server + `/photos?photo_id_only=true&limit=13`);
         if (!response.ok) return;
         
-        const photo_ids = await response.json();
+        const data = await response.json();
+        // Server now returns { total, photo_ids }
+        const photo_ids = data.photo_ids || data || [];
+        const total = data.total || photo_ids.length;
+        
+        // Update global total for slideshow to use actual available photos
+        window.availablePhotoCount = total;
         
         for (let i = 0; i < photo_ids.length; i += CONCURRENT_REQUESTS) {
             const batch = photo_ids.slice(i, i + CONCURRENT_REQUESTS);

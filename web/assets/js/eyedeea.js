@@ -76,7 +76,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
 function refresh_pic() {
     console.time("refresh_pic");    
-    var total = 12;
+    // Use dynamic total based on available photos, cap at 12
+    var total = Math.min(window.availablePhotoCount || 12, 12);
 
     let e_viewer = document.getElementById("viewer");    
     if (e_viewer) {

@@ -203,7 +203,8 @@ export const get_lined_up_photo_data = async (req, res) => {
       }
 
       if (req.query.photo_id_only) {
-        res.json(rows?.map(row => row.photo_id) || []);
+        const photoIds = rows?.map(row => row.photo_id) || [];
+        res.json({ total: photoIds.length, photo_ids: photoIds });
       } else {
         res.json(rows || []);
       }

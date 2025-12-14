@@ -4,8 +4,7 @@ import logger from "../config_log.js";
 import { meta_db } from "./meta_base.mjs";
 import { search } from "./meta_search.mjs";
 
-//DDD
-export function get_photo(photo_id, callback) {
+export function get_photo(photo_id, callback) {    
     let query = `select p.id, p.source_id, p.photo_id, p.filename, p.folder_id, p.folder_name, 
                 p.time, p.type, p.orientation, p.cache_key, p.tags, p.address, s.type as 'source_type'
                 from photo p

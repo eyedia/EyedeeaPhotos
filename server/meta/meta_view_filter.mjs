@@ -121,21 +121,21 @@ export function make_active(id, callback) {
                                         logger.error('Error updating data:', err);
                                         callback(err, null);
                                     } else {                                        
+                                        // Clear existing lineup so new filter fully takes effect
                                         meta_db.run(
-                                            //disable pending random photos (status is non zero)
-                                            //so that new photos from new filter are picked up
-                                            `UPDATE view_log set status = 2 where status = 0`,
+                                            `DELETE FROM view_log`,
                                             [],
                                             function (err) {
                                                 if (err) {
-                                                    logger.error('Error updating data:', err);
+                                                    logger.error('Error clearing view_log:', err);
                                                     callback(err, null);
                                                 } else {
                                                     set_random_photo();
                                                     rows[0].current = 1;
                                                     callback(null, rows[0]);
                                                 }
-                                            });
+                                            }
+                                        );
                                     }
                                 });
                         }
@@ -158,20 +158,20 @@ export function make_inactive(callback) {
                 logger.error('Error updating data:', err);
                 callback(err, null);
             } else {
+                // Reset lineup when default filter is enabled so rotation restarts cleanly
                 meta_db.run(
-                    //disable pending random photos (status is non zero)
-                    //so that new photos from new filter are picked up
-                    `UPDATE view_log set status = 2 where status = 0`,
+                    `DELETE FROM view_log`,
                     [],
                     function (err) {
                         if (err) {
-                            logger.error('Error updating data:', err);
+                            logger.error('Error clearing view_log:', err);
                             callback(err, null);
                         } else {
                             set_random_photo();                          
                             callback(err, {"success": true});
                         }
-                    });
+                    }
+                );
             }
         });
 }

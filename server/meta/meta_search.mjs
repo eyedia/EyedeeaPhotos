@@ -11,8 +11,9 @@ export async function search_init(callback) {
         `INSERT INTO fts 
             (photo_id, folder_name, persons, tags, address) 
             SELECT 
-            photo_id, folder_name, persons, tags, address 
-            FROM photo`
+            p.photo_id, p.folder_name, p.persons, p.tags, p.address 
+            FROM photo p INNER JOIN source s ON p.source_id = s.id 
+            WHERE s.is_deleted = 0`
     ];
 
     try {
@@ -82,9 +83,10 @@ export function global_search(keywords, offset, limit, callback) {
         let total_records = row.count;
         let total_pages = Math.ceil(total_records / limit);
 
-        meta_db.all(`SELECT fts.photo_id, source_id, filename, p.folder_name, cache_key FROM fts 
+        meta_db.all(`SELECT fts.photo_id, p.source_id, p.filename, p.folder_name, p.cache_key FROM fts 
             inner join photo p on p.photo_id = fts.photo_id
-            WHERE fts MATCH ? LIMIT ? OFFSET ?`, 
+            inner join source s on p.source_id = s.id
+            WHERE s.is_deleted = 0 AND fts MATCH ? LIMIT ? OFFSET ?`, 
             [keywords, limit, offset],
             (err, rows) => {
                 if (err) {

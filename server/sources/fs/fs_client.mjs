@@ -248,3 +248,20 @@ async function authenticate_if_required(source_id, callback) {
         callback({ "auth_status": true, "error": {} });
     }
 }
+
+export function delete_photo_file(photo_data, callback) {
+    try {
+        const filePath = photo_data.filename;
+        fs.unlink(filePath, (err) => {
+            if (err) {
+                logger.error(`FS delete failed for path: ${filePath} | code: ${err.code || 'unknown'} | msg: ${err.message}`);
+                if (callback) callback(err);
+                return;
+            }
+            if (callback) callback(null);
+        });
+    } catch (error) {
+        logger.error(`Unhandled error during FS delete: ${error.message}`);
+        if (callback) callback(error);
+    }
+}

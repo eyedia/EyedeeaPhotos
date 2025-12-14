@@ -472,6 +472,52 @@ export async function create_tag(source_id, name, callback) {
   });
 }
 
+// Placeholder NAS delete method. Attempts to call SYNO.FotoTeam.Item delete API if available; otherwise returns not implemented.
+export async function delete_photo(photo_data, callback) {
+  try {
+    // Authenticate first
+    return authenticate_if_required(photo_data.source_id, auth_result => {
+      if (!auth_result.auth_status) {
+        const msg = auth_result.error?.message || 'NAS auth failed';
+        logger.error(`NAS delete auth error: ${msg}`);
+        if (callback) callback(msg, null);
+        return;
+      }
+
+      // Attempt Synology delete API (placeholder; may need adjustment based on actual API)
+      const m_param = {
+        api: "SYNO.FotoTeam.Item",
+        SynoToken: nas_auth_token[photo_data.source_id].synotoken,
+        version: 1,
+        method: "delete",
+        id: photo_data.photo_id
+      };
+
+      return api_client.get('/entry.cgi', { params: m_param })
+        .then(function (response) {
+          if (callback) callback(null, response.data);
+        })
+        .catch(function (error) {
+          const status = error.response?.status;
+          const message = error.message || String(error);
+          const err_info = [
+            "NAS delete failed",
+            `source_id=${photo_data.source_id}`,
+            `photo_id=${photo_data.photo_id}`,
+            status ? `status=${status}` : null,
+            error.code ? `code=${error.code}` : null,
+            `message=${message}`
+          ].filter(Boolean).join('; ');
+          logger.error(err_info);
+          if (callback) callback(err_info, null);
+        });
+    });
+  } catch (error) {
+    logger.error(`Unhandled NAS delete error: ${error.message}`);
+    if (callback) callback(error.message, null);
+  }
+}
+
 export async function add_tag(source_id, photo_id, tag_id) {
   return authenticate_if_required(source_id, auth_result => {
     let m_param = {

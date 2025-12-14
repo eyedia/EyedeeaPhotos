@@ -31,7 +31,7 @@ export function get_random_photo(callback) {
         FROM view_log vl
         INNER JOIN photo p ON p.photo_id = vl.photo_id
         INNER JOIN source s ON p.source_id = s.id
-        WHERE vl.current = 1
+        WHERE vl.current = 1 AND s.is_deleted = 0
         ORDER BY vl.update_sequence DESC
         LIMIT 1`;
 
@@ -91,6 +91,7 @@ export function get_photo_history(limit, callback) {
                 from photo p
                 inner join source s on p.source_id = s.id
                 inner join view_log vl on vl.photo_id = p.photo_id 
+                where s.is_deleted = 0
                 order by update_sequence desc limit ?`;
     meta_db.all(query, [limit], (err, rows) => {
         if (err) {
@@ -125,11 +126,19 @@ export function set_random_photo() {
                     logger.error(err);
                 } else {                    
                     if (photo_ids) {                        
-                        //filtered random
-                        query = `SELECT * FROM photo WHERE id IN (SELECT id FROM photo WHERE type='photo' and photo_id in (${photo_ids}) ORDER BY RANDOM() LIMIT 1000)`;
+                        // filtered random excluding deleted sources
+                        query = `SELECT p.* FROM photo p INNER JOIN source s ON p.source_id = s.id 
+                                 WHERE s.is_deleted = 0 AND p.id IN (
+                                   SELECT id FROM photo WHERE type='photo' AND photo_id IN (${photo_ids})
+                                   ORDER BY RANDOM() LIMIT 1000
+                                 )`;
                     } else {                        
-                        //default random
-                        query = `SELECT * FROM photo WHERE id IN (SELECT id FROM photo WHERE type='photo' ORDER BY RANDOM() LIMIT 1000)`;
+                        // default random excluding deleted sources
+                        query = `SELECT p.* FROM photo p INNER JOIN source s ON p.source_id = s.id 
+                                 WHERE s.is_deleted = 0 AND p.id IN (
+                                   SELECT id FROM photo WHERE type='photo' 
+                                   ORDER BY RANDOM() LIMIT 1000
+                                 )`;
                     }
                 }
                 meta_db.all(query, [], (err, random_photos) => {
@@ -315,5 +324,81 @@ export function get_config(callback) {
     //     }
     // });
     callback(null, viewer_config)
+}
+
+export function delete_photo_records(photo_id, callback) {
+    try {
+        meta_db.serialize(() => {
+            meta_db.run(`DELETE FROM view_log WHERE photo_id = ?`, [photo_id], function (err1) {
+                if (err1) {
+                    callback(err1);
+                    return;
+                }
+                meta_db.run(`DELETE FROM fts WHERE photo_id = ?`, [photo_id], function (err2) {
+                    if (err2) {
+                        callback(err2);
+                        return;
+                    }
+                    meta_db.run(`DELETE FROM photo WHERE photo_id = ?`, [photo_id], function (err3) {
+                        if (err3) {
+                            callback(err3);
+                        } else {
+                            callback(null);
+                        }
+                    });
+                });
+            });
+        });
+    } catch (error) {
+        callback(error);
+    }
+}
+
+export function purge_source_references(source_id, callback) {
+    try {
+        meta_db.serialize(() => {
+            meta_db.run(`DELETE FROM view_log WHERE photo_id IN (SELECT photo_id FROM photo WHERE source_id = ?)`, [source_id], function (err1) {
+                if (err1) { callback(err1); return; }
+                meta_db.run(`DELETE FROM fts WHERE photo_id IN (SELECT photo_id FROM photo WHERE source_id = ?)`, [source_id], function (err2) {
+                    if (err2) { callback(err2); return; }
+                    callback(null);
+                });
+            });
+        });
+    } catch (error) {
+        callback(error);
+    }
+}
+
+// Purge any invalid entries from view_log on startup: entries referencing
+// non-existent photos or photos from soft-deleted sources
+export function purge_invalid_view_logs(callback) {
+    try {
+        meta_db.serialize(() => {
+            // Remove view_log entries where photo no longer exists
+            meta_db.run(
+                `DELETE FROM view_log WHERE photo_id NOT IN (SELECT photo_id FROM photo)`,
+                [],
+                function (err1) {
+                    if (err1) { callback(err1); return; }
+                    // Remove view_log entries pointing to soft-deleted sources
+                    meta_db.run(
+                        `DELETE FROM view_log WHERE photo_id IN (
+                            SELECT p.photo_id FROM photo p
+                            INNER JOIN source s ON p.source_id = s.id
+                            WHERE s.is_deleted = 1
+                        )`,
+                        [],
+                        function (err2) {
+                            if (err2) { callback(err2); return; }
+                            callback(null);
+                        }
+                    );
+                }
+            );
+        });
+    } catch (error) {
+        callback(error);
+    }
 }
 

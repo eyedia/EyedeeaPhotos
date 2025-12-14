@@ -27,7 +27,7 @@ import helmet from "helmet";
 import cron from "node-cron";
 import cors from 'cors';
 import logger from "./config_log.js";
-import { set_random_photo, get_config } from "./meta/meta_view.mjs";
+import { set_random_photo, get_config, purge_invalid_view_logs } from "./meta/meta_view.mjs";
 import { runMigrations } from "./meta/migration_manager.mjs";
 import view_filter_router from './api/routers/view_filter_router.js';
 import view_router from './api/routers/view_router.js';
@@ -130,6 +130,14 @@ const server = app.listen(PORT, '0.0.0.0', () => {
 });
 
 if (!is_jest_running) {
+  // Startup purge for any invalid view_log references
+  purge_invalid_view_logs((purgeErr)=>{
+    if(purgeErr){
+      logger.error(`Startup purge failed: ${purgeErr.message || purgeErr}`);
+    } else {
+      logger.info(`Startup purge completed.`);
+    }
+  });
   get_config((err, config) => {
     if (err) {
       logger.error(err.message);

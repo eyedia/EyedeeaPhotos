@@ -318,7 +318,30 @@ async function mt_download() {
 }
 
 async function mt_trash_it() {
-    
+    try {
+        const currentSlide = main?.slides?.[main.current];
+        const photoId = currentSlide?.photo_id;
+        if (!photoId) {
+            console.error('No current photo to delete');
+            return;
+        }
+
+        const resp = await fetch(`${photo_url_server}/photos/${photoId}`, {
+            method: 'DELETE'
+        });
+        if (!resp.ok) {
+            const msg = await resp.text();
+            console.error('Delete API failed:', msg);
+            return;
+        }
+        console.log(`Photo ${photoId} deleted successfully`);
+        // Move to next slide for smoother UX
+        if (typeof main.next === 'function') {
+            main.next();
+        }
+    } catch (error) {
+        console.error('Delete failed:', error);
+    }
  }
 
 

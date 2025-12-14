@@ -12,6 +12,9 @@ import {
   get_photo as syno_get_photo,
   add_tag as syno_add_tag 
 } from "../../sources/synology/syno_client.mjs";
+import { delete_photo_file as fs_delete_photo_file } from "../../sources/fs/fs_client.mjs";
+import { delete_photo as syno_delete_photo } from "../../sources/synology/syno_client.mjs";
+import { delete_photo_records } from "../../meta/meta_view.mjs";
 import logger from "../../config_log.js";
 import constants from "../../constants.js";
 import { generateETag, cleanData } from '../../common.js';
@@ -252,5 +255,48 @@ export const add_tag_mark = async (req, res) => {
         logger.error(`Add mark tag error: ${error.message}`);
         res.status(500).json({ error: 'Failed to add tag' });
       });
+  });
+};
+
+export const delete_photo = async (req, res) => {
+  const photoId = req.params.photo_id;
+  meta_get_photo(photoId, (err, photo) => {
+    if (err || !photo) {
+      logger.error(`Delete photo error: ${err?.message || 'Photo not found'} | photo_id: ${photoId}`);
+      res.status(404).json({ error: 'Photo not found' });
+      return;
+    }
+
+    const proceedDeleteRecords = () => {
+      delete_photo_records(photoId, (delErr) => {
+        if (delErr) {
+          logger.error(`DB cleanup failed for photo_id=${photoId}: ${delErr.message || delErr}`);
+          res.status(500).json({ error: 'Failed to delete metadata records' });
+        } else {
+          res.status(200).json({ status: 'deleted', photo_id: photoId });
+        }
+      });
+    };
+
+    if (photo.source_type === constants.SOURCE_TYPE_FS) {
+      fs_delete_photo_file(photo, (fsErr) => {
+        if (fsErr) {
+          logger.error(`FS delete failed for ${photo.filename}: ${fsErr.message || fsErr}`);
+          // Even if file deletion fails, attempt DB cleanup to avoid dangling UI/state
+        }
+        proceedDeleteRecords();
+      });
+    } else if (photo.source_type === constants.SOURCE_TYPE_NAS) {
+      syno_delete_photo(photo, (nasErr, result) => {
+        if (nasErr) {
+          logger.error(`NAS delete failed for photo_id=${photo.photo_id}: ${nasErr.message || nasErr}`);
+          // Continue with DB cleanup even if NAS delete fails
+        }
+        proceedDeleteRecords();
+      });
+    } else {
+      logger.error(`Unsupported source type for delete: ${photo.source_type}`);
+      res.status(400).json({ error: 'Unsupported source type' });
+    }
   });
 };

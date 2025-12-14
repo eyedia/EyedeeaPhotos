@@ -14,6 +14,7 @@ import { authenticate as syno_authenticate, create_eyedeea_tags } from "../../so
 import { authenticate as fs_authenticate } from "../../sources/fs/fs_client.mjs";
 import logger from "../../config_log.js";
 import constants from "../../constants.js";
+import { purge_source_references as meta_purge_source_references } from "../../meta/meta_view.mjs";
 
 
 
@@ -204,7 +205,13 @@ export const delete_source = async (req, res) => {
         });
       } else {
         logger.info(`Source ${source_id} deleted successfully`);
-        res.status(204).send(); // 204 No Content for successful deletion
+        // Purge references from view_log and fts
+        meta_purge_source_references(source_id, (purgeErr)=>{
+          if(purgeErr){
+            logger.error(`Purge after delete_source failed for ${source_id}: ${purgeErr.message || purgeErr}`);
+          }
+          res.status(204).send(); // 204 No Content for successful deletion
+        });
       }
     });
 
@@ -215,5 +222,28 @@ export const delete_source = async (req, res) => {
       error: 'Internal Server Error',
       message: error.message
     });
+  }
+};
+
+/**
+ * Admin: Purge references for a soft-deleted source from view_log and fts
+ * POST /api/sources/:id/purge
+ */
+export const purge_source_refs = async (req, res) => {
+  try {
+    const source_id = req.params.id;
+    if (!source_id) {
+      return res.status(400).json({ error: 'Source ID is required' });
+    }
+    meta_purge_source_references(source_id, (err) => {
+      if (err) {
+        logger.error(`Error purging references for source ${source_id}: ${err.message || err}`);
+        return res.status(500).json({ error: 'Failed to purge references' });
+      }
+      res.status(200).json({ status: 'purged', source_id });
+    });
+  } catch (error) {
+    logger.error(`Unexpected error purging source refs: ${error.message}`);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 };

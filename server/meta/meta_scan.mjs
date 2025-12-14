@@ -40,7 +40,23 @@ export function clear_scan(source_id, clean_photos, callback) {
 
 export function save_item(json_data) {
     return new Promise((resolve, reject) => {
-        const insert_query = `INSERT or IGNORE INTO photo (source_id, photo_id, filename, folder_id, folder_name, time, type, orientation, cache_key, unit_id, persons, geocoding_id, tags, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        // Use INSERT OR REPLACE to update existing records with new metadata (cache_key, photo_id, etc.)
+        // The UNIQUE constraint on (source_id, folder_name, filename) prevents true duplicates
+        const insert_query = `INSERT INTO photo (source_id, photo_id, filename, folder_id, folder_name, time, type, orientation, cache_key, unit_id, persons, geocoding_id, tags, address) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(source_id, folder_name, filename) 
+            DO UPDATE SET 
+                photo_id = excluded.photo_id,
+                folder_id = excluded.folder_id,
+                time = excluded.time,
+                type = excluded.type,
+                orientation = excluded.orientation,
+                cache_key = excluded.cache_key,
+                unit_id = excluded.unit_id,
+                persons = excluded.persons,
+                geocoding_id = excluded.geocoding_id,
+                tags = excluded.tags,
+                address = excluded.address`;
 
         meta_db.run(
             insert_query,

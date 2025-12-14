@@ -53,7 +53,7 @@ function create_tables(callback) {
         `CREATE TABLE photo (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             source_id INT,
-            photo_id TEXT UNIQUE,            
+            photo_id TEXT,            
             filename TEXT NOT NULL, 
             folder_id INT,
             folder_name TEXT,
@@ -67,7 +67,8 @@ function create_tables(callback) {
             tags TEXT,
             address TEXT,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(source_id) REFERENCES source(id)
+            FOREIGN KEY(source_id) REFERENCES source(id),
+            UNIQUE(source_id, folder_name, filename)
             );`,
 
         `CREATE TABLE scan_log (

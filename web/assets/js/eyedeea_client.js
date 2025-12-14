@@ -86,43 +86,63 @@ async function get_photo(photo_index) {
     //console.time("ts_get_photo_" + photo_index);
     let photo_url = photo_url_server;
     let photo_url_id_only = undefined;
-    if (photo_index !== undefined && photo_index !== null) {
-        // First, get the exact photo_id for this index from the lineup
-        photo_url = photo_url + `?photo_index=${photo_index}`;
-        photo_url_id_only = photo_url + `&photo_id_only=true`;    
-        
-        const response_id = await fetch(photo_url_id_only, { cache: 'no-store' });
-        if (response_id.ok) {
-            const json_data = await response_id.json();
-            // Fetch the exact photo by ID to avoid server recomputation returning the same current
-            const resp = await fetch(photo_url_server + `/photos/${json_data.photo_id}`, { cache: 'no-store', signal: AbortSignal.timeout(10000) });
-            if (resp.ok) {
-                const photo_info = await save_photo_from_respose(resp);
-                photo_info.meta_data.photo_index = photo_index;
-                return photo_info;
-            }
-        }
-    }
     
-    const response = await fetch(photo_url, { cache: 'no-store' });
-    let photo_info;
-
-    if (!response.ok) {
-        console.error(`HTTP error! status: ${response.status}`);
-        const photo_data = {
+    // Default fallback photo for any errors
+    const defaultPhoto = {
+        "url": "/eyedeea_photos.jpg",
+        "orientation": "L",
+        "meta_data": {
             "folder_name": "Eyedeea Photos",
             "photo_index": photo_index
-        };
-        photo_info = {
-            "url": "/eyedeea_photos.jpg",
-            "orientation": "L",
-            "meta_data": photo_data,
-        };
-        return photo_info;
-    }
+        },
+    };
+    
+    try {
+        if (photo_index !== undefined && photo_index !== null) {
+            // First, get the exact photo_id for this index from the lineup
+            photo_url = photo_url + `?photo_index=${photo_index}`;
+            photo_url_id_only = photo_url + `&photo_id_only=true`;    
+            
+            const response_id = await fetch(photo_url_id_only, { cache: 'no-store' });
+            if (response_id.ok) {
+                const json_data = await response_id.json();
+                // Fetch the exact photo by ID to avoid server recomputation returning the same current
+                const resp = await fetch(photo_url_server + `/photos/${json_data.photo_id}`, { cache: 'no-store', signal: AbortSignal.timeout(10000) });
+                if (resp.ok) {
+                    const photo_info = await save_photo_from_respose(resp);
+                    // Safely set photo_index only if photo_info and meta_data exist
+                    if (photo_info && photo_info.meta_data) {
+                        photo_info.meta_data.photo_index = photo_index;
+                        return photo_info;
+                    } else {
+                        console.warn(`Photo info or metadata undefined for index ${photo_index}, using default`);
+                        return defaultPhoto;
+                    }
+                }
+            }
+        }
+        
+        const response = await fetch(photo_url, { cache: 'no-store' });
+        let photo_info;
 
-    photo_info = await save_photo_from_respose(response);    
-    return photo_info;
+        if (!response.ok) {
+            console.error(`HTTP error! status: ${response.status}`);
+            return defaultPhoto;
+        }
+
+        photo_info = await save_photo_from_respose(response);
+        // Safely set photo_index if photo_info exists
+        if (photo_info && photo_info.meta_data) {
+            photo_info.meta_data.photo_index = photo_index;
+            return photo_info;
+        } else {
+            console.warn(`Photo info or metadata undefined, using default`);
+            return defaultPhoto;
+        }
+    } catch (error) {
+        console.error(`Error in get_photo(${photo_index}):`, error);
+        return defaultPhoto;
+    }
 }
 
 async function get_photo_size(photo_url) {

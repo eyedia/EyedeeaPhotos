@@ -97,21 +97,32 @@ function refresh_pic() {
         photoPromises.push(
             new Promise((resolve, reject) => {
                 get_photo(i).then(photo_info => {
-                    const photo_data = photo_info.meta_data;
+                    const photo_data = photo_info?.meta_data;
                     if (photo_data) {
                         let id_suffix = String(photo_data.photo_index).padStart(2, '0');
                         const e_article = document.getElementById('article-' + id_suffix);
+                        
+                        // Safety check for DOM elements
+                        if (!e_article) {
+                            console.warn(`Article element not found for index ${id_suffix}, skipping`);
+                            resolve(photo_info);
+                            return;
+                        }
 
                         let e_img = document.getElementById("img-" + id_suffix);
-                        e_img.setAttribute("src", photo_info.url);
-                        e_img.setAttribute("title", photo_data.filename);
+                        if (e_img) {
+                            e_img.setAttribute("src", photo_info.url);
+                            e_img.setAttribute("title", photo_data.filename || "");
+                        }
 
                         let e_a = document.getElementById("a-" + id_suffix);
-                        e_a.setAttribute("href", photo_info.url);
-                        e_a.setAttribute("orientation_v2", photo_info.orientation);
-                        e_a.setAttribute("orientation", photo_data.orientation);
-                        e_a.setAttribute("photo_id", photo_data.photo_id);
-                        e_a.setAttribute("data-filename", photo_data.filename);
+                        if (e_a) {
+                            e_a.setAttribute("href", photo_info.url);
+                            e_a.setAttribute("orientation_v2", photo_info.orientation);
+                            e_a.setAttribute("orientation", photo_data.orientation || "");
+                            e_a.setAttribute("photo_id", photo_data.photo_id || "");
+                            e_a.setAttribute("data-filename", photo_data.filename || "");
+                        }
 
                         const e_title = document.createElement('h2');
                         e_title.setAttribute("id", `title-${id_suffix}`);
@@ -132,7 +143,12 @@ function refresh_pic() {
                 })
                 .catch(error => {
                     console.error(`Error fetching image ${i}:`, error);
-                    reject(error);
+                    // Resolve with default instead of rejecting to keep slideshow alive
+                    resolve({
+                        url: "/eyedeea_photos.jpg",
+                        orientation: "L",
+                        meta_data: { folder_name: "Eyedeea Photos", photo_index: i }
+                    });
                 });
             })
         );

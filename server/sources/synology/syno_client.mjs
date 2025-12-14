@@ -472,7 +472,7 @@ export async function create_tag(source_id, name, callback) {
   });
 }
 
-// Placeholder NAS delete method. Attempts to call SYNO.FotoTeam.Item delete API if available; otherwise returns not implemented.
+
 export async function delete_photo(photo_data, callback) {
   try {
     // Authenticate first
@@ -483,16 +483,16 @@ export async function delete_photo(photo_data, callback) {
         if (callback) callback(msg, null);
         return;
       }
-
-      // Attempt Synology delete API (placeholder; may need adjustment based on actual API)
+      
       const m_param = {
-        api: "SYNO.FotoTeam.Item",
+        api: "SYNO.FileStation.Delete",
         SynoToken: nas_auth_token[photo_data.source_id].synotoken,
-        version: 1,
-        method: "delete",
-        id: photo_data.photo_id
+        version: 2,
+        method: "start",
+        path: `"/photo/${photo_data.folder_name}/${photo_data.filename}"`
       };
 
+      log.info(`Deleting photo via NAS API: source_id=${photo_data.source_id}, photo_id=${photo_data.photo_id}, path=${m_param.path}`);
       return api_client.get('/entry.cgi', { params: m_param })
         .then(function (response) {
           if (callback) callback(null, response.data);

@@ -42,7 +42,17 @@ Write-Host "OK All required files present" -ForegroundColor Green
 
 # Update package.json version
 Write-Host "`nUpdating package.json version to $version..." -ForegroundColor Yellow
-npm version $version --no-git-tag-version
+$packageJson = Get-Content "package.json" -Raw | ConvertFrom-Json
+$packageJson.version = $version
+$packageJson | ConvertTo-Json -Depth 100 | Set-Content "package.json"
+
+# Update package-lock.json version
+if (Test-Path "package-lock.json") {
+    $packageLock = Get-Content "package-lock.json" -Raw | ConvertFrom-Json
+    $packageLock.version = $version
+    $packageLock.packages."".version = $version
+    $packageLock | ConvertTo-Json -Depth 100 | Set-Content "package-lock.json"
+}
 
 # Create git commit with version update
 Write-Host "`nCreating git commit..." -ForegroundColor Yellow

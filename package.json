@@ -1,6 +1,6 @@
 {
   "name": "eyedeeaphotos",
-  "version": "1.0.4",
+  "version": "2025.12.1-5.2",
   "description": "Eyedeea Photos is an app designed to bring forgotten memories back to life. It integrates with Synology Photos & any USB, HDD, SDD to display random photos from the collection",
   "main": "server/app.js",
   "scripts": {

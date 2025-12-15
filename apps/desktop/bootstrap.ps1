@@ -12,6 +12,7 @@ $FilesToDownload = @(
     "WallpaperApp.ps1",
     "config.json",
     "install.ps1",
+    "icon.ico",
     "README.md"
 )
 

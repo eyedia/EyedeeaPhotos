@@ -28,6 +28,52 @@ $script:MaxPhotos = 15
 $script:IsRunning = $false
 $script:Timer = $null
 
+# Logging configuration
+$script:LogDir = Join-Path $env:LOCALAPPDATA "EyediaTech\EyedeeaPhotos\app_desktop\logs"
+$script:LogFile = Join-Path $script:LogDir "wallpaper_$(Get-Date -Format 'yyyy-MM-dd').log"
+
+# Create log directory if it doesn't exist
+if (-not (Test-Path $script:LogDir)) {
+    New-Item -ItemType Directory -Path $script:LogDir -Force | Out-Null
+}
+
+# Function to write to log file
+function Write-Log {
+    param(
+        [string]$Message,
+        [ValidateSet('Info', 'Warning', 'Error')][string]$Level = 'Info'
+    )
+    
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $logMessage = "[$timestamp] [$Level] $Message"
+    
+    # Write to console
+    Write-Host $logMessage
+    
+    # Write to file
+    Add-Content -Path $script:LogFile -Value $logMessage
+}
+
+# Function to rotate logs (keep only 7 days of logs)
+function Rotate-Logs {
+    try {
+        $logFiles = Get-ChildItem -Path $script:LogDir -Filter "wallpaper_*.log" | Sort-Object CreationTime -Descending
+        $daysToKeep = 7
+        $cutoffDate = (Get-Date).AddDays(-$daysToKeep)
+        
+        foreach ($log in $logFiles) {
+            if ($log.CreationTime -lt $cutoffDate) {
+                Remove-Item $log.FullName -Force
+            }
+        }
+    } catch {
+        Write-Host "Error rotating logs: $_"
+    }
+}
+
+# Initial log rotation on startup
+Rotate-Logs
+
 # Build API URL from server URL
 if ($script:Config.PSObject.Properties.Name -contains 'serverUrl') {
     $script:ApiUrl = "$($script:Config.serverUrl)/api/view"
@@ -152,18 +198,18 @@ function Get-Photo {
         $filename = "wallpaper_$timestamp.jpg"
         $filepath = Join-Path $script:PhotosDir $filename
         
-        Write-Host "Fetching photo from: $url"
+        Write-Log "Fetching photo from: $url" 'Info'
         
         # Download the image
         $webClient = New-Object System.Net.WebClient
         $webClient.DownloadFile($url, $filepath)
         
         if (Test-Path $filepath) {
-            Write-Host "Photo downloaded: $filename"
+            Write-Log "Photo downloaded: $filename" 'Info'
             
             # Get desktop resolution
             $resolution = Get-DesktopResolution
-            Write-Host "Desktop resolution: $($resolution.Width)x$($resolution.Height)"
+            Write-Log "Desktop resolution: $($resolution.Width)x$($resolution.Height)" 'Info'
             
             # Resize image to match desktop resolution
             $resizedFilename = "wallpaper_${timestamp}_resized.jpg"
@@ -177,7 +223,7 @@ function Get-Photo {
                 Set-Wallpaper -Path $resizedFilepath
             } else {
                 # If resize fails, use original
-                Write-Host "Using original image size"
+                Write-Log "Using original image size" 'Warning'
                 Set-Wallpaper -Path $filepath
             }
             
@@ -186,11 +232,11 @@ function Get-Photo {
             
             return $resizedFilepath
         } else {
-            Write-Host "Failed to download photo"
+            Write-Log "Failed to download photo" 'Error'
             return $null
         }
     } catch {
-        Write-Host "Error downloading photo: $_"
+        Write-Log "Error downloading photo: $_" 'Error'
         
         # Show user-friendly notification
         if ($_.Exception.Message -like "*Unable to connect*" -or $_.Exception.Message -like "*could not be resolved*") {
@@ -500,13 +546,12 @@ function Initialize-TrayIcon {
 
 # Main entry point
 function Main {
-    Write-Host "Eyedeea Photos Desktop Wallpaper App"
-    Write-Host "======================================"
-    Write-Host "Server URL: $($script:Config.serverUrl)"
-    Write-Host "API URL: $script:ApiUrl"
-    Write-Host "Update Interval: $($script:Config.updateIntervalMinutes) minutes"
-    Write-Host "Photos Directory: $script:PhotosDir"
-    Write-Host ""
+    Write-Log "Eyedeea Photos Desktop Wallpaper App started" 'Info'
+    Write-Log "Server URL: $($script:Config.serverUrl)" 'Info'
+    Write-Log "API URL: $script:ApiUrl" 'Info'
+    Write-Log "Update Interval: $($script:Config.updateIntervalMinutes) minutes" 'Info'
+    Write-Log "Photos Directory: $script:PhotosDir" 'Info'
+    Write-Log "Logs Directory: $script:LogDir" 'Info'
     
     # Initialize tray icon
     Initialize-TrayIcon

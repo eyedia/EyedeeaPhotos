@@ -17,6 +17,51 @@ $DesktopWallpaperScriptPath = Join-Path $PSScriptRoot "desktop_wallpaper.ps1"
 # Registry path for uninstall (per-user)
 $UninstallRegistryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\$AppName"
 
+# Function to restore default wallpaper
+function Restore-DefaultWallpaper {
+    try {
+        # Get Windows default wallpaper path
+        $defaultWallpaper = (Get-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name Wallpaper).Wallpaper
+        
+        if ($defaultWallpaper -and (Test-Path $defaultWallpaper)) {
+            Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+public class Wallpaper {
+    [DllImport("user32.dll", CharSet = CharSet.Auto)]
+    public static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
+    public static void SetWallpaper(string path) {
+        SystemParametersInfo(20, 0, path, 0x01 | 0x02);
+    }
+}
+"@
+            [Wallpaper]::SetWallpaper($defaultWallpaper)
+            Write-Host "Restored default wallpaper" -ForegroundColor Green
+        } else {
+            # Use Windows default
+            $winDir = $env:windir
+            $defaultPath = "$winDir\Web\Wallpaper\Windows\img0.jpg"
+            if (Test-Path $defaultPath) {
+                Add-Type @"
+using System;
+using System.Runtime.InteropServices;
+public class Wallpaper {
+    [DllImport("user32.dll", CharSet = CharSet.Auto)]
+    public static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
+    public static void SetWallpaper(string path) {
+        SystemParametersInfo(20, 0, path, 0x01 | 0x02);
+    }
+}
+"@
+                [Wallpaper]::SetWallpaper($defaultPath)
+                Write-Host "Set to Windows default wallpaper" -ForegroundColor Green
+            }
+        }
+    } catch {
+        Write-Host "Warning: Could not restore wallpaper: $_" -ForegroundColor Yellow
+    }
+}
+
 function Install-App {
     Write-Host "Installing Eyedeea Photos Wallpaper App..." -ForegroundColor Green
     
@@ -117,7 +162,12 @@ function Uninstall-App {
     Write-Host "==========================================" -ForegroundColor Yellow
     Write-Host ""
     
-    # Try to stop running instances first
+    # Restore default wallpaper first
+    Write-Host "Restoring default wallpaper..." -ForegroundColor Cyan
+    Restore-DefaultWallpaper
+    Write-Host ""
+    
+    # Try to stop running instances
     Write-Host "Checking for running instances..." -ForegroundColor Cyan
     try {
         # Try to find processes with WallpaperApp.ps1

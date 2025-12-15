@@ -1,7 +1,18 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=eyedia_EyedeeaPhotos&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=eyedia_EyedeeaPhotos) ![CodeQL](https://github.com/eyedia/eyedeeaphotos/actions/workflows/codeql.yml/badge.svg) ![Build](https://github.com/eyedia/EyedeeaPhotos/actions/workflows/build.yml/badge.svg) ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/eyedia/EyedeeaPhotos) ![GitHub repo size](https://img.shields.io/github/repo-size/eyedia/EyedeeaPhotos)
 [![Node.js Package](https://github.com/eyedia/EyedeeaPhotos/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/eyedia/EyedeeaPhotos/actions/workflows/npm-publish.yml)
 
-# Rediscover Your Photos
+# Eyedeea Photos — Rediscover Your Photos
+
+Eyedeea Photos is a lightweight photo explorer that helps you rediscover and enjoy the pictures you already store on your own drives (Synology Photos, USB/HDD/SSD). It is not a storage provider — you keep full control of your files; Eyedeea simply scans, shows, and helps you curate.
+
+## At a Glance
+- Explore, not store: works with your existing folders or Synology Photos
+- Simple slideshow on TV, desktop, web, and mobile
+- Shows title, date/place, and filename to aid curation
+- Optional filters and search (when configured)
+- Free and open source; actively maintained with frequent releases
+
+Quick links: [Skip to Downloads](#download-eyedeea-photos) • [Releases](https://github.com/eyedia/EyedeeaPhotos/releases) • [NPM](https://www.npmjs.com/package/eyedeeaphotos)
 
 ## The Problem: Viewing and Sharing My Photos
 Storing photos efficiently is great, but what's the use if we can't easily view and share them? I don’t want to just send folders of images via email—I want a seamless way to rediscover and showcase my memories.
@@ -21,12 +32,6 @@ Photos are displayed with the following details:
 - **Subtitle:** Date taken and geolocation formatted as [Place, Country], if available.
 - **Sub-subtitle:** Name of the file.
 
-
-## The Player
-- You can trigger the scan manually by calling the API - POST /api/sources/<id>/scan. *UI will be available soon!*
-- Eyedeea Photos will re-scan every night at 1AM. You should turn this off if you do not modify your photo repository very frequently.
-- The server will serve 1 photo every minute.
-- You can download & perform other operations using the hidden toolbar.
 
 ![Eyedeea Photos Demo](graphics/eyedeea_photos_demo_720p.gif)
 
@@ -106,6 +111,14 @@ I end up setting up NAS. But, you can simply migrate your photos to an external 
 
 ## Download Eyedeea Photos
 
+ Fixed URLs (latest release):
+- Android [A]: https://github.com/eyedia/EyedeeaPhotos/releases/latest/download/ep_a.apk
+- Fire TV [FTV]: https://github.com/eyedia/EyedeeaPhotos/releases/latest/download/ep_f.apk
+- Server (Windows) [SVR]: https://github.com/eyedia/EyedeeaPhotos/releases/latest/download/install.ps1
+- Server (Linux) [SVR]: https://github.com/eyedia/EyedeeaPhotos/releases/latest/download/install.sh
+- Desktop wallpaper [PC]: https://github.com/eyedia/EyedeeaPhotos/releases/latest/download/desktop_wallpaper.ps1
+
+Or download from repo:
 - [Download & Execute](release/install.ps1) on Windows Powershell
 - [Download & Execute](release/install.sh) on Linux
 
@@ -168,6 +181,15 @@ Finally, access the player http://127.0.0.1:8080
 ## Detailed Features:
 Blog & Official Website: https://eyedeeaphotos.eyediatech.com/
 NPM Package: https://www.npmjs.com/package/eyedeeaphotos
+GitHub Releases: https://github.com/eyedia/EyedeeaPhotos/releases
+
+Free & Open Source: Eyedeea Photos is actively maintained on GitHub with frequent releases (typically weekly) and automated checks (quality gates, security scans, Node.js build/tests).
+
+### Desktop Wallpaper (Windows)
+- Download the desktop wallpaper helper: https://github.com/eyedia/EyedeeaPhotos/releases/latest/download/desktop_wallpaper.ps1
+- Right-click PowerShell and choose "Run as Administrator" (recommended)
+- Run the script to install the wallpaper app and follow prompts
+- For more details, see apps/desktop/README.md
 
 ## Credits:
 - **Website Template:** https://html5up.net

@@ -1,0 +1,52 @@
+name: Release Assets
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  upload-assets:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify required files
+        shell: pwsh
+        run: |
+          $paths = @(
+            "release/install.ps1",
+            "release/install.sh",
+            "release/ep_a.apk",
+            "release/ep_f.apk",
+            "apps/desktop/bootstrap.ps1"
+          )
+          $missing = @()
+          foreach ($p in $paths) {
+            if (-not (Test-Path $p)) { $missing += $p }
+          }
+          if ($missing.Count -gt 0) {
+            Write-Error ("Missing required release files: " + ($missing -join ", "))
+          }
+
+      - name: Collect artifacts
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          Copy-Item release/install.ps1 artifacts/install.ps1
+          Copy-Item release/install.sh artifacts/install.sh
+          Copy-Item release/ep_a.apk artifacts/ep_a.apk
+          Copy-Item release/ep_f.apk artifacts/ep_f.apk
+          Copy-Item apps/desktop/bootstrap.ps1 artifacts/desktop_wallpaper.ps1
+
+      - name: Upload assets to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            artifacts/install.ps1
+            artifacts/install.sh
+            artifacts/ep_a.apk
+            artifacts/ep_f.apk
+            artifacts/desktop_wallpaper.ps1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

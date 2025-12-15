@@ -46,13 +46,9 @@ $packageJson = Get-Content "package.json" -Raw | ConvertFrom-Json
 $packageJson.version = $version
 $packageJson | ConvertTo-Json -Depth 100 | Set-Content "package.json"
 
-# Update package-lock.json version
-if (Test-Path "package-lock.json") {
-    $packageLock = Get-Content "package-lock.json" -Raw | ConvertFrom-Json
-    $packageLock.version = $version
-    $packageLock.packages."".version = $version
-    $packageLock | ConvertTo-Json -Depth 100 | Set-Content "package-lock.json"
-}
+# Let npm update package-lock.json automatically
+Write-Host "Updating package-lock.json..." -ForegroundColor Yellow
+npm install --package-lock-only 2>$null
 
 # Create git commit with version update
 Write-Host "`nCreating git commit..." -ForegroundColor Yellow

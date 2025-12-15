@@ -1,0 +1,6 @@
+{
+  "apiUrl": "http://localhost:8080/api/view",
+  "updateIntervalMinutes": 1,
+  "autoStart": true,
+  "maxPhotos": 15
+}

@@ -21,9 +21,9 @@ if (-not $script:Mutex.WaitOne(0, $false)) {
 }
 
 # Configuration
-$script:ConfigPath = Join-Path $PSScriptRoot "config.json"
-$script:Config = Get-Content $ConfigPath | ConvertFrom-Json
-$script:PhotosDir = Join-Path $PSScriptRoot "wallpapers"
+$script:ConfigPath = Join-Path (Split-Path -Parent $PSCommandPath) "config.json"
+$script:Config = Get-Content $script:ConfigPath | ConvertFrom-Json
+$script:PhotosDir = Join-Path (Split-Path -Parent $PSCommandPath) "wallpapers"
 $script:MaxPhotos = 15
 $script:IsRunning = $false
 $script:Timer = $null

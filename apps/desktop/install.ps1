@@ -85,7 +85,6 @@ function Install-App {
         }
         
         Write-Host "✓ App registered in Windows Settings" -ForegroundColor Green
-        Write-Host "  You can now uninstall from: Settings > Apps > Apps and features" -ForegroundColor Green
     } catch {
         Write-Host "! Warning: Could not register app in Windows Settings" -ForegroundColor Yellow
         Write-Host "  You can still uninstall manually by running: .\desktop_wallpaper.ps1 -Uninstall" -ForegroundColor Yellow

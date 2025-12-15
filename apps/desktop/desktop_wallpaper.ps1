@@ -76,16 +76,13 @@ function Install-Application {
     
     if (Test-Path $installScriptPath) {
         try {
-            # Change to install directory and run install script
-            Push-Location $InstallDir
-            & $installScriptPath
-            Pop-Location
+            # Run install script with proper execution policy
+            & powershell.exe -ExecutionPolicy Bypass -NoProfile -File $installScriptPath
             
             Write-ColorOutput "Installation completed successfully!" "Green"
             return $true
         } catch {
             Write-ColorOutput "Installation failed: $_" "Red"
-            Pop-Location
             return $false
         }
     } else {

@@ -12,6 +12,10 @@ $StartupFolder = [Environment]::GetFolderPath("Startup")
 $StartupShortcutPath = Join-Path $StartupFolder "$AppName.lnk"
 $StartMenuFolder = [Environment]::GetFolderPath("Programs")
 $StartMenuShortcutPath = Join-Path $StartMenuFolder "Eyedeea Photos Wallpaper.lnk"
+$DesktopWallpaperScriptPath = Join-Path $PSScriptRoot "desktop_wallpaper.ps1"
+
+# Registry path for uninstall (per-user)
+$UninstallRegistryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\$AppName"
 
 function Install-App {
     Write-Host "Installing Eyedeea Photos Wallpaper App..." -ForegroundColor Green
@@ -51,6 +55,42 @@ function Install-App {
     
     Write-Host "Start Menu shortcut created at: $StartMenuShortcutPath" -ForegroundColor Green
     
+    # Register app in Windows Uninstall Registry
+    Write-Host ""
+    Write-Host "Registering app with Windows..." -ForegroundColor Cyan
+    try {
+        # Create registry path if it doesn't exist
+        if (-not (Test-Path $UninstallRegistryPath)) {
+            New-Item -Path $UninstallRegistryPath -Force | Out-Null
+        }
+        
+        # Set registry values for Windows Settings/Apps recognition
+        Set-ItemProperty -Path $UninstallRegistryPath -Name "DisplayName" -Value "Eyedeea Photos Wallpaper"
+        Set-ItemProperty -Path $UninstallRegistryPath -Name "DisplayVersion" -Value "1.0"
+        Set-ItemProperty -Path $UninstallRegistryPath -Name "Publisher" -Value "Eyedia Technologies"
+        Set-ItemProperty -Path $UninstallRegistryPath -Name "URLInfoAbout" -Value "https://eyedeeaphotos.eyediatech.com/"
+        Set-ItemProperty -Path $UninstallRegistryPath -Name "InstallLocation" -Value $PSScriptRoot
+        
+        # Critical: Set UninstallString to point to desktop_wallpaper.ps1 with -Uninstall flag
+        # This is what Windows calls when user clicks "Uninstall" in Settings
+        $uninstallCommand = "powershell.exe -ExecutionPolicy Bypass -NoProfile -File `"$DesktopWallpaperScriptPath`" -Uninstall"
+        Set-ItemProperty -Path $UninstallRegistryPath -Name "UninstallString" -Value $uninstallCommand
+        
+        # Optional: Set QuietUninstallString for silent uninstall
+        Set-ItemProperty -Path $UninstallRegistryPath -Name "QuietUninstallString" -Value $uninstallCommand
+        
+        # Set display icon
+        if (Test-Path $IconPath) {
+            Set-ItemProperty -Path $UninstallRegistryPath -Name "DisplayIcon" -Value $IconPath
+        }
+        
+        Write-Host "✓ App registered in Windows Settings" -ForegroundColor Green
+        Write-Host "  You can now uninstall from: Settings > Apps > Apps & features" -ForegroundColor Green
+    } catch {
+        Write-Host "! Warning: Could not register app in Windows Settings" -ForegroundColor Yellow
+        Write-Host "  You can still uninstall manually by running: .\install.ps1 -Uninstall" -ForegroundColor Yellow
+    }
+    
     # Ask if user wants to start now
     $response = Read-Host "Do you want to start the app now? (Y/N)"
     if ($response -eq 'Y' -or $response -eq 'y') {
@@ -68,7 +108,7 @@ function Install-App {
     Write-Host "  - System tray icon (when running)" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "To configure, edit: $PSScriptRoot\config.json"
-    Write-Host "To uninstall, run: .\install.ps1 -Uninstall"
+    Write-Host "To uninstall, run: .\desktop_wallpaper.ps1 -Uninstall"
 }
 
 function Uninstall-App {
@@ -115,6 +155,20 @@ function Uninstall-App {
         Write-Host "✓ Removed Start Menu shortcut: $StartMenuShortcutPath" -ForegroundColor Green
     } else {
         Write-Host "- Start Menu shortcut not found" -ForegroundColor Gray
+    }
+    
+    # Remove Registry Uninstall entry
+    Write-Host ""
+    Write-Host "Removing Windows registry entries..." -ForegroundColor Cyan
+    try {
+        if (Test-Path $UninstallRegistryPath) {
+            Remove-Item -Path $UninstallRegistryPath -Force -ErrorAction SilentlyContinue
+            Write-Host "✓ Removed Windows registry entry" -ForegroundColor Green
+        } else {
+            Write-Host "- Registry entry not found" -ForegroundColor Gray
+        }
+    } catch {
+        Write-Host "! Warning: Could not remove registry entry" -ForegroundColor Yellow
     }
     
     Write-Host ""

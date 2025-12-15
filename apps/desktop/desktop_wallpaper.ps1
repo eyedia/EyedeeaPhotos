@@ -1,5 +1,6 @@
-# Eyedeea Photos Desktop Wallpaper - Bootstrap Installer
+# Eyedeea Photos Desktop Wallpaper - Installer & Bootstrap Script
 # This script downloads and installs the Eyedeea Photos Desktop Wallpaper app from GitHub
+# It can also be used to uninstall the app when run with the -Uninstall switch
 # Version: 1.0
 
 param(

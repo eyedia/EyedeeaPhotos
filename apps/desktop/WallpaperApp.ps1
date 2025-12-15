@@ -28,6 +28,14 @@ $script:MaxPhotos = 15
 $script:IsRunning = $false
 $script:Timer = $null
 
+# Build API URL from server URL
+if ($script:Config.PSObject.Properties.Name -contains 'serverUrl') {
+    $script:ApiUrl = "$($script:Config.serverUrl)/api/view"
+} else {
+    # Fallback for old config format
+    $script:ApiUrl = $script:Config.apiUrl
+}
+
 # Ensure photos directory exists
 if (-not (Test-Path $script:PhotosDir)) {
     New-Item -ItemType Directory -Path $script:PhotosDir -Force | Out-Null
@@ -132,7 +140,14 @@ public class Wallpaper {
 # Function to download photo from API
 function Get-Photo {
     try {
-        $url = $script:Config.apiUrl
+        $url = $script:ApiUrl
+        
+        if ([string]::IsNullOrEmpty($url)) {
+            Write-Host "Server URL not configured. Please configure in Server Config menu."
+            $script:NotifyIcon.ShowBalloonTip(5000, "Configuration Required", "Please configure server URL from the menu.", [System.Windows.Forms.ToolTipIcon]::Warning)
+            return $null
+        }
+        
         $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
         $filename = "wallpaper_$timestamp.jpg"
         $filepath = Join-Path $script:PhotosDir $filename
@@ -176,6 +191,14 @@ function Get-Photo {
         }
     } catch {
         Write-Host "Error downloading photo: $_"
+        
+        # Show user-friendly notification
+        if ($_.Exception.Message -like "*Unable to connect*" -or $_.Exception.Message -like "*could not be resolved*") {
+            $script:NotifyIcon.ShowBalloonTip(5000, "Connection Error", "Cannot reach server. Check Server Config.", [System.Windows.Forms.ToolTipIcon]::Error)
+        } else {
+            $script:NotifyIcon.ShowBalloonTip(5000, "Download Error", "Failed to fetch photo from server.", [System.Windows.Forms.ToolTipIcon]::Error)
+        }
+        
         return $null
     }
 }
@@ -192,6 +215,92 @@ function Remove-OldPhotos {
             Write-Host "Removed old photo: $($photo.Name)"
         }
     }
+}
+
+# Function to show server configuration dialog
+function Show-ServerConfigDialog {
+    $form = New-Object System.Windows.Forms.Form
+    $form.Text = "Server Configuration"
+    $form.Size = New-Object System.Drawing.Size(450, 200)
+    $form.StartPosition = "CenterScreen"
+    $form.FormBorderStyle = "FixedDialog"
+    $form.MaximizeBox = $false
+    $form.MinimizeBox = $false
+    
+    $label = New-Object System.Windows.Forms.Label
+    $label.Text = "Server URL (without /api/view):"
+    $label.Location = New-Object System.Drawing.Point(20, 20)
+    $label.Size = New-Object System.Drawing.Size(400, 20)
+    $form.Controls.Add($label)
+    
+    $textBox = New-Object System.Windows.Forms.TextBox
+    $textBox.Location = New-Object System.Drawing.Point(20, 50)
+    $textBox.Size = New-Object System.Drawing.Size(400, 25)
+    $textBox.Text = $script:Config.serverUrl
+    $form.Controls.Add($textBox)
+    
+    $statusLabel = New-Object System.Windows.Forms.Label
+    $statusLabel.Location = New-Object System.Drawing.Point(20, 85)
+    $statusLabel.Size = New-Object System.Drawing.Size(400, 40)
+    $statusLabel.ForeColor = [System.Drawing.Color]::Gray
+    $statusLabel.Text = "Example: http://192.168.86.102:8080"
+    $form.Controls.Add($statusLabel)
+    
+    $saveButton = New-Object System.Windows.Forms.Button
+    $saveButton.Text = "Save"
+    $saveButton.Location = New-Object System.Drawing.Point(245, 130)
+    $saveButton.Size = New-Object System.Drawing.Size(80, 25)
+    $saveButton.Add_Click({
+        $newUrl = $textBox.Text.Trim()
+        
+        # Validate URL format
+        if (-not ($newUrl -match '^https?://')) {
+            $statusLabel.Text = "Error: URL must start with http:// or https://"
+            $statusLabel.ForeColor = [System.Drawing.Color]::Red
+            return
+        }
+        
+        # Remove trailing slash
+        $newUrl = $newUrl.TrimEnd('/')
+        
+        # Test server connectivity
+        $statusLabel.Text = "Testing connection..."
+        $statusLabel.ForeColor = [System.Drawing.Color]::Blue
+        $form.Refresh()
+        
+        try {
+            $testUrl = "$newUrl/api/view"
+            $response = Invoke-WebRequest -Uri $testUrl -Method Head -TimeoutSec 5 -ErrorAction Stop
+            
+            # Update config
+            $script:Config.serverUrl = $newUrl
+            $script:ApiUrl = $testUrl
+            $script:Config | ConvertTo-Json | Set-Content $script:ConfigPath
+            
+            $statusLabel.Text = "Server configured successfully!"
+            $statusLabel.ForeColor = [System.Drawing.Color]::Green
+            
+            Start-Sleep -Seconds 1
+            $form.DialogResult = [System.Windows.Forms.DialogResult]::OK
+            $form.Close()
+        } catch {
+            $statusLabel.Text = "Error: Cannot reach server. Please check the URL."
+            $statusLabel.ForeColor = [System.Drawing.Color]::Red
+        }
+    })
+    $form.Controls.Add($saveButton)
+    
+    $cancelButton = New-Object System.Windows.Forms.Button
+    $cancelButton.Text = "Cancel"
+    $cancelButton.Location = New-Object System.Drawing.Point(335, 130)
+    $cancelButton.Size = New-Object System.Drawing.Size(80, 25)
+    $cancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+    $form.Controls.Add($cancelButton)
+    
+    $form.AcceptButton = $saveButton
+    $form.CancelButton = $cancelButton
+    
+    $form.ShowDialog() | Out-Null
 }
 
 # Function to restore default wallpaper
@@ -343,13 +452,17 @@ function Initialize-TrayIcon {
     $openFolderMenuItem.Add_Click({ Start-Process $script:PhotosDir })
     $contextMenu.Items.Add($openFolderMenuItem) | Out-Null
     
+    # Server Config menu item
+    $serverConfigMenuItem = New-Object System.Windows.Forms.ToolStripMenuItem
+    $serverConfigMenuItem.Text = "Server Config"
+    $serverConfigMenuItem.Add_Click({ Show-ServerConfigDialog })
+    $contextMenu.Items.Add($serverConfigMenuItem) | Out-Null
+    
     # Show Photo Details menu item
     $showDetailsMenuItem = New-Object System.Windows.Forms.ToolStripMenuItem
     $showDetailsMenuItem.Text = "Show Photo Details"
     $showDetailsMenuItem.Add_Click({ 
-        # Extract base URL from API URL (remove /api/view)
-        $baseUrl = $script:Config.apiUrl -replace '/api/view$', ''
-        Start-Process $baseUrl
+        Start-Process $script:Config.serverUrl
     })
     $contextMenu.Items.Add($showDetailsMenuItem) | Out-Null
     
@@ -389,7 +502,8 @@ function Initialize-TrayIcon {
 function Main {
     Write-Host "Eyedeea Photos Desktop Wallpaper App"
     Write-Host "======================================"
-    Write-Host "API URL: $($script:Config.apiUrl)"
+    Write-Host "Server URL: $($script:Config.serverUrl)"
+    Write-Host "API URL: $script:ApiUrl"
     Write-Host "Update Interval: $($script:Config.updateIntervalMinutes) minutes"
     Write-Host "Photos Directory: $script:PhotosDir"
     Write-Host ""

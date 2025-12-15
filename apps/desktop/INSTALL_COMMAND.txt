@@ -1,0 +1,21 @@
+# ONE-LINE INSTALLER FOR EYEDEEA PHOTOS DESKTOP WALLPAPER
+# Copy and paste this command into PowerShell
+
+# Full Command (copy everything below):
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/eyedia/EyedeeaPhotos/main/apps/desktop/bootstrap.ps1" -OutFile "$env:TEMP\eyedeea-bootstrap.ps1"; & "$env:TEMP\eyedeea-bootstrap.ps1"
+
+# What this does:
+# 1. Downloads the bootstrap installer from GitHub to your temp folder
+# 2. Runs the installer
+# 3. The installer then downloads all app files and installs to:
+#    %LOCALAPPDATA%\EyediaTech\EyedeeaPhotos\app_desktop
+# 4. Creates shortcuts in Start Menu and Startup folder
+# 5. Starts the app in background
+
+# After installation:
+# - Look for the Eyedeea icon in your system tray
+# - Right-click → "Server Config" to set your server URL
+# - Right-click → "Start Slideshow" to begin
+
+# To uninstall:
+powershell -ExecutionPolicy Bypass -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/eyedia/EyedeeaPhotos/main/apps/desktop/bootstrap.ps1' -OutFile '$env:TEMP\eyedeea-bootstrap.ps1'; & '$env:TEMP\eyedeea-bootstrap.ps1' -Uninstall"

@@ -7,6 +7,7 @@ param(
 
 $AppName = "EyedeeaPhotosWallpaper"
 $ScriptPath = Join-Path $PSScriptRoot "WallpaperApp.ps1"
+$IconPath = Join-Path $PSScriptRoot "icon.ico"
 $StartupFolder = [Environment]::GetFolderPath("Startup")
 $StartupShortcutPath = Join-Path $StartupFolder "$AppName.lnk"
 $StartMenuFolder = [Environment]::GetFolderPath("Programs")
@@ -29,6 +30,9 @@ function Install-App {
     $StartupShortcut.Arguments = "-WindowStyle Hidden -ExecutionPolicy Bypass -File `"$ScriptPath`""
     $StartupShortcut.WorkingDirectory = $PSScriptRoot
     $StartupShortcut.Description = "Eyedeea Photos Desktop Wallpaper"
+    if (Test-Path $IconPath) {
+        $StartupShortcut.IconLocation = $IconPath
+    }
     $StartupShortcut.Save()
     
     Write-Host "Startup shortcut created at: $StartupShortcutPath" -ForegroundColor Green
@@ -39,6 +43,10 @@ function Install-App {
     $StartMenuShortcut.Arguments = "-ExecutionPolicy Bypass -File `"$ScriptPath`""
     $StartMenuShortcut.WorkingDirectory = $PSScriptRoot
     $StartMenuShortcut.Description = "Eyedeea Photos Wallpaper - Desktop slideshow app"
+    if (Test-Path $IconPath) {
+        $StartMenuShortcut.IconLocation = $IconPath
+        Write-Host "Custom icon applied from: $IconPath" -ForegroundColor Cyan
+    }
     $StartMenuShortcut.Save()
     
     Write-Host "Start Menu shortcut created at: $StartMenuShortcutPath" -ForegroundColor Green
@@ -64,38 +72,61 @@ function Install-App {
 }
 
 function Uninstall-App {
-    Write-Host "Uninstalling Eyedeea Photos Wallpaper App..." -ForegroundColor Yellow
+    Write-Host "" 
+    Write-Host "==========================================" -ForegroundColor Yellow
+    Write-Host "  Uninstalling Eyedeea Photos Wallpaper" -ForegroundColor Yellow
+    Write-Host "==========================================" -ForegroundColor Yellow
+    Write-Host ""
+    
+    # Try to stop running instances first
+    Write-Host "Checking for running instances..." -ForegroundColor Cyan
+    try {
+        # Try to find processes with WallpaperApp.ps1
+        $processes = Get-WmiObject Win32_Process -Filter "name='powershell.exe'" -ErrorAction SilentlyContinue |
+                     Where-Object { $_.CommandLine -like "*WallpaperApp.ps1*" }
+        
+        if ($processes) {
+            Write-Host "Found $($processes.Count) running instance(s). Stopping..." -ForegroundColor Yellow
+            foreach ($proc in $processes) {
+                Stop-Process -Id $proc.ProcessId -Force -ErrorAction SilentlyContinue
+            }
+            Start-Sleep -Seconds 2
+            Write-Host "✓ Stopped running instances" -ForegroundColor Green
+        } else {
+            Write-Host "✓ No running instances found" -ForegroundColor Gray
+        }
+    } catch {
+        Write-Host "! Could not check for running processes" -ForegroundColor Yellow
+    }
     
     # Remove startup shortcut
+    Write-Host ""
+    Write-Host "Removing shortcuts..." -ForegroundColor Cyan
     if (Test-Path $StartupShortcutPath) {
-        Remove-Item $StartupShortcutPath -Force
-        Write-Host "Removed startup shortcut" -ForegroundColor Green
+        Remove-Item $StartupShortcutPath -Force -ErrorAction SilentlyContinue
+        Write-Host "✓ Removed Startup shortcut: $StartupShortcutPath" -ForegroundColor Green
     } else {
-        Write-Host "No startup shortcut found" -ForegroundColor Yellow
+        Write-Host "- Startup shortcut not found" -ForegroundColor Gray
     }
     
     # Remove Start Menu shortcut
     if (Test-Path $StartMenuShortcutPath) {
-        Remove-Item $StartMenuShortcutPath -Force
-        Write-Host "Removed Start Menu shortcut" -ForegroundColor Green
+        Remove-Item $StartMenuShortcutPath -Force -ErrorAction SilentlyContinue
+        Write-Host "✓ Removed Start Menu shortcut: $StartMenuShortcutPath" -ForegroundColor Green
     } else {
-        Write-Host "No Start Menu shortcut found" -ForegroundColor Yellow
-    }
-    
-    # Try to stop running instances
-    $processes = Get-Process powershell -ErrorAction SilentlyContinue | 
-                 Where-Object { $_.CommandLine -like "*WallpaperApp.ps1*" }
-    
-    if ($processes) {
-        Write-Host "Stopping running instances..." -ForegroundColor Yellow
-        $processes | Stop-Process -Force
-        Write-Host "Stopped running instances" -ForegroundColor Green
+        Write-Host "- Start Menu shortcut not found" -ForegroundColor Gray
     }
     
     Write-Host ""
-    Write-Host "Uninstallation complete!" -ForegroundColor Green
-    Write-Host "Note: Downloaded wallpapers in 'wallpapers' folder were preserved."
-    Write-Host "You can manually delete the entire folder if needed: $PSScriptRoot"
+    Write-Host "==========================================" -ForegroundColor Green
+    Write-Host "  Uninstallation Complete!" -ForegroundColor Green
+    Write-Host "==========================================" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "Files preserved:" -ForegroundColor Cyan
+    Write-Host "  - Application files: $PSScriptRoot" -ForegroundColor Gray
+    Write-Host "  - Downloaded wallpapers: $PSScriptRoot\wallpapers" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "To completely remove, manually delete: $PSScriptRoot" -ForegroundColor Yellow
 }
 
 # Main execution

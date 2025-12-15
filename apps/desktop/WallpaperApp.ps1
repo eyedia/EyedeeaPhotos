@@ -309,30 +309,17 @@ function Show-ServerConfigDialog {
         # Remove trailing slash
         $newUrl = $newUrl.TrimEnd('/')
         
-        # Test server connectivity
-        $statusLabel.Text = "Testing connection..."
-        $statusLabel.ForeColor = [System.Drawing.Color]::Blue
-        $form.Refresh()
+        # Update config (no connection test - let the app validate when fetching)
+        $script:Config.serverUrl = $newUrl
+        $script:ApiUrl = "$newUrl/api/view"
+        $script:Config | ConvertTo-Json | Set-Content $script:ConfigPath
         
-        try {
-            $testUrl = "$newUrl/api/view"
-            $response = Invoke-WebRequest -Uri $testUrl -Method Head -TimeoutSec 5 -ErrorAction Stop
-            
-            # Update config
-            $script:Config.serverUrl = $newUrl
-            $script:ApiUrl = $testUrl
-            $script:Config | ConvertTo-Json | Set-Content $script:ConfigPath
-            
-            $statusLabel.Text = "Server configured successfully!"
-            $statusLabel.ForeColor = [System.Drawing.Color]::Green
-            
-            Start-Sleep -Seconds 1
-            $form.DialogResult = [System.Windows.Forms.DialogResult]::OK
-            $form.Close()
-        } catch {
-            $statusLabel.Text = "Error: Cannot reach server. Please check the URL."
-            $statusLabel.ForeColor = [System.Drawing.Color]::Red
-        }
+        $statusLabel.Text = "Server URL saved. App will validate on next photo fetch."
+        $statusLabel.ForeColor = [System.Drawing.Color]::Green
+        
+        Start-Sleep -Seconds 1
+        $form.DialogResult = [System.Windows.Forms.DialogResult]::OK
+        $form.Close()
     })
     $form.Controls.Add($saveButton)
     

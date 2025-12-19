@@ -3,6 +3,7 @@ import {
   get_photo as meta_get_photo,
   get_random_photo as meta_get_random_photo, 
   get_photo_history, 
+  get_photo_details_for_error,
   get_config,
   get_tag as meta_get_tag 
 } from "../../meta/meta_view.mjs";
@@ -23,15 +24,31 @@ import { generateETag, cleanData } from '../../common.js';
 
 const DEFAULT_PHOTO_PATH = 'web/eyedeea_photos.jpg';
 
-function readDefaultPhoto(res) {
+// Sanitize error message for HTTP headers (remove newlines and invalid characters)
+function sanitizeErrorMessage(message) {
+  return message
+    .replace(/\n/g, ' | ')
+    .replace(/\r/g, '')
+    .trim();
+}
+
+function readDefaultPhoto(res, errorMessage = 'Unable to fetch photo') {
   fs.readFile(DEFAULT_PHOTO_PATH, (err, data) => {
     if (err) {
       logger.error(`Error reading default photo: ${err.message}`);
-      res.writeHead(500, { 'Content-Type': 'text/plain' });
+      res.writeHead(500, { 
+        'Content-Type': 'text/plain',
+        'X-Image-Status': 'error',
+        'X-Error-Message': sanitizeErrorMessage(`Error reading default photo: ${err.message}`)
+      });
       res.end('Error reading image file.');
       return;
     }
-    res.writeHead(200, { 'Content-Type': 'image/jpeg' });
+    res.writeHead(200, { 
+      'Content-Type': 'image/jpeg',
+      'X-Image-Status': 'error',
+      'X-Error-Message': sanitizeErrorMessage(errorMessage)
+    });
     res.end(data);
   });
 }
@@ -45,7 +62,7 @@ function getContentDisposition(filename, isDownload) {
 
 function sendPhotoData(res, photo_data, response, isCurrentPhoto = false, isDownload = false, filename = 'photo.jpg') {
   if (!response?.headers) {
-    readDefaultPhoto(res);
+    readDefaultPhoto(res, 'Photo data unavailable');
     return;
   }
 
@@ -70,6 +87,7 @@ function sendPhotoData(res, photo_data, response, isCurrentPhoto = false, isDown
     'photo-data': JSON.stringify(cleanedPhoto),
     'ETag': etag,
     'Content-Disposition': contentDisposition,
+    'X-Image-Status': 'ok',
     ...cacheHeaders
   });
   res.end(response.data);
@@ -85,17 +103,19 @@ function getPhotoBySource(photo_data, req, res, isCurrentPhoto = false) {
         sendPhotoData(res, photo_data, response, isCurrentPhoto, isDownload, filename);
       } catch (error) {
         logger.error(`Error sending photo from Synology: ${error.message}`);
-        readDefaultPhoto(res);
+        const detailedMsg = `Failed to load photo from Synology source.\n\nFilename: ${filename}\nSource: ${photo_data.meta_data?.source_name || 'Unknown'}\nFolder: ${photo_data.meta_data?.folder_name || 'Unknown'}\n\nError: ${error.message}`;
+        readDefaultPhoto(res, detailedMsg);
       }
     }).catch(error => {
       logger.error(`Synology fetch error: ${error.message}`);
-      readDefaultPhoto(res);
+      const detailedMsg = `Failed to fetch photo from Synology NAS.\n\nFilename: ${filename}\nSource: ${photo_data.meta_data?.source_name || 'Unknown'}\n\nError: ${error.message}\n\nPlease verify the NAS is online and accessible.`;
+      readDefaultPhoto(res, detailedMsg);
     });
   } else if (photo_data.source_type === constants.SOURCE_TYPE_FS) {
     fs_get_photo(photo_data, res, isDownload, filename);
   } else {
     logger.error(`Unsupported source type: ${photo_data.source_type}`);
-    readDefaultPhoto(res);
+    readDefaultPhoto(res, 'Unsupported source type.\n\nPhoto source configuration is invalid.');
   }
 }
 
@@ -131,8 +151,22 @@ export const get_viewer_config = async (req, res) => {
 export const get_photo = async (req, res) => {
   meta_get_photo(req.params.photo_id, (err, photo) => {
     if (err || !photo) {
-      logger.error(`Get photo error: ${err?.message || 'Photo not found'} | photo_id: ${req.params.photo_id}`);
-      readDefaultPhoto(res);
+      const photoId = req.params.photo_id;
+      // Get additional details from view_log for error reporting
+      get_photo_details_for_error(photoId, (detailErr, details) => {
+        let detailedMsg;
+        if (details) {
+          const folder = details.folder_name || 'Unknown';
+          const filename = details.filename || 'Unknown';
+          const source = details.source_name || 'Unknown';
+          detailedMsg = `Photo not found.\nPhoto ID: ${photoId}\nFolder: ${folder}\nFilename: ${filename}\nSource: ${source}\n\nThe requested photo may have been deleted or is no longer available in the configured sources.`;
+        } else {
+          detailedMsg = `Photo not found.\nPhoto ID: ${photoId}\n\nThe requested photo may have been deleted or is no longer available in the configured sources.`;
+        }
+        const errMsg = `Get photo error: ${err?.message || 'Photo not found'} | photo_id: ${photoId} | details: ${JSON.stringify(details)}`;
+        logger.error(errMsg);
+        readDefaultPhoto(res, detailedMsg);
+      });
       return;
     }
 
@@ -157,7 +191,8 @@ export const get_random_photo = async (req, res) => {
         if (req.query.photo_id_only) {
           res.json({ photo_id: 0 });
         } else {
-          readDefaultPhoto(res);
+          const detailedMsg = `Failed to load photo history.\n\nError: ${err.message}\n\nPlease verify your photo sources are properly configured and accessible.`;
+          readDefaultPhoto(res, detailedMsg);
         }
         return;
       }
@@ -171,18 +206,21 @@ export const get_random_photo = async (req, res) => {
           selectedPhoto.photo_index = photoIndex;
           getPhotoBySource(selectedPhoto, req, res, false);
         } else {
-          readDefaultPhoto(res);
+          const detailedMsg = `Photo #${photoIndex} is not available.\n\nRequested index is beyond the number of photos in your collection. This might indicate the photo was deleted.`;
+          readDefaultPhoto(res, detailedMsg);
         }
       } else {
-        readDefaultPhoto(res);
+        readDefaultPhoto(res, 'No photos available in your collection.\n\nPlease check that your photo sources are properly configured.');
       }
     });
   } else {
     // Random photo
     meta_get_random_photo((err, rows) => {
       if (err || !rows?.length) {
-        logger.error(`Random photo error: ${err?.message || 'No photos found'}`);
-        readDefaultPhoto(res);
+        const errMsg = err?.message || 'No photos found';
+        logger.error(`Random photo error: ${errMsg}`);
+        const detailedMsg = err ? `Failed to fetch random photo.\n\nError: ${err.message}\n\nPlease verify your sources are configured correctly.` : `No photos found in your collection.\n\nPlease add photo sources and ensure they contain images.`;
+        readDefaultPhoto(res, detailedMsg);
         return;
       }
 

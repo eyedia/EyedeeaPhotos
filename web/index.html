@@ -28,6 +28,35 @@
 			<div style="font-size:12px; opacity:.6;">Please wait</div>
 		</div>
 	</div>
+
+	<!-- Error Log Box -->
+	<div id="error-log-box" style="
+		position: fixed;
+		bottom: 20px;
+		right: 20px;
+		background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+		color: #d9534f;
+		border: 1px solid #e0e0e0;
+		border-radius: 8px;
+		padding: 16px 20px;
+		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+		font-size: clamp(12px, 1.8vw, 14px);
+		max-width: 480px;
+		max-height: 350px;
+		overflow-y: auto;
+		z-index: 9999;
+		display: none;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+		line-height: 1.6;
+		letter-spacing: 0.3px;
+	">
+		<div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+			<span style="font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #d9534f;">⚠ Warning</span>
+			<span style="cursor: pointer; opacity: 0.5; transition: opacity 0.2s; font-size: 18px;" onclick="document.getElementById('error-log-box').style.display='none';" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='0.5'">×</span>
+		</div>
+		<div id="error-message" style="word-break: break-word; color: #555; font-size: clamp(11px, 1.7vw, 13px); line-height: 1.7; white-space: pre-wrap;"></div>
+	</div>
+	
 	<!-- Main -->
 	<div id="main">
 

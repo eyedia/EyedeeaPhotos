@@ -21,6 +21,23 @@ export function get_photo(photo_id, callback) {
     });
 }
 
+// Get photo details from view_log for error reporting (even if photo doesn't exist in photo table)
+export function get_photo_details_for_error(photo_id, callback) {
+    let query = `select vl.photo_id, p.filename, p.folder_name, p.source_id, s.name as 'source_name', s.type as 'source_type'
+                from view_log vl
+                left join photo p on vl.photo_id = p.photo_id
+                left join source s on p.source_id = s.id
+                where vl.photo_id = ?
+                limit 1`;
+    meta_db.get(query, [photo_id], (err, row) => {
+        if (err) {
+            callback(err, null);
+        } else {
+            callback(null, row);
+        }
+    });
+}
+
 export function get_random_photo(callback) {
     // Always fetch the current photo directly from view_log to avoid stale picks
     const query = `
@@ -85,13 +102,14 @@ export function get_photo_history(limit, callback) {
     if(!limit)
         limit = 12;
 
-    let query = `select p.id, p.source_id, p.photo_id, p.filename, p.folder_id, p.folder_name, 
-                p.time, p.type, p.orientation, p.cache_key, p.tags, p.address, s.type as 'source_type'
-                from photo p
-                inner join source s on p.source_id = s.id
-                inner join view_log vl on vl.photo_id = p.photo_id 
-                where s.is_deleted = 0
-                order by update_sequence desc limit ?`;
+    let query = `select vl.photo_id, p.id, p.source_id, p.filename, p.folder_id, p.folder_name, 
+                p.time, p.type, p.orientation, p.cache_key, p.tags, p.address, s.type as 'source_type', 
+                s.id as 'source_id', s.name as 'source_name'
+                from view_log vl
+                left join photo p on vl.photo_id = p.photo_id
+                left join source s on p.source_id = s.id
+                where s.is_deleted = 0 or s.is_deleted is null
+                order by vl.update_sequence desc limit ?`;
     meta_db.all(query, [limit], (err, rows) => {
         if (err) {
             callback(err, null);

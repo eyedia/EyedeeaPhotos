@@ -5,6 +5,25 @@ const photo_url_server = window.location.protocol + "//" + window.location.host 
 const memoryCache = new Map();
 const MAX_MEMORY_CACHE = 24;
 
+// Error log box helper functions
+function showErrorLog(message) {
+    const logBox = document.getElementById("error-log-box");
+    const messageEl = document.getElementById("error-message");
+    if (logBox && messageEl) {
+        // Convert pipe separators back to line breaks for display
+        const displayMessage = message.replace(/ \| /g, '\n');
+        messageEl.textContent = displayMessage;
+        logBox.style.display = "block";
+    }
+}
+
+function hideErrorLog() {
+    const logBox = document.getElementById("error-log-box");
+    if (logBox) {
+        logBox.style.display = "none";
+    }
+}
+
 async function cache_incoming_photos() {
     console.time("cache_photos");
     const CONCURRENT_REQUESTS = 5;
@@ -71,6 +90,15 @@ async function save_photo_from_respose(response){
     let photo_data = undefined;
     if (v_photo_data)
         photo_data = JSON.parse(v_photo_data);
+
+    // Check for error headers and display error log if needed
+    const imageStatus = response.headers.get("X-Image-Status");
+    const errorMessage = response.headers.get("X-Error-Message");
+    if (imageStatus === "error" && errorMessage) {
+        showErrorLog(errorMessage);
+    } else if (imageStatus === "ok") {
+        hideErrorLog();
+    }
 
     await save_photo_to_cache(photo_data, this_photo_url, photo_orientation);
     

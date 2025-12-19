@@ -11,22 +11,26 @@ import {
 
 const router = express.Router({ mergeParams: true });
 
-// ============ GET ENDPOINTS ============
-
-// Config endpoint
+// ============ CONFIG & LITERAL ROUTES ============
+// Literal routes must be defined before parameterized routes to prevent mismatching
 router.get('/config', get_viewer_config);
 
-// Photo endpoints
+// ============ PHOTO SPECIFIC ROUTES (by ID) ============
+// More specific routes come before general ones
 router.get('/photos/:photo_id', get_photo);
-router.get('/photos', get_lined_up_photo_data);
 router.delete('/photos/:photo_id', delete_photo);
 
-// Random photo (default/catch-all)
-router.get('/', get_random_photo);
+// ============ PHOTO GENERAL ROUTES ============
+// General photo endpoints
+router.get('/photos', get_lined_up_photo_data);
 
-// ============ POST ENDPOINTS ============
-
+// ============ TAG ROUTES (POST) ============
+// Tag operations on specific photos
 router.post('/:photo_id/dns', add_tag_dns);
 router.post('/:photo_id/mark', add_tag_mark);
+
+// ============ DEFAULT/CATCH-ALL ============
+// Random photo endpoint (must be last to avoid shadowing other routes)
+router.get('/', get_random_photo);
 
 export default router;

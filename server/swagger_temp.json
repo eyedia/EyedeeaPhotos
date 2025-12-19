@@ -1,0 +1,26 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Eyedeea Photos API",
+    "description": "Eyedeea Photos is an app designed to bring forgotten memories back to life. It integrates with Synology Photos & any USB, HDD, SDD to display random photos from the collection.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Eyedia Technologies"
+    }
+  },
+  "host": "localhost:8080",
+  "basePath": "/api",
+  "schemes": [ "http", "https" ],
+  "consumes": [ "application/json" ],
+  "produces": [ "application/json", "image/jpeg", "text/plain" ],
+  "paths": {
+    "/view": { "get": { "summary": "Get random photo", "description": "Fetches a random photo from the collection", "tags": [ "View" ], "responses": { "200": { "description": "Photo retrieved successfully" }, "500": { "description": "Internal Server Error" } } } },
+    "/view/config": { "get": { "summary": "Get viewer configuration", "tags": [ "View" ], "responses": { "200": { "description": "Configuration retrieved" }, "500": { "description": "Internal Server Error" } } } },
+    "/view/photos": { "get": { "summary": "Get photo list", "tags": [ "View" ], "responses": { "200": { "description": "Photos retrieved" }, "500": { "description": "Internal Server Error" } } } },
+    "/view/photos/{photo_id}": { "get": { "summary": "Get specific photo", "tags": [ "View" ], "parameters": [ { "name": "photo_id", "in": "path", "required": true, "type": "integer" } ], "responses": { "200": { "description": "Photo retrieved" }, "404": { "description": "Not found" }, "500": { "description": "Internal Server Error" } } }, "delete": { "summary": "Delete photo", "tags": [ "View" ], "parameters": [ { "name": "photo_id", "in": "path", "required": true, "type": "integer" } ], "responses": { "200": { "description": "Deleted" }, "500": { "description": "Internal Server Error" } } } },
+    "/sources": { "get": { "summary": "List all sources", "tags": [ "Sources" ], "responses": { "200": { "description": "Sources retrieved" }, "500": { "description": "Internal Server Error" } } }, "post": { "summary": "Create source", "tags": [ "Sources" ], "responses": { "201": { "description": "Created" }, "500": { "description": "Internal Server Error" } } } },
+    "/system": { "get": { "summary": "Get system info", "tags": [ "System" ], "responses": { "200": { "description": "OK" }, "500": { "description": "Internal Server Error" } } } },
+    "/version": { "get": { "summary": "Get version", "tags": [ "Version" ], "responses": { "200": { "description": "Version retrieved" } } } }
+  },
+  "tags": [ { "name": "View" }, { "name": "Sources" }, { "name": "System" }, { "name": "Version" } ]
+}

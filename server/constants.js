@@ -25,9 +25,12 @@ const app_log_dir = (() => {
         log_dir = "./logs"
     }
     else if (IS_WINDOWS) {
-        log_dir = path.join(getAppDataPath(ORG), APP_NAME, 'logs');
+        // Windows: Use Local AppData for logs (aligned with database location)
+        let app_dir = getAppDataPath(ORG).replace("Roaming", "Local");
+        log_dir = path.join(app_dir, APP_NAME, 'logs');
     } else {
-        log_dir = "/var/log/EyedeeaPhotos/logs";
+        // Linux: Use /var/log with proper permissions
+        log_dir = "/var/log/EyediaTech/EyedeeaPhotos";
     }
     if (!fs.existsSync(log_dir)){
         fs.mkdirSync(log_dir, { recursive: true });

@@ -70,6 +70,7 @@ Photos are displayed with the following details:
 
 ## Folder Structure
 My folder structure looks as follows, but the code should traverse through any folder structure.
+
 ![Synology Photos Folder Structure](graphics/EyedeeaPhotos_Folder_Structure.png)
 
 ## KYP - Know Your Photos:  

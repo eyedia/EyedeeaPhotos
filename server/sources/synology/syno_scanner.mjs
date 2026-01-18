@@ -158,10 +158,18 @@ function traverse_path_to_id(source_id, path_parts, index, parent_folder_id, cal
         }
         
         // Find the folder that matches current_part
-        const found_folder = data.data.list.find(f => f.name === current_part);
+        // Extract only the last segment of folder.name for comparison (same as in list_dir_loop)
+        const found_folder = data.data.list.find(f => {
+            const folder_name_only = f.name.split('/').filter(p => p.length > 0).pop() || f.name;
+            return folder_name_only === current_part;
+        });
         
         if (!found_folder) {
-            callback(new Error(`Folder not found: ${current_part} in path ${path_parts.join('/')}`), null);
+            const available_folders = data.data.list.map(f => {
+                const folder_name_only = f.name.split('/').filter(p => p.length > 0).pop() || f.name;
+                return folder_name_only;
+            }).join(', ');
+            callback(new Error(`Folder not found: ${current_part} in path ${path_parts.join('/')}. Available: ${available_folders}`), null);
             return;
         }
         

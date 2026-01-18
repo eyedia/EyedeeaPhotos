@@ -3,6 +3,7 @@ import fs from "fs";
 import logger from "../config_log.js";
 import { meta_db } from "./meta_base.mjs";
 import { search } from "./meta_search.mjs";
+import { cleanup_view_log } from "./meta_scan.mjs";
 
 export function get_photo(photo_id, callback) {    
     let query = `select p.id, p.source_id, p.photo_id, p.filename, p.folder_id, p.folder_name, 
@@ -360,7 +361,13 @@ export function delete_photo_records(photo_id, callback) {
                         if (err3) {
                             callback(err3);
                         } else {
-                            callback(null);
+                            // Clean up view_log after deleting photo
+                            cleanup_view_log((cleanupErr) => {
+                                if (cleanupErr) {
+                                    logger.error('Error during view_log cleanup after photo deletion:', cleanupErr);
+                                }
+                                callback(null);
+                            });
                         }
                     });
                 });

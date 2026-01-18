@@ -15,26 +15,26 @@ export function clear_scan(source_id, clean_photos, callback) {
         return;
     }
 
-    const clean_queries = [
-        `DELETE FROM photo WHERE source_id = ${source_id}`,
-        `delete from view_log where photo_id not in (select photo_id from photo)`];
-
-    let total_queries = clean_queries.length
-    clean_queries.forEach((query) => {
-        meta_db.run(
-            query,
-            function (err) {
-                if (err) {
-                    logger.error('Error deleting data from photo:', err);
-                } else {
-                    total_queries = total_queries - 1;
-                }
-                if (total_queries <= 0) {
+    const clean_query = `DELETE FROM photo WHERE source_id = ${source_id}`;
+    
+    meta_db.run(
+        clean_query,
+        function (err) {
+            if (err) {
+                logger.error('Error deleting data from photo:', err);
+                if (callback)
+                    callback(err);
+            } else {
+                // Clean up view_log after deleting photos
+                cleanup_view_log((cleanupErr) => {
+                    if (cleanupErr) {
+                        logger.error('Error during view_log cleanup:', cleanupErr);
+                    }
                     if (callback)
-                        callback();
-                }
-            });
-    });
+                        callback(cleanupErr);
+                });
+            }
+        });
 }
 
 
@@ -139,13 +139,45 @@ export function stop_scan(json_data, callback) {
                                 callback(err, null);
                             }
                         } else {
-                            if (callback) {
-                                callback(null, scan_log_id);
-                            }
+                            // Clean up invalid photo_id entries from view_log after scan completes
+                            cleanup_view_log((cleanupErr) => {
+                                if (cleanupErr) {
+                                    logger.error('Error during view_log cleanup:', cleanupErr);
+                                }
+                                if (callback) {
+                                    callback(null, scan_log_id);
+                                }
+                            });
                         }
                     });
             }
         });
+}
+
+/**
+ * Removes entries from view_log table where photo_id no longer exists in photo table
+ * This ensures view_log stays in sync when photos are deleted or have new IDs
+ * Call this after: scans, photo deletions, or any operation that modifies the photo table
+ */
+export function cleanup_view_log(callback) {
+    const cleanup_query = `DELETE FROM view_log WHERE photo_id NOT IN (SELECT photo_id FROM photo)`;
+    
+    meta_db.run(cleanup_query, function (err) {
+        if (err) {
+            logger.error('Error cleaning up view_log:', err);
+            if (callback) {
+                callback(err);
+            }
+        } else {
+            const deleted_count = this.changes;
+            if (deleted_count > 0) {
+                logger.info(`Cleaned up ${deleted_count} invalid entries from view_log`);
+            }
+            if (callback) {
+                callback(null, deleted_count);
+            }
+        }
+    });
 }
 
 

@@ -25,8 +25,10 @@ let total_photos = 0;
 
 export async function scan(source, folder_id, inform_caller_scan_started, inform_caller_scan_ended) {
     //lets do health check before scanning
+    logger.info(`========== SCAN STARTED: Source ID=${source.id}, Folder ID=${folder_id || 'ROOT'} ==========`);
     health_check(source.id, (err, data) => {
         if (err) {
+            logger.error(`Health check failed for source ${source.id}:`, err);
             inform_caller_scan_started(err, null);
             return;
         } else {
@@ -47,7 +49,8 @@ export async function scan(source, folder_id, inform_caller_scan_started, inform
 
                     delete nas_auth_token[scan_started_data.source_id];               
                     meta_clear_cache(scan_started_data.source_id, (err, data, status_code) => {
-                        console.log("Cleared auth cache to retrieve person data...");
+                        logger.info("Cleared auth cache to retrieve person data...");
+                        logger.info(`Scan initiated: scan_log_id=${scan_started_data.scan_log_id}, source_id=${scan_started_data.source_id}`);
                         inform_caller_scan_started(null, scan_started_data);
                         internal_scan(scan_started_data, folder_id);                        
                         // startInternalScanInWorker(scan_started_data, folder_id)
@@ -75,7 +78,9 @@ export async function internal_scan(scan_started_data, folder_id) {
         }
         list_dir(args, (err, data) => {
             if (data && data.data.list.length > 0) {
+                logger.info(`Found ${data.data.list.length} root folders to scan`);
                 data.data.list.forEach(function (root_folder) {
+                    logger.info(`Queueing root folder: ${root_folder.id} - ${root_folder.name}`);
                     list_dir_loop(scan_started_data, root_folder.id, root_folder.name, _offset, _limit);
                 });
             }
@@ -102,7 +107,11 @@ export async function internal_scan(scan_started_data, folder_id) {
 async function list_dir_loop(scan_started_data, folder_id, folder_name, offset, limit) {
     total_dirs++;
 
-    logger.info(`01-Getting sub folder ${folder_id}...`);
+    // Log progress every 50 folders to avoid log spam
+    if (total_dirs % 50 === 0) {
+        logger.info(`Progress: ${total_dirs} folders processed, ${total_photos} photos found so far`);
+    }
+
     let args = {
         "source_id": scan_started_data.source_id,
         "folder_id": folder_id,
@@ -113,12 +122,12 @@ async function list_dir_loop(scan_started_data, folder_id, folder_name, offset, 
     list_dir(args, (err, data) => {
         if (data) {            
             if (data.data.list.length > 0) {
+                logger.debug(`Folder ${folder_id} (${folder_name}) has ${data.data.list.length} subfolders`);
                 data.data.list.forEach(function (folder) {
-                    logger.info(`02-Getting sub folder ${folder.id} of folder ${folder_id}...`);
                     list_dir_loop(scan_started_data, folder.id, folder.name, offset, limit);
                 });
             } else {                
-                logger.info(`Getting photos from ${folder_id}-${folder_name}...`);
+                logger.debug(`Leaf folder found: ${folder_id} (${folder_name}) - fetching photos...`);
                 let args = {
                     "source_id": scan_started_data.source_id,
                     "folder_id": folder_id,
@@ -128,8 +137,16 @@ async function list_dir_loop(scan_started_data, folder_id, folder_name, offset, 
                 
                 list_dir_items(args, (err, photo_data) => {                    
                     if (photo_data) {
+                        const photo_count = photo_data.data.list.length;
+                        if (photo_count > 0) {
+                            logger.info(`Processing ${photo_count} photos from folder: ${folder_name} (ID: ${folder_id})`);
+                        }
                         photo_data.data.list.forEach(function (photo) {
                             total_photos++;
+                            // Log every 500 photos to track progress
+                            if (total_photos % 500 === 0) {
+                                logger.info(`Photo milestone: ${total_photos} photos processed (Folder: ${folder_name})`);
+                            }
                             const persons =  photo.additional.person.map(p => p.name).join(",");                          
                             let one_record = {
                                 "source_id": scan_started_data.source_id,
@@ -150,7 +167,7 @@ async function list_dir_loop(scan_started_data, folder_id, folder_name, offset, 
                             save_item(one_record);
                         });
                     } else {
-                        logger.info("Server did not respond on time, added to the retry directories...");
+                        logger.warn(`API timeout/failure for folder ${folder_id} (${folder_name}) - added to retry list`);
                         let scan_failed_data = {
                             "folder_id": folder_id,
                             "folder_name": folder_name,
@@ -161,7 +178,7 @@ async function list_dir_loop(scan_started_data, folder_id, folder_name, offset, 
                 });
             }
         } else {
-            logger.info("Server resource exhausted. Cooling down for 5 seconds...");
+            logger.warn(`API failure listing folder ${folder_id} (${folder_name}) - added to retry list. Error: ${err || 'unknown'}`);
             let scan_failed_data = {
                 "folder_id": folder_id,
                 "folder_name": folder_name,
@@ -174,13 +191,15 @@ async function list_dir_loop(scan_started_data, folder_id, folder_name, offset, 
 
 function scan_failed_folders(scan_log_end_data) {
     _failed_folders_tried = true;
+    logger.info(`Checking for failed folders to retry...`);
     get_scan_log_detail(scan_log_end_data.id, undefined, (err, rows) => {
         if (err) {
-            logger.error(err);
+            logger.error('Error getting scan log details:', err);
         } else {
             if (rows && rows.length > 0) {
+                logger.info(`Found ${rows.length} failed folders to retry`);
                 rows.forEach(function (row) {
-                    logger.info(`Retrying failed folders: ${row.folder_id}: ${row.folder_name}`);
+                    logger.info(`Retrying failed folder: ${row.folder_id} (${row.folder_name})`);
                     list_dir_loop(scan_log_end_data, row.folder_id, row.folder_name, _offset, _limit);
 
                     logger.info(`updating re-scanning result: ${scan_log_end_data.id}, ${row.folder_id}`);
@@ -193,21 +212,25 @@ function scan_failed_folders(scan_log_end_data) {
 
 
 function syno_scanning_ended(err, scan_log_end_data, inform_caller_scan_ended) {
+    logger.info(`========== SCAN PHASE COMPLETED: Total Dirs=${total_dirs}, Total Photos=${total_photos} ==========`);
+    
     if (!_failed_folders_tried) {        
         get_scan_log_detail(scan_log_end_data.id, undefined, (err, rows) => {
             if (err) {
-                logger.error(err);
+                logger.error('Error in syno_scanning_ended:', err);
             } else {
                 if (rows && rows.length > 0) {
-                    logger.info("Started secondary scans (retrying failed folders)...");
-                    console.log("After 1st round scan:", scan_log_end_data.total_dirs, total_dirs, total_photos);
+                    logger.info(`First scan round completed. Starting retry phase for ${rows.length} failed folders...`);
+                    logger.info(`Stats after 1st round - Recorded: ${scan_log_end_data.total_dirs} dirs, Found: ${total_dirs} dirs, ${total_photos} photos`);
                     syno_start_failed_folders(scan_log_end_data, inform_caller_scan_ended);
                 }
             }
         });
         
     } else {
-        console.log("After 2nd round scan:", scan_log_end_data.total_dirs, total_dirs, total_photos);
+        logger.info(`========== FULL SCAN COMPLETED ==========`);
+        logger.info(`Final Stats - Total Dirs: ${total_dirs}, Total Photos: ${total_photos}`);
+        logger.info(`Stats after 2nd round - Recorded: ${scan_log_end_data.total_dirs} dirs, Found: ${total_dirs} dirs, ${total_photos} photos`);
         _failed_folders_tried = true;
         scan_log_end_data.total_dirs = total_dirs;
         scan_log_end_data.total_photos = total_photos;

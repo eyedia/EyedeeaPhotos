@@ -23,9 +23,9 @@ let _limit = 1000;
 let total_dirs = 1;
 let total_photos = 0;
 
-export async function scan(source, folder_id, inform_caller_scan_started, inform_caller_scan_ended) {
+export async function scan(source, folder_name, inform_caller_scan_started, inform_caller_scan_ended) {
     //lets do health check before scanning
-    logger.info(`========== SCAN STARTED: Source ID=${source.id}, Folder ID=${folder_id || 'ROOT'} ==========`);
+    logger.info(`========== SCAN STARTED: Source ID=${source.id}, Folder Name=${folder_name} ==========`);
     health_check(source.id, (err, data) => {
         if (err) {
             logger.error(`Health check failed for source ${source.id}:`, err);
@@ -34,7 +34,7 @@ export async function scan(source, folder_id, inform_caller_scan_started, inform
         } else {
             let scan_start_data = {
                 source: source,
-                clean_photos: folder_id ? false : true,
+                clean_photos: folder_name === "ROOT" ? true : false,
                 max_time_in_mins: 12,
                 interval_in_secs: 30,
                 insert_data_threshold: 0.0005
@@ -52,10 +52,7 @@ export async function scan(source, folder_id, inform_caller_scan_started, inform
                         logger.info("Cleared auth cache to retrieve person data...");
                         logger.info(`Scan initiated: scan_log_id=${scan_started_data.scan_log_id}, source_id=${scan_started_data.source_id}`);
                         inform_caller_scan_started(null, scan_started_data);
-                        internal_scan(scan_started_data, folder_id);                        
-                        // startInternalScanInWorker(scan_started_data, folder_id)
-                        // .then(console.log)
-                        // .catch(console.error);
+                        internal_scan(scan_started_data, folder_name);
                     });
                 }
             },
@@ -66,9 +63,9 @@ export async function scan(source, folder_id, inform_caller_scan_started, inform
     });
 }
 
-export async function internal_scan(scan_started_data, folder_id) {
+export async function internal_scan(scan_started_data, folder_name) {
 
-    if (folder_id === -1) {
+    if (folder_name === "ROOT") {
         //scan starts from root
         let args = {
             "source_id": scan_started_data.source_id,
@@ -81,27 +78,96 @@ export async function internal_scan(scan_started_data, folder_id) {
                 logger.info(`Found ${data.data.list.length} root folders to scan`);
                 data.data.list.forEach(function (root_folder) {
                     logger.info(`Queueing root folder: ${root_folder.id} - ${root_folder.name}`);
-                    list_dir_loop(scan_started_data, root_folder.id, root_folder.name, _offset, _limit);
+                    // Extract only the folder name (last segment), not the full path
+                    const folder_name_only = root_folder.name.split('/').filter(p => p.length > 0).pop() || root_folder.name;
+                    const full_path = "/" + folder_name_only;
+                    list_dir_loop(scan_started_data, root_folder.id, full_path, _offset, _limit);
                 });
             }
         });
 
     } else {
-        //scan starts from a specific folder
-        logger.info(`Starting scanning from a specific folder... ${folder_id}`);
-        let args = {
-            "source_id": scan_started_data.source_id,
-            "folder_id": folder_id,
-            "offset": _offset,
-            "limit": _limit
-          }
-        get_dir_details(args, (err, dir_details) => {
-            if(dir_details){       
-                logger.info(`Starting scanning from a specific folder... ${folder_id}, ${dir_details.dir_name}`);
-                list_dir_loop(scan_started_data, folder_id, dir_details.dir_name, _offset, _limit);
+        //scan starts from a specific folder using folder_name (path)
+        logger.info(`Starting scanning from a specific folder path: ${folder_name}`);
+        
+        // Need to resolve folder_name to folder_id for Synology API
+        resolve_folder_path_to_id(scan_started_data.source_id, folder_name, (err, folder_id) => {
+            if (err || !folder_id) {
+                logger.error(`Failed to resolve folder path: ${folder_name}`, err);
+                return;
             }
+            
+            let args = {
+                "source_id": scan_started_data.source_id,
+                "folder_id": folder_id,
+                "offset": _offset,
+                "limit": _limit
+            }
+            get_dir_details(args, (err, dir_details) => {
+                if(dir_details){       
+                    logger.info(`Starting scanning from folder_id ${folder_id}, path: ${folder_name}`);
+                    list_dir_loop(scan_started_data, folder_id, folder_name, _offset, _limit);
+                }
+            });
         });
     }
+}
+
+/**
+ * Resolves a folder path like "/family/2025/India Trip" to a Synology folder_id
+ * This is needed because Synology API requires numeric IDs, but we want to use paths
+ */
+function resolve_folder_path_to_id(source_id, folder_path, callback) {
+    // Normalize path - remove trailing slashes
+    folder_path = folder_path.replace(/\/+$/, '');
+    
+    // Split path and filter out empty parts
+    const path_parts = folder_path.split('/').filter(p => p.length > 0);
+    
+    if (path_parts.length === 0) {
+        callback(new Error("Invalid folder path"), null);
+        return;
+    }
+    
+    // Start from root and traverse
+    traverse_path_to_id(source_id, path_parts, 0, undefined, callback);
+}
+
+/**
+ * Recursively traverses folder structure to find folder ID by path
+ */
+function traverse_path_to_id(source_id, path_parts, index, parent_folder_id, callback) {
+    if (index >= path_parts.length) {
+        callback(null, parent_folder_id);
+        return;
+    }
+    
+    const current_part = path_parts[index];
+    
+    let args = {
+        "source_id": source_id,
+        "folder_id": parent_folder_id,  // undefined for root
+        "offset": 0,
+        "limit": 1000
+    };
+    
+    list_dir(args, (err, data) => {
+        if (err || !data || !data.data || !data.data.list) {
+            callback(new Error(`Failed to list directory at level ${index}: ${current_part}`), null);
+            return;
+        }
+        
+        // Find the folder that matches current_part
+        const found_folder = data.data.list.find(f => f.name === current_part);
+        
+        if (!found_folder) {
+            callback(new Error(`Folder not found: ${current_part} in path ${path_parts.join('/')}`), null);
+            return;
+        }
+        
+        // Continue to next level
+        traverse_path_to_id(source_id, path_parts, index + 1, found_folder.id, callback);
+    });
 }
 
 async function list_dir_loop(scan_started_data, folder_id, folder_name, offset, limit) {
@@ -124,7 +190,11 @@ async function list_dir_loop(scan_started_data, folder_id, folder_name, offset, 
             if (data.data.list.length > 0) {
                 logger.debug(`Folder ${folder_id} (${folder_name}) has ${data.data.list.length} subfolders`);
                 data.data.list.forEach(function (folder) {
-                    list_dir_loop(scan_started_data, folder.id, folder.name, offset, limit);
+                    // Extract only the folder name (last segment), not the full path
+                    const folder_name_only = folder.name.split('/').filter(p => p.length > 0).pop() || folder.name;
+                    const cleaned_folder_name = folder_name.replace(/\/+$/, '');  // Remove trailing slashes
+                    const child_path = cleaned_folder_name + "/" + folder_name_only;
+                    list_dir_loop(scan_started_data, folder.id, child_path, offset, limit);
                 });
             } else {                
                 logger.debug(`Leaf folder found: ${folder_id} (${folder_name}) - fetching photos...`);

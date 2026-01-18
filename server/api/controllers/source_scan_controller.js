@@ -35,19 +35,24 @@ export const scan = async (req, res) => {
 }
 
 const syno_scan = async (source, req, res) => {
-  let folder_id = req.query.folder_id ? req.query.folder_id : -1;
+  // Accept folder_name from query parameter
+  // If not provided or empty, default to "ROOT"
+  let folder_name = req.query.folder_name;
+  if (!folder_name || folder_name.trim() === '') {
+    folder_name = "ROOT";
+  }
 
   try {
-    const scan_log_details = await syno_scan_service_async(source, folder_id);
+    const scan_log_details = await syno_scan_service_async(source, folder_name);
     res.json(scan_log_details);
   } catch (err) {
     res.status(err.statusCode || 500).json({ error: err.message });
   }
 };
 
-function syno_scan_service_async(source, folder_id) {
+function syno_scan_service_async(source, folder_name) {
   return new Promise((resolve, reject) => {
-    syno_scan_service(source, folder_id, (err, scan_log_details) => {
+    syno_scan_service(source, folder_name, (err, scan_log_details) => {
       if (err) reject(err);
       else resolve(scan_log_details);
     });

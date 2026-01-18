@@ -618,17 +618,186 @@ function renderTableDirs(records) {
     tableBody.innerHTML = '';
     records.forEach(item => {
         const a = `<a href='photos.html?source-id=${g_source.id}&source-name=${g_source.name}&dir-id=${item.dir_id}&dir-name=${item.dir}'>`;
+        
+        // Generate folder hierarchy for dropdown
+        const folderHierarchy = generateFolderHierarchy(item.dir);
+        const dropdownId = `scan-dropdown-${Math.random().toString(36).substr(2, 9)}`;
+        
+        // Create dropdown HTML
+        let dropdownHTML = `<div class="scan-dropdown-container">
+            <button class="scan-btn" onclick="toggleDropdown('${dropdownId}')">Rescan ▼</button>
+            <div id="${dropdownId}" class="scan-dropdown-menu" style="display: none;">`;
+        
+        folderHierarchy.forEach(path => {
+            dropdownHTML += `<a href="#" class="scan-option" onclick="handleScanClick('${path}', '${item.dir}', event)">${path}</a>`;
+        });
+        
+        dropdownHTML += `</div></div>`;
+        
         let row = "<tr>";
-        // if (window.innerWidth < 425){
-        //     row += `<td>${a}${item.dir}</a></td>`
-        // }else{
-            row += `<td>${item.dir}</td>`
-        //}
-        row += `<td><a href='photos.html?source-id=${g_source.id}&source-name=${g_source.name}&dir-id=${item.dir_id}&dir-name=${item.dir}'>${item.photos}</a></td>
-        </tr>`;
+        row += `<td>${item.dir}</td>`;
+        row += `<td><a href='photos.html?source-id=${g_source.id}&source-name=${g_source.name}&dir-id=${item.dir_id}&dir-name=${item.dir}'>${item.photos}</a></td>`;
+        row += `<td>${dropdownHTML}</td>`;
+        row += `</tr>`;
 
         tableBody.innerHTML += row;
     });
+}
+
+/**
+ * Generates folder hierarchy from a full path
+ * E.g., "/Family/2025/India Trip/Pune" returns:
+ * ["/Family/2025/India Trip/Pune", "/Family/2025/India Trip", "/Family/2025", "/Family", "/"]
+ */
+function generateFolderHierarchy(folderPath) {
+    const hierarchy = [];
+    const trimmedPath = folderPath.trim();
+    
+    // Add the full path first
+    hierarchy.push(trimmedPath);
+    
+    // Split path and build hierarchy from most specific to root
+    const parts = trimmedPath.split('/').filter(p => p.length > 0);
+    
+    // Add parent folders
+    for (let i = parts.length - 1; i > 0; i--) {
+        const parentPath = '/' + parts.slice(0, i).join('/');
+        hierarchy.push(parentPath);
+    }
+    
+    // Add root
+    hierarchy.push('/');
+    
+    return hierarchy;
+}
+
+/**
+ * Toggle dropdown visibility
+ */
+function toggleDropdown(dropdownId) {
+    const dropdown = document.getElementById(dropdownId);
+    if (dropdown) {
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
+/**
+ * Handle scan option click
+ * Placeholder for API call - will be updated later
+ */
+function handleScanClick(folderPath, directoryName, event) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    // Close the dropdown
+    const dropdown = event.target.closest('.scan-dropdown-menu');
+    if (dropdown) {
+        dropdown.style.display = 'none';
+    }
+    
+    // Check if user is scanning a parent directory
+    if (folderPath !== directoryName) {
+        // Show confirmation dialog for parent directory scan
+        showScanConfirmation(folderPath);
+    } else {
+        // User is scanning the current directory, call API directly
+        performScan(folderPath);
+    }
+}
+
+/**
+ * Show confirmation dialog for parent directory scans
+ */
+function showScanConfirmation(folderPath) {
+    // Create modal overlay
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 2000;';
+    
+    // Create modal content
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = 'background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); max-width: 400px; text-align: center;';
+    
+    modalContent.innerHTML = `
+        <h3 style="margin-top: 0; color: #333;">Confirm Rescan</h3>
+        <p style="color: #666; margin: 15px 0;">You are about to rescan the parent directory <strong>'${folderPath}'</strong>.</p>
+        <p style="color: #999; font-size: 12px; margin: 15px 0;">This will scan all subdirectories within this folder.</p>
+        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+            <button id="btn-yes" style="padding: 8px 20px; border: none; background: #f5f5f5; color: #333; border-radius: 4px; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; min-width: 60px; min-height: 36px;">Yes</button>
+            <button id="btn-no" style="padding: 8px 20px; border: none; background: #d32f2f; color: white; border-radius: 4px; cursor: pointer; font-weight: 600; display: flex; align-items: center; justify-content: center; min-width: 60px; min-height: 36px;">No</button>
+        </div>
+    `;
+    
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    
+    // Handle No button (default focus)
+    const noBtn = modalContent.querySelector('#btn-no');
+    const yesBtn = modalContent.querySelector('#btn-yes');
+    
+    noBtn.focus();
+    
+    noBtn.onclick = () => {
+        modal.remove();
+    };
+    
+    yesBtn.onclick = () => {
+        modal.remove();
+        performScan(folderPath);
+    };
+    
+    // Close on Escape key
+    const escapeHandler = (e) => {
+        if (e.key === 'Escape') {
+            modal.remove();
+            document.removeEventListener('keydown', escapeHandler);
+        }
+    };
+    document.addEventListener('keydown', escapeHandler);
+}
+
+/**
+ * Perform the API call to scan the folder
+ */
+async function performScan(folderPath) {
+    try {
+        const btn_scan = document.getElementById('btn_scan');
+        const scan_loading = document.getElementById('scan_loading');
+        const scan_caption = document.getElementById('scan_caption');
+        
+        if (btn_scan) btn_scan.classList.add('disabled');
+        if (scan_loading) scan_loading.src = 'assets/images/load.gif';
+        if (scan_caption) scan_caption.innerHTML = `Scanning folder: <b>${folderPath}</b>`;
+        
+        const url = `/api/sources/${g_source.id}/scan?folder_name=${encodeURIComponent(folderPath)}`;
+        const response = await fetch(url, { method: 'POST' });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (scan_caption) {
+            scan_caption.innerHTML = `Scan completed for <b>${folderPath}</b>. Found ${data.new_photos || 0} new photos.`;
+        }
+        
+        // Reload the page to show updated data
+        setTimeout(() => {
+            location.reload();
+        }, 2000);
+        
+    } catch (error) {
+        console.error('Scan error:', error);
+        const scan_caption = document.getElementById('scan_caption');
+        if (scan_caption) {
+            scan_caption.innerHTML = `Error scanning folder: ${error.message}`;
+        }
+        const btn_scan = document.getElementById('btn_scan');
+        if (btn_scan) btn_scan.classList.remove('disabled');
+    } finally {
+        const scan_loading = document.getElementById('scan_loading');
+        if (scan_loading) scan_loading.src = '';
+    }
 }
 
 

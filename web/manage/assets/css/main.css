@@ -4378,3 +4378,67 @@ button:disabled,
   50% { opacity: 0.6; }
 }
 
+/* ====== Scan Dropdown Styles ====== */
+.scan-dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.scan-btn {
+  background: #fff;
+  color: #d32f2f;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.scan-btn:hover {
+  background: #d32f2f;
+  color: white;
+  box-shadow: 0 2px 8px rgba(211, 47, 47, 0.3);
+}
+
+.scan-btn:active {
+  transform: translateY(1px);
+}
+
+.scan-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 200px;
+  max-width: 400px;
+  margin-top: 4px;
+}
+
+.scan-option {
+  display: block;
+  padding: 10px 12px;
+  color: #333;
+  text-decoration: none;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 12px;
+  word-break: break-word;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.scan-option:last-child {
+  border-bottom: none;
+}
+
+.scan-option:hover {
+  background-color: #ffebee;
+  color: #d32f2f;
+  font-weight: 500;
+}
+

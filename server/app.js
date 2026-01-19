@@ -129,6 +129,8 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   logger.info(`Server listening on all interfaces at port ${PORT}`);
 });
 
+let cronJob = null;
+
 if (!is_jest_running) {
   // Startup purge for any invalid view_log references
   purge_invalid_view_logs((purgeErr)=>{
@@ -144,11 +146,19 @@ if (!is_jest_running) {
     } else {
       random_photo_set_interval = config.refresh_server;
     }    
-    cron.schedule(random_photo_set_interval, () => {
+    cronJob = cron.schedule(random_photo_set_interval, () => {
       set_random_photo();
     });
   });
 }
 
-export default { server };
+// Graceful shutdown helper for testing
+const cleanup = () => {
+  if (cronJob) {
+    cronJob.stop();
+    cronJob = null;
+  }
+};
+
+export default { server, cleanup };
 

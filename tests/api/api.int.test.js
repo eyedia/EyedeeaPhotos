@@ -41,11 +41,19 @@ describe('Version API', () => {
 });
 
 afterAll((done) => {
+  // Call cleanup first
+  if (server && typeof server.cleanup === 'function') {
+    server.cleanup();
+  }
+  
   if (server && server.server) {
-    server.server.close((err) => {
-      if (err) {
-        console.error('Error closing server:', err);
-      }
+    // Force close all connections with a timeout to prevent Jest hanging
+    const timeout = setTimeout(() => {
+      done();
+    }, 1000);
+    
+    server.server.close(() => {
+      clearTimeout(timeout);
       done();
     });
   } else {

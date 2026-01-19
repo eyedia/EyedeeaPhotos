@@ -620,7 +620,7 @@ function renderTableDirs(records) {
         const a = `<a href='photos.html?source-id=${g_source.id}&source-name=${g_source.name}&dir-id=${item.dir_id}&dir-name=${item.dir}'>`;
         
         // Generate folder hierarchy for dropdown
-        const folderHierarchy = generateFolderHierarchy(item.dir);
+        const folderHierarchy = generateFolderHierarchy(item.dir, g_source.url, g_source.type);
         const dropdownId = `scan-dropdown-${Math.random().toString(36).substr(2, 9)}`;
         
         // Create dropdown HTML
@@ -646,27 +646,46 @@ function renderTableDirs(records) {
 
 /**
  * Generates folder hierarchy from a full path
+ * Handles both Unix paths (NAS/Synology) and Windows paths (filesystem)
  * E.g., "/Family/2025/India Trip/Pune" returns:
- * ["/Family/2025/India Trip/Pune", "/Family/2025/India Trip", "/Family/2025", "/Family", "/"]
+ * ["/Family/2025/India Trip/Pune", "/Family/2025/India Trip", "/Family/2025", "/Family"]
+ * E.g., "D:\GPhotos\Mountains\More Mountains" with root "D:\GPhotos" returns:
+ * ["D:\GPhotos\Mountains\More Mountains", "D:\GPhotos\Mountains", "D:\GPhotos"]
  */
-function generateFolderHierarchy(folderPath) {
+function generateFolderHierarchy(folderPath, sourceRoot, sourceType) {
     const hierarchy = [];
     const trimmedPath = folderPath.trim();
     
     // Add the full path first
     hierarchy.push(trimmedPath);
     
+    // Determine if it's a Windows path or Unix path
+    const isWindowsPath = sourceType === 'fs' || /^[A-Z]:\\/.test(trimmedPath) || trimmedPath.includes('\\');
+    const separator = isWindowsPath ? '\\' : '/';
+    
     // Split path and build hierarchy from most specific to root
-    const parts = trimmedPath.split('/').filter(p => p.length > 0);
+    const parts = trimmedPath.split(separator).filter(p => p.length > 0);
     
-    // Add parent folders
-    for (let i = parts.length - 1; i > 0; i--) {
-        const parentPath = '/' + parts.slice(0, i).join('/');
-        hierarchy.push(parentPath);
+    if (isWindowsPath) {
+        // For Windows paths, reconstruct without duplicating the drive letter
+        // parts[0] is the drive letter (e.g., "D:")
+        const sourceRootParts = sourceRoot.split(separator).filter(p => p.length > 0);
+        
+        // Add parent folders up to the source root
+        for (let i = parts.length - 1; i >= sourceRootParts.length; i--) {
+            const parentPath = parts.slice(0, i).join('\\');
+            if (parentPath !== trimmedPath) {
+                hierarchy.push(parentPath);
+            }
+        }
+    } else {
+        // For Unix paths, add parent folders up to source root
+        const sourceRootParts = sourceRoot.split(separator).filter(p => p.length > 0);
+        for (let i = parts.length - 1; i >= sourceRootParts.length; i--) {
+            const parentPath = '/' + parts.slice(0, i).join('/');
+            hierarchy.push(parentPath);
+        }
     }
-    
-    // Add root
-    hierarchy.push('/');
     
     return hierarchy;
 }
@@ -760,13 +779,29 @@ function showScanConfirmation(folderPath) {
  */
 async function performScan(folderPath) {
     try {
-        const btn_scan = document.getElementById('btn_scan');
-        const scan_loading = document.getElementById('scan_loading');
-        const scan_caption = document.getElementById('scan_caption');
+        // Set flag to indicate this is a rescan (synchronous operation)
+        sessionStorage.setItem('isRescan', 'true');
         
-        if (btn_scan) btn_scan.classList.add('disabled');
-        if (scan_loading) scan_loading.src = 'assets/images/load.gif';
-        if (scan_caption) scan_caption.innerHTML = `Scanning folder: <b>${folderPath}</b>`;
+        // Create overlay for rescan (not the normal scan process)
+        const overlay = document.createElement('div');
+        overlay.id = 'rescan-overlay';
+        overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 3000;';
+        
+        const overlayContent = document.createElement('div');
+        overlayContent.style.cssText = 'text-align: center;';
+        
+        const loadingGif = document.createElement('img');
+        loadingGif.src = '../../../images/eyedeea_loading.gif';
+        loadingGif.style.cssText = 'width: 100px; height: 100px; margin-bottom: 20px;';
+        
+        const loadingText = document.createElement('p');
+        loadingText.innerText = `Scanning folder: ${folderPath}`;
+        loadingText.style.cssText = 'color: white; font-size: 16px; margin: 0;';
+        
+        overlayContent.appendChild(loadingGif);
+        overlayContent.appendChild(loadingText);
+        overlay.appendChild(overlayContent);
+        document.body.appendChild(overlay);
         
         const url = `/api/sources/${g_source.id}/scan?folder_name=${encodeURIComponent(folderPath)}`;
         const response = await fetch(url, { method: 'POST' });
@@ -777,26 +812,37 @@ async function performScan(folderPath) {
         
         const data = await response.json();
         
-        if (scan_caption) {
-            scan_caption.innerHTML = `Scan completed for <b>${folderPath}</b>. Found ${data.new_photos || 0} new photos.`;
-        }
-        
-        // Reload the page to show updated data
-        setTimeout(() => {
-            location.reload();
-        }, 2000);
+        // Reload the page to show updated data (overlay will be cleared by reload)
+        location.reload();
         
     } catch (error) {
         console.error('Scan error:', error);
-        const scan_caption = document.getElementById('scan_caption');
-        if (scan_caption) {
-            scan_caption.innerHTML = `Error scanning folder: ${error.message}`;
+        sessionStorage.removeItem('isRescan');
+        
+        const rescanOverlay = document.getElementById('rescan-overlay');
+        if (rescanOverlay) {
+            rescanOverlay.remove();
         }
-        const btn_scan = document.getElementById('btn_scan');
-        if (btn_scan) btn_scan.classList.remove('disabled');
-    } finally {
-        const scan_loading = document.getElementById('scan_loading');
-        if (scan_loading) scan_loading.src = '';
+        
+        // Show error message
+        const modal = document.createElement('div');
+        modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 2000;';
+        
+        const modalContent = document.createElement('div');
+        modalContent.style.cssText = 'background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); max-width: 400px; text-align: center;';
+        
+        modalContent.innerHTML = `
+            <h3 style="margin-top: 0; color: #d32f2f;">Scan Error</h3>
+            <p style="color: #666; margin: 15px 0;">${error.message}</p>
+            <button id="btn-close-error" style="padding: 8px 20px; border: none; background: #d32f2f; color: white; border-radius: 4px; cursor: pointer; font-weight: 600;">Close</button>
+        `;
+        
+        modal.appendChild(modalContent);
+        document.body.appendChild(modal);
+        
+        modalContent.querySelector('#btn-close-error').onclick = () => {
+            modal.remove();
+        };
     }
 }
 
@@ -898,6 +944,14 @@ async function any_active_scan() {
     if (!id) {
         return;
     }
+    
+    // Check if this is a rescan completion - if so, skip the timer logic
+    const isRescan = sessionStorage.getItem('isRescan');
+    if (isRescan) {
+        sessionStorage.removeItem('isRescan');
+        return;
+    }
+    
     try {
         const response = await fetch(`/api/sources/${id}/scan`);
         if (!response.ok) {

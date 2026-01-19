@@ -40,23 +40,23 @@ describe('Version API', () => {
   });
 });
 
-afterAll((done) => {
+afterAll(async () => {
   // Call cleanup first
   if (server && typeof server.cleanup === 'function') {
-    server.cleanup();
+    await server.cleanup();
   }
   
   if (server && server.server) {
-    // Force close all connections with a timeout to prevent Jest hanging
-    const timeout = setTimeout(() => {
-      done();
-    }, 1000);
-    
-    server.server.close(() => {
-      clearTimeout(timeout);
-      done();
+    // Force close all connections
+    return new Promise((resolve) => {
+      const timeout = setTimeout(() => {
+        resolve();
+      }, 2000);
+      
+      server.server.close(() => {
+        clearTimeout(timeout);
+        resolve();
+      });
     });
-  } else {
-    done();
   }
 });

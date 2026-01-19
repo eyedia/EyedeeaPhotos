@@ -178,3 +178,19 @@ function close_database() {
         process.exit(0);
     });
 }
+
+// Export a function for graceful shutdown in tests
+export function close_database_async() {
+    return new Promise((resolve, reject) => {
+        logger.info('Closing database...');
+        meta_db.close((err) => {
+            if (err) {
+                console.error('Error closing database:', err.message);
+                reject(err);
+            } else {
+                logger.info('Database closed successfully.');
+                resolve();
+            }
+        });
+    });
+}

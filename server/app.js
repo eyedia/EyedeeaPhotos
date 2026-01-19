@@ -28,6 +28,7 @@ import cron from "node-cron";
 import cors from 'cors';
 import logger from "./config_log.js";
 import { set_random_photo, get_config, purge_invalid_view_logs } from "./meta/meta_view.mjs";
+import { close_database_async } from "./meta/meta_base.mjs";
 import { runMigrations } from "./meta/migration_manager.mjs";
 import view_filter_router from './api/routers/view_filter_router.js';
 import view_router from './api/routers/view_router.js';
@@ -153,10 +154,15 @@ if (!is_jest_running) {
 }
 
 // Graceful shutdown helper for testing
-const cleanup = () => {
+const cleanup = async () => {
   if (cronJob) {
     cronJob.stop();
     cronJob = null;
+  }
+  try {
+    await close_database_async();
+  } catch (err) {
+    logger.error('Error during cleanup:', err);
   }
 };
 

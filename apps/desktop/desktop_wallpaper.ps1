@@ -13,6 +13,7 @@ $FilesToDownload = @(
     "WallpaperApp.ps1",
     "config.json",
     "install.ps1",
+    "desktop_wallpaper.ps1",
     "icon.ico",
     "README.md"
 )
@@ -124,13 +125,72 @@ function Uninstall-Application {
     Write-ColorOutput "`nUninstalling Eyedeea Photos Wallpaper..." "Cyan"
     
     $installScriptPath = Join-Path $InstallDir "install.ps1"
+    $appName = "EyedeeaPhotosWallpaper"
+    $startupFolder = [Environment]::GetFolderPath("Startup")
+    $startupShortcutPath = Join-Path $startupFolder "$appName.lnk"
+    $startMenuFolder = [Environment]::GetFolderPath("Programs")
+    $startMenuShortcutPath = Join-Path $startMenuFolder "Eyedeea Photos Wallpaper.lnk"
+    $uninstallRegistryPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\$appName"
+
+    function Invoke-FallbackUninstallCleanup {
+        Write-ColorOutput "Running fallback uninstall cleanup..." "Yellow"
+
+        try {
+            $processes = Get-WmiObject Win32_Process -Filter "name='powershell.exe'" -ErrorAction SilentlyContinue |
+                         Where-Object { $_.CommandLine -like "*WallpaperApp.ps1*" }
+            if ($processes) {
+                foreach ($proc in $processes) {
+                    Stop-Process -Id $proc.ProcessId -Force -ErrorAction SilentlyContinue
+                }
+                Write-ColorOutput "Stopped running wallpaper app process(es)." "Green"
+            }
+        } catch {
+            Write-ColorOutput "Could not stop running wallpaper app processes: $_" "Yellow"
+        }
+
+        try {
+            if (Test-Path $startupShortcutPath) {
+                Remove-Item -Path $startupShortcutPath -Force -ErrorAction SilentlyContinue
+                Write-ColorOutput "Removed Startup shortcut." "Green"
+            }
+            if (Test-Path $startMenuShortcutPath) {
+                Remove-Item -Path $startMenuShortcutPath -Force -ErrorAction SilentlyContinue
+                Write-ColorOutput "Removed Start Menu shortcut." "Green"
+            }
+        } catch {
+            Write-ColorOutput "Could not remove one or more shortcuts: $_" "Yellow"
+        }
+
+        try {
+            if (Test-Path $uninstallRegistryPath) {
+                Remove-Item -Path $uninstallRegistryPath -Force -ErrorAction SilentlyContinue
+                Write-ColorOutput "Removed uninstall registry entry." "Green"
+            }
+        } catch {
+            Write-ColorOutput "Could not remove uninstall registry entry: $_" "Yellow"
+        }
+    }
     
     if (Test-Path $installScriptPath) {
+        $installScriptSucceeded = $false
         try {
             # Run uninstall
             Push-Location $InstallDir
             & $installScriptPath -Uninstall
+            if ($LASTEXITCODE -eq 0) {
+                $installScriptSucceeded = $true
+            }
             Pop-Location
+        } catch {
+            Write-ColorOutput "Installed uninstall script failed: $_" "Yellow"
+            try {
+                Pop-Location
+            } catch {}
+        }
+
+        if (-not $installScriptSucceeded) {
+            Invoke-FallbackUninstallCleanup
+        }
             
             # Remove installation directory
             if (Test-Path $InstallDir) {
@@ -140,11 +200,15 @@ function Uninstall-Application {
             }
             
             Write-ColorOutput "Uninstallation completed successfully!" "Green"
-        } catch {
-            Write-ColorOutput "Uninstallation failed: $_" "Red"
-            Pop-Location
-        }
     } else {
+        Invoke-FallbackUninstallCleanup
+
+        if (Test-Path $InstallDir) {
+            Write-Host "  Removing installation directory... " -NoNewline
+            Remove-Item -Path $InstallDir -Recurse -Force
+            Write-ColorOutput "OK" "Green"
+        }
+
         Write-ColorOutput "Installation not found at: $InstallDir" "Yellow"
     }
 }
